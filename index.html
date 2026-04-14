@@ -2097,8 +2097,8 @@ footer {
             </div>
           </div>
           <div class="form-row">
-            <label class="form-label">Prix FAI (€)</label>
-            <input type="number" class="form-input" id="aPrix" placeholder="Ex: 850000">
+            <label class="form-label">Prix de vente FAI (€) *</label>
+            <input type="number" class="form-input" id="aPrix" placeholder="Ex: 850000" style="border-color:var(--or);">
           </div>
           <div class="form-row">
             <label class="form-label">Référence agence</label>
@@ -2408,7 +2408,9 @@ function goBack() {
 
 // ===== RENDU CARTES =====
 function formatPrix(p) {
-  if (p >= 1000000) return (p/1000000).toFixed(2).replace('.',',') + ' M€ FAI';
+  if (!p || p === 0) return 'Prix sur demande';
+  p = parseInt(p) || 0;
+  if (p >= 1000000) return (p/1000000).toFixed(2).replace('.',',').replace(',00','') + ' M€ FAI';
   return p.toLocaleString('fr-FR') + ' € FAI';
 }
 
@@ -2999,7 +3001,7 @@ function adminAddBien() {
     titre,
     type:       document.getElementById('aType').value,
     ville:      document.getElementById('aVille').value,
-    prix:       parseInt(document.getElementById('aPrix').value) || 0,
+    prix:       parseInt(document.getElementById('aPrix').value) || parseInt(document.getElementById('aPrixFAI').value) || 0,
     ref:        document.getElementById('aRef').value.trim(),
     exclusif:   document.getElementById('aExclu').value === '1',
     surface:    parseInt(document.getElementById('aSurface').value) || 0,
