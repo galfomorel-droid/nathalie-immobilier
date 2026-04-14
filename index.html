@@ -2683,29 +2683,48 @@ function adminDelete(id) {
 }
 
 function adminEdit(id) {
-  const b = biens.find(x => x.id == id || parseInt(x.id) === parseInt(id));
+  var b = biens.find(function(x){ return x.id == id || parseInt(x.id) === parseInt(id); });
   if (!b) return;
 
-  // Remplir le formulaire
+  // Onglet 1 par défaut
+  switchEditTab(1, document.getElementById('etab1'));
+
+  // === ONGLET 1 : INFORMATIONS ===
   document.getElementById('editId').value = id;
-  document.getElementById('editTitre').value = b.titre;
-  document.getElementById('editType').value = b.type;
-  document.getElementById('editPrix').value = b.prix;
-  document.getElementById('editSurface').value = b.surface;
-  document.getElementById('editPieces').value = b.pieces;
-  document.getElementById('editChambres').value = b.chambres;
+  document.getElementById('editTitre').value = b.titre || '';
+  document.getElementById('editType').value = b.type || 'Villa';
+  document.getElementById('editRef').value = b.ref || '';
   document.getElementById('editExclu').value = b.exclusif ? '1' : '0';
+
+  // Ville
+  refreshVilleSelects();
+  var sv = document.getElementById('editVille');
+  if (sv) sv.value = b.ville || '';
+
+  // === ONGLET 2 : DÉTAILS ===
+  document.getElementById('editSurface').value = b.surface || '';
+  document.getElementById('editTerrain').value = b.terrain || '';
+  document.getElementById('editPieces').value = b.pieces || '';
+  document.getElementById('editChambres').value = b.chambres || '';
+  document.getElementById('editSDB').value = b.sdb || '';
+  document.getElementById('editNiveaux').value = b.niveaux || '';
+  document.getElementById('editAnnee').value = b.annee || '';
+  document.getElementById('editHonoraires').value = b.honoraires || '';
+
+  // === ONGLET 3 : DESCRIPTION ===
   document.getElementById('editDesc').value = b.desc || '';
 
-  // Remplir le select ville
-  const editVille = document.getElementById('editVille');
-  editVille.innerHTML = '';
-  villes.forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = v; opt.textContent = v;
-    if (v === b.ville) opt.selected = true;
-    editVille.appendChild(opt);
-  });
+  // === ONGLET 4 : PRIX & DPE ===
+  document.getElementById('editPrix').value = b.prix || '';
+  document.getElementById('editPrixHH').value = b.prixHH || '';
+  document.getElementById('editDPE').value = b.dpe || '';
+  document.getElementById('editDPEval').value = b.dpeVal || '';
+  document.getElementById('editGES').value = b.ges || '';
+  document.getElementById('editGESval').value = b.gesVal || '';
+
+  // === ONGLET 5 : PHOTOS ===
+  editPhotos = b.photos ? b.photos.slice() : (b.img ? [b.img] : []);
+  renderEditPhotoGrid();
 
   // Ouvrir la modal
   document.getElementById('modal-edit-bien').classList.add('open');
@@ -2718,28 +2737,51 @@ function closeEditModal() {
 }
 
 function saveEdit() {
-  const id = parseInt(document.getElementById('editId').value);
-  const b = biens.find(x => x.id == id || parseInt(x.id) === parseInt(id));
+  var id = parseInt(document.getElementById('editId').value);
+  var b = biens.find(function(x){ return x.id == id; });
   if (!b) return;
 
-  b.titre    = document.getElementById('editTitre').value.trim() || b.titre;
+  // Onglet 1 - Informations
+  b.titre    = document.getElementById('editTitre').value;
   b.type     = document.getElementById('editType').value;
   b.ville    = document.getElementById('editVille').value;
-  b.prix     = parseInt(document.getElementById('editPrix').value) || b.prix;
-  b.surface  = parseInt(document.getElementById('editSurface').value) || b.surface;
-  b.pieces   = parseInt(document.getElementById('editPieces').value) || b.pieces;
-  b.chambres = parseInt(document.getElementById('editChambres').value) || b.chambres;
+  b.ref      = document.getElementById('editRef').value;
   b.exclusif = document.getElementById('editExclu').value === '1';
-  b.desc     = document.getElementById('editDesc').value;
+
+  // Onglet 2 - Détails
+  b.surface    = parseInt(document.getElementById('editSurface').value) || 0;
+  b.terrain    = parseInt(document.getElementById('editTerrain').value) || 0;
+  b.pieces     = parseInt(document.getElementById('editPieces').value) || 0;
+  b.chambres   = parseInt(document.getElementById('editChambres').value) || 0;
+  b.sdb        = parseInt(document.getElementById('editSDB').value) || 0;
+  b.niveaux    = parseInt(document.getElementById('editNiveaux').value) || 0;
+  b.annee      = parseInt(document.getElementById('editAnnee').value) || 0;
+  b.honoraires = parseFloat(document.getElementById('editHonoraires').value) || 0;
+
+  // Onglet 3 - Description
+  b.desc = document.getElementById('editDesc').value;
+
+  // Onglet 4 - Prix & DPE
+  b.prix   = parseInt(document.getElementById('editPrix').value) || 0;
+  b.prixHH = parseInt(document.getElementById('editPrixHH').value) || 0;
+  b.dpe    = document.getElementById('editDPE').value;
+  b.dpeVal = parseInt(document.getElementById('editDPEval').value) || 0;
+  b.ges    = document.getElementById('editGES').value;
+  b.gesVal = parseInt(document.getElementById('editGESval').value) || 0;
+
+  // Onglet 5 - Photos
+  if (editPhotos.length > 0) {
+    b.photos = editPhotos.slice();
+    b.img    = editPhotos[0];
+  }
 
   saveBiens();
   closeEditModal();
   renderAdmin();
   renderHomeGrid();
+  alert('✅ Bien modifié avec succès !');
 }
 
-// ===== GESTION VILLES DYNAMIQUES =====
-let villes = ['La Baule', 'Guérande', 'Le Pouliguen', 'Batz-sur-Mer', 'La Turballe', 'Piriac-sur-Mer'];
 
 function refreshVilleSelects() {
   // Filtre biens
@@ -3172,232 +3214,38 @@ if (_lb) { _lb.addEventListener('click', function(e) { if (e.target === this) cl
 </script>
 <!-- MODAL ÉDITION BIEN -->
 <div id="modal-edit-bien">
-  <div class="edit-modal-box">
-    <button class="modal-close" onclick="closeEditModal()">✕</button>
-    <div class="edit-modal-title">Modifier le bien</div>
-    <input type="hidden" id="editId">
-    <div class="admin-form-grid">
-      <div class="form-row">
-        <label class="form-label">Titre</label>
-        <input type="text" class="form-input" id="editTitre">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Type</label>
-        <select class="form-select" id="editType">
-          <option>Villa</option>
-          <option>Maison</option>
-          <option>Appartement</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label class="form-label">Ville</label>
-        <select class="form-select" id="editVille"></select>
-      </div>
-      <div class="form-row">
-        <label class="form-label">Prix (€)</label>
-        <input type="number" class="form-input" id="editPrix">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Surface (m²)</label>
-        <input type="number" class="form-input" id="editSurface">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Pièces</label>
-        <input type="number" class="form-input" id="editPieces">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Chambres</label>
-        <input type="number" class="form-input" id="editChambres">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Salles de bain</label>
-        <input type="number" class="form-input" id="editSDB">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Niveaux</label>
-        <input type="number" class="form-input" id="editNiveaux">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Exclusivité</label>
-        <select class="form-select" id="editExclu">
-          <option value="0">Non</option>
-          <option value="1">Oui</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-row" style="margin-top:1rem;">
-      <label class="form-label">Description</label>
-      <textarea class="form-textarea" id="editDesc" style="min-height:80px;"></textarea>
-    </div>
-    <div style="display:flex;gap:1rem;margin-top:1.5rem;">
-      <button class="form-submit" style="flex:1;" onclick="saveEdit()">Enregistrer les modifications</button>
-      <button onclick="closeEditModal()" style="padding:1rem 1.5rem;border:1px solid var(--beige-dark);background:none;font-family:var(--sans);font-size:.78rem;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;">Annuler</button>
-    </div>
-  </div>
-</div>
-
-<!-- BANDEAU COOKIES -->
-<div id="cookie-banner" style="display:none;">
-  <p>🍪 Nous utilisons des cookies pour améliorer votre expérience. En continuant à naviguer, vous acceptez notre <span onclick="showLegal('cookies-info')" style="color:var(--or);cursor:pointer;text-decoration:underline;">politique de cookies</span>.</p>
-  <div class="cookie-banner-btns">
-    <button class="cookie-btn-prefs" onclick="openCookieModal()">Personnaliser</button>
-    <button class="cookie-btn-refuse" onclick="closeCookieBanner(false)">Refuser</button>
-    <button class="cookie-btn-accept" onclick="closeCookieBanner(true)">Tout accepter</button>
-  </div>
-</div>
-
-<!-- MODAL PRÉFÉRENCES COOKIES -->
-<div id="modal-cookies">
-  <div class="cookies-modal-box">
-    <div class="cookies-modal-header">
-      <div>
-        <div style="font-size:.7rem;color:var(--gris);margin-bottom:.2rem;">Nathalie Chaudet Morel</div>
-        <h2>Espace de Préférences des Cookies</h2>
-      </div>
-      <button onclick="closeCookieModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--gris);">✕</button>
-    </div>
-    <div class="cookies-modal-body">
-      <div class="cookies-nav">
-        <div class="cookies-nav-item active" onclick="showCookieSection('confidentialite', this)">Votre confidentialité</div>
-        <div class="cookies-nav-item" onclick="showCookieSection('necessaires', this)">Cookies strictement nécessaires</div>
-        <div class="cookies-nav-item" onclick="showCookieSection('fonctionnalite', this)">Cookies de Fonctionnalité</div>
-        <div class="cookies-nav-item" onclick="showCookieSection('performance', this)">Cookies de suivi et de performance</div>
-        <div class="cookies-nav-item" onclick="showCookieSection('info', this)">Plus d'information</div>
-      </div>
-      <div class="cookies-content" id="cookie-section-content">
-        <h3>Votre confidentialité est importante pour nous</h3>
-        <p>Les cookies sont de très petits fichiers texte stockés sur votre ordinateur lorsque vous visitez un site web.</p>
-        <p>Vous pouvez modifier vos préférences et refuser certains types de cookies à tout moment.</p>
-      </div>
-    </div>
-    <div class="cookies-modal-footer">
-      <button onclick="closeCookieModal()" style="padding:.7rem 1.5rem;background:none;border:1px solid var(--beige-dark);font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">Fermer</button>
-      <button onclick="saveCookiePrefs()" style="padding:.7rem 1.5rem;background:var(--or);color:white;border:none;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">Sauvegarder mes préférences</button>
-    </div>
-  </div>
-</div>
-
-<!-- LIGHTBOX -->
-<div id="lightbox">
-  <div id="lightbox-counter">1 / 1</div>
-  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
-  <button id="lightbox-prev" onclick="lightboxNav(-1)">‹</button>
-  <img id="lightbox-img" src="" alt="">
-  <button id="lightbox-next" onclick="lightboxNav(1)">›</button>
-  <div id="lightbox-thumbs"></div>
-</div>
-
-<!-- MODAL PAGES LÉGALES -->
-<div id="modal-legal" style="display:none;position:fixed;inset:0;background:white;z-index:5000;overflow-y:auto;padding-top:5rem;">
-  <nav style="position:fixed;top:0;left:0;right:0;background:white;border-bottom:1px solid var(--beige);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;z-index:5001;">
-    <span onclick="closeLegal()" style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);cursor:pointer;display:flex;align-items:center;gap:.5rem;">← Retour à l'accueil</span>
-    <span style="font-family:var(--serif);font-style:italic;color:var(--noir);font-size:1rem;">Nathalie Chaudet Morel</span>
-  </nav>
-  <div style="max-width:860px;margin:0 auto;padding:2rem;">
-    <div id="legal-content"></div>
-  </div>
-</div>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-grid">
-    <div>
-      <div class="footer-brand-name">Nathalie Chaudet Morel</div>
-      <div class="footer-brand-sub">L'immobilier de la Presqu'île Guérandaise</div>
-      <p class="footer-desc">Agent immobilier indépendante spécialisée sur La Baule, Guérande, Le Pouliguen et la côte Atlantique.</p>
-      <div style="margin-top:1.5rem;font-size:.75rem;color:rgba(255,255,255,.3);line-height:1.8;">
-        <div>06 48 38 43 75</div>
-        <div><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f896998c909994919dd69b90998d9c9d8cd595978a9d94b8cb9f919595979a9194919d8ad69b9795">[email&#160;protected]</a></div>
-      </div>
-    </div>
-    <div>
-      <div class="footer-col-title">Accès rapide</div>
-      <div class="footer-links">
-        <a href="#" onclick="showPage('home');return false;">Acheter</a>
-        <a href="#" onclick="showPage('estimation');return false;">Vendre</a>
-        <a href="#" onclick="showPage('biens');return false;">Les quartiers</a>
-        <a href="#" onclick="showPage('biens');return false;">Nos annonces</a>
-        <a href="#" onclick="showPage('home');return false;">Actualités</a>
-      </div>
-    </div>
-    <div>
-      <div class="footer-col-title">À propos</div>
-      <div class="footer-links">
-        <a href="#" onclick="showLegal('mentions');return false;">Mentions légales</a>
-        <a href="#" onclick="showLegal('rgpd');return false;">RGPD</a>
-        <a href="#" onclick="showLegal('cookies-info');return false;">Gestion des cookies</a>
-        <a href="#" onclick="showLegal('cgu');return false;">Conditions d'utilisation</a>
-        <a href="#" onclick="showLegal('honoraires');return false;">Honoraires — L'Immobilier de la Presqu'île Guérandaise</a>
-      </div>
-    </div>
-    <div>
-      <div class="footer-col-title">Contact</div>
-      <div class="footer-links">
-        <a href="#" onclick="showPage('apropos');return false;">À propos</a>
-        <a href="#" onclick="showPage('contact');return false;">Contact</a>
-        <a href="#" onclick="showPage('estimation');return false;">Demande d'estimationclick="showPage('estimation');return false;">Demande d'estimation</a>
-        <a href="tel:+33648384375">06 48 38 43 75</a>
-        <a href="/cdn-cgi/l/email-protection#c6a8a7b2aea7aaafa3e8a5aea7b3a2a3b2ebaba9b4a3aa86f5a1afababa9a4afaaafa3b4e8a5a9ab"><span class="__cf_email__" data-cfemail="93fdf2e7fbf2fffaf6bdf0fbf2e6f7f6e7befefce1f6ffd3a0f4fafefefcf1fafffaf6e1bdf0fcfe">[email&#160;protected]</span></a>
-      </div>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© 2025 Nathalie Chaudet Morel – L'Immobilier de la Presqu'île Guérandaise</span>
-  </div>
-</footer>
-
-<!-- BANDEAU COOKIES -->
-<div id="cookie-banner" style="display:none;">
-  <p>🍪 Nous utilisons des cookies. <span onclick="showLegal('cookies-info')" style="color:var(--or);cursor:pointer;text-decoration:underline;">En savoir plus</span></p>
-  <div class="cookie-banner-btns">
-    <button class="cookie-btn-refuse" onclick="closeCookieBanner(false)">Refuser</button>
-    <button class="cookie-btn-accept" onclick="closeCookieBanner(true)">Accepter</button>
-  </div>
-</div>
-
-<!-- LIGHTBOX -->
-<div id="lightbox">
-  <div id="lightbox-counter">1 / 1</div>
-  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
-  <button id="lightbox-prev" onclick="lightboxNav(-1)">‹</button>
-  <img id="lightbox-img" src="" alt="">
-  <button id="lightbox-next" onclick="lightboxNav(1)">›</button>
-  <div id="lightbox-thumbs"></div>
-</div>
-
-<!-- MODAL PAGES LÉGALES -->
-<div id="modal-legal" style="display:none;position:fixed;inset:0;background:white;z-index:5000;overflow-y:auto;padding-top:5rem;">
-  <nav style="position:fixed;top:0;left:0;right:0;background:white;border-bottom:1px solid var(--beige);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;z-index:5001;">
-    <span onclick="closeLegal()" style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);cursor:pointer;">← Retour</span>
-    <span style="font-family:var(--serif);font-style:italic;color:var(--noir);">Nathalie Chaudet Morel</span>
-  </nav>
-  <div style="max-width:860px;margin:0 auto;padding:2rem;">
-    <div id="legal-content"></div>
-  </div>
-</div>
-
-<!-- MODAL ÉDITION BIEN -->
-<div id="modal-edit-bien">
   <div class="edit-modal-box" style="max-width:800px;max-height:90vh;overflow-y:auto;">
     <button class="modal-close" onclick="closeEditModal()">✕</button>
     <div class="edit-modal-title">Modifier le bien</div>
     <input type="hidden" id="editId">
-    <div style="display:flex;gap:0;margin-bottom:2rem;border-bottom:2px solid var(--beige);">
-      <button onclick="switchEditTab(1,this)" id="etab1" style="padding:.6rem 1.2rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--or);margin-bottom:-2px;color:var(--noir);">Informations</button>
-      <button onclick="switchEditTab(2,this)" id="etab2" style="padding:.6rem 1.2rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;color:var(--gris);">Détails</button>
-      <button onclick="switchEditTab(3,this)" id="etab3" style="padding:.6rem 1.2rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;color:var(--gris);">Description</button>
-      <button onclick="switchEditTab(4,this)" id="etab4" style="padding:.6rem 1.2rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;color:var(--gris);">Prix & DPE</button>
-      <button onclick="switchEditTab(5,this)" id="etab5" style="padding:.6rem 1.2rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;color:var(--gris);">Photos</button>
+
+    <!-- Onglets -->
+    <div style="display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid var(--beige);flex-wrap:wrap;">
+      <button onclick="switchEditTab(1,this)" id="etab1" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--or);margin-bottom:-2px;color:var(--noir);">Informations</button>
+      <button onclick="switchEditTab(2,this)" id="etab2" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--gris);">Détails</button>
+      <button onclick="switchEditTab(3,this)" id="etab3" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--gris);">Description</button>
+      <button onclick="switchEditTab(4,this)" id="etab4" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--gris);">Prix & DPE</button>
+      <button onclick="switchEditTab(5,this)" id="etab5" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--gris);">Photos</button>
     </div>
+
+    <!-- Onglet 1 : Informations -->
     <div id="edit-tab-1">
       <div class="admin-form-grid">
         <div class="form-row"><label class="form-label">Titre</label><input type="text" class="form-input" id="editTitre"></div>
-        <div class="form-row"><label class="form-label">Type</label><select class="form-select" id="editType"><option>Villa</option><option>Maison</option><option>Appartement</option><option>Terrain</option></select></div>
+        <div class="form-row"><label class="form-label">Type</label>
+          <select class="form-select" id="editType">
+            <option>Villa</option><option>Maison</option><option>Appartement</option><option>Terrain</option><option>Local commercial</option>
+          </select>
+        </div>
         <div class="form-row"><label class="form-label">Ville</label><select class="form-select" id="editVille"></select></div>
-        <div class="form-row"><label class="form-label">Référence agence</label><input type="text" class="form-input" id="editRef"></div>
-        <div class="form-row"><label class="form-label">Exclusivité</label><select class="form-select" id="editExclu"><option value="0">Non</option><option value="1">Oui</option></select></div>
+        <div class="form-row"><label class="form-label">Référence agence</label><input type="text" class="form-input" id="editRef" placeholder="Ex: NCM-2025-001"></div>
+        <div class="form-row"><label class="form-label">Exclusivité</label>
+          <select class="form-select" id="editExclu"><option value="0">Non</option><option value="1">Oui</option></select>
+        </div>
       </div>
     </div>
+
+    <!-- Onglet 2 : Détails -->
     <div id="edit-tab-2" style="display:none;">
       <div class="admin-form-grid">
         <div class="form-row"><label class="form-label">Surface (m²)</label><input type="number" class="form-input" id="editSurface"></div>
@@ -3406,37 +3254,62 @@ if (_lb) { _lb.addEventListener('click', function(e) { if (e.target === this) cl
         <div class="form-row"><label class="form-label">Chambres</label><input type="number" class="form-input" id="editChambres"></div>
         <div class="form-row"><label class="form-label">Salles de bain</label><input type="number" class="form-input" id="editSDB"></div>
         <div class="form-row"><label class="form-label">Niveaux</label><input type="number" class="form-input" id="editNiveaux"></div>
-        <div class="form-row"><label class="form-label">Année construction</label><input type="number" class="form-input" id="editAnnee"></div>
-        <div class="form-row"><label class="form-label">Honoraires (%)</label><input type="number" class="form-input" id="editHonoraires"></div>
+        <div class="form-row"><label class="form-label">Année construction</label><input type="number" class="form-input" id="editAnnee" placeholder="Ex: 1985"></div>
+        <div class="form-row"><label class="form-label">Honoraires (%)</label><input type="number" class="form-input" id="editHonoraires" placeholder="Ex: 5"></div>
       </div>
     </div>
+
+    <!-- Onglet 3 : Description -->
     <div id="edit-tab-3" style="display:none;">
-      <div class="form-row"><label class="form-label">Description</label><textarea class="form-textarea" id="editDesc" style="min-height:200px;width:100%;"></textarea></div>
+      <div class="form-row">
+        <label class="form-label">Description complète</label>
+        <textarea class="form-textarea" id="editDesc" style="min-height:200px;width:100%;box-sizing:border-box;"></textarea>
+      </div>
     </div>
+
+    <!-- Onglet 4 : Prix & DPE -->
     <div id="edit-tab-4" style="display:none;">
       <div class="admin-form-grid">
-        <div class="form-row"><label class="form-label">Prix FAI (€)</label><input type="number" class="form-input" id="editPrix"></div>
-        <div class="form-row"><label class="form-label">Prix HH (€)</label><input type="number" class="form-input" id="editPrixHH"></div>
+        <div class="form-row"><label class="form-label">Prix FAI (€)</label><input type="number" class="form-input" id="editPrix" placeholder="Ex: 850000"></div>
+        <div class="form-row"><label class="form-label">Prix HH (€)</label><input type="number" class="form-input" id="editPrixHH" placeholder="Hors honoraires"></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:1rem;">
-        <div><label class="form-label">Classe DPE</label><select class="form-select" id="editDPE"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option></select><input type="number" class="form-input" id="editDPEval" placeholder="kWh/m².an" style="margin-top:.5rem;"></div>
-        <div><label class="form-label">Classe GES</label><select class="form-select" id="editGES"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option></select><input type="number" class="form-input" id="editGESval" placeholder="kg CO₂/m².an" style="margin-top:.5rem;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
+        <div>
+          <label class="form-label">Classe énergie DPE</label>
+          <select class="form-select" id="editDPE" style="margin-bottom:.5rem;">
+            <option value="">— Non renseigné —</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+          </select>
+          <input type="number" class="form-input" id="editDPEval" placeholder="kWh/m².an">
+        </div>
+        <div>
+          <label class="form-label">Classe GES</label>
+          <select class="form-select" id="editGES" style="margin-bottom:.5rem;">
+            <option value="">— Non renseigné —</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+          </select>
+          <input type="number" class="form-input" id="editGESval" placeholder="kg CO₂/m².an">
+        </div>
       </div>
     </div>
+
+    <!-- Onglet 5 : Photos -->
     <div id="edit-tab-5" style="display:none;">
-      <p style="font-size:.82rem;color:var(--gris);margin-bottom:1rem;">La première photo sera la photo principale.</p>
+      <p style="font-size:.82rem;color:var(--gris);margin-bottom:1rem;">La première photo sera la photo principale de l'annonce.</p>
       <input type="file" id="editPhotosInput" accept="image/*" multiple onchange="editAddPhotos(this)" style="display:none;">
       <button onclick="document.getElementById('editPhotosInput').click()" style="padding:.8rem 1.5rem;background:var(--or);color:white;border:none;font-family:var(--sans);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-bottom:1rem;">+ Ajouter des photos</button>
       <div id="editPhotoGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;"></div>
     </div>
+
+    <!-- Boutons -->
     <div style="display:flex;gap:1rem;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--beige);">
-      <button class="form-submit" style="flex:1;" onclick="saveEdit()">✓ Enregistrer</button>
+      <button class="form-submit" style="flex:1;" onclick="saveEdit()">✓ Enregistrer les modifications</button>
       <button onclick="closeEditModal()" style="padding:1rem 1.5rem;border:1px solid var(--beige-dark);background:none;font-family:var(--sans);font-size:.78rem;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;">Annuler</button>
     </div>
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ===== FONCTIONS MODAL ÉDITION =====
 var editPhotos = [];
 
