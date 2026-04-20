@@ -3405,9 +3405,9 @@ function bienToSupabase(b) {
     gesVal: b.gesVal || 0,
     prixHH: b.prixHH || 0,
     prixFAI: b.prixFAI || b.prix || 0,
-    pctHonoraires: b.pctHonoraires || 0,
-    montantHonoraires: b.montantHonoraires || 0,
-    honoraires: b.honoraires || 0
+    pctHonoraires: parseFloat(b.pctHonoraires) || null,
+    montantHonoraires: parseInt(b.montantHonoraires) || null,
+    honoraires: parseFloat(b.honoraires) || null
   };
 }
 
