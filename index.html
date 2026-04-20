@@ -2677,10 +2677,12 @@ function renderAdmin() {
 
 function adminDelete(id) {
   if (confirm('Supprimer ce bien ?')) {
+    var deletedId = id;
     biens = biens.filter(b => b.id !== id);
     saveBiens();
     renderAdmin();
     renderHomeGrid();
+    deleteBienFromSupabase(deletedId);
   }
 }
 
@@ -2781,6 +2783,7 @@ function saveEdit() {
   closeEditModal();
   renderAdmin();
   renderHomeGrid();
+  updateBienInSupabase(b);
   alert('✅ Bien modifié avec succès !');
 }
 
@@ -3027,6 +3030,7 @@ function adminAddBien() {
   biens.unshift(b);
   saveBiens();
   renderHomeGrid();
+  addBienToSupabase(b);
   
   // Reset tous les champs
   ['aTitre','aPrix','aRef','aSurface','aTerrain','aPieces','aChambres','aSDB','aNiveaux','aAnnee','aMontantHonoraires','aDesc','aPrixFAI','aPrixHH','aPctHonoraires','aDPEconso','aGESconso'].forEach(id => {
@@ -3348,19 +3352,74 @@ function renderEditPhotoGrid() {
 
 function editRemovePhoto(i) { editPhotos.splice(i,1); renderEditPhotoGrid(); }
 
-// ===== PERSISTANCE LOCALSTORAGE =====
+// ===== SUPABASE CONFIG =====
+var SUPA_URL = 'https://xfosdlaqzglljpcnpeir.supabase.co';
+var SUPA_KEY = 'sb_publishable_V68TAsKpyJSLclPFoOCG5A_YeBC-G9B';
+
+function supaHeaders() {
+  return {
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  };
+}
+
+// ===== PERSISTANCE SUPABASE + LOCALSTORAGE =====
 
 function saveBiens() {
+  // Sauvegarde locale immédiate
   try {
     localStorage.setItem('nathalie_biens', JSON.stringify(biens));
     localStorage.setItem('nathalie_nextId', String(nextId));
-    console.log('✅ ' + biens.length + ' biens sauvegardés');
+    console.log('✅ ' + biens.length + ' biens sauvegardés localement');
+  } catch(e) {}
+}
+
+async function addBienToSupabase(b) {
+  try {
+    var res = await fetch(SUPA_URL + '/rest/v1/biens', {
+      method: 'POST',
+      headers: supaHeaders(),
+      body: JSON.stringify(b)
+    });
+    if (res.ok) {
+      console.log('✅ Bien ajouté dans Supabase');
+      return true;
+    } else {
+      var err = await res.text();
+      console.warn('Supabase erreur ajout:', err);
+      return false;
+    }
   } catch(e) {
-    alert('Erreur sauvegarde: ' + e.message);
+    console.warn('Supabase indisponible:', e.message);
+    return false;
   }
 }
 
+async function updateBienInSupabase(b) {
+  try {
+    var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
+      method: 'PATCH',
+      headers: supaHeaders(),
+      body: JSON.stringify(b)
+    });
+    if (res.ok) console.log('✅ Bien modifié dans Supabase');
+  } catch(e) { console.warn('Supabase update échoué:', e.message); }
+}
+
+async function deleteBienFromSupabase(id) {
+  try {
+    var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + id, {
+      method: 'DELETE',
+      headers: supaHeaders()
+    });
+    if (res.ok) console.log('✅ Bien supprimé dans Supabase');
+  } catch(e) { console.warn('Supabase delete échoué:', e.message); }
+}
+
 async function loadBiens() {
+  // 1. Charger localStorage immédiatement
   try {
     var saved = localStorage.getItem('nathalie_biens');
     if (saved) {
@@ -3368,22 +3427,47 @@ async function loadBiens() {
       if (parsed && parsed.length > 0) {
         biens = parsed.map(function(b) { b.id = parseInt(b.id); return b; });
         nextId = parseInt(localStorage.getItem('nathalie_nextId') || String(biens.length + 1));
-        console.log('✅ ' + biens.length + ' biens chargés depuis localStorage');
+        renderHomeGrid();
+        console.log('✅ ' + biens.length + ' biens chargés localement');
       }
     }
+  } catch(e) {}
+
+  // 2. Charger depuis Supabase (source de vérité partagée)
+  try {
+    var res = await fetch(SUPA_URL + '/rest/v1/biens?order=id.asc', {
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY
+      }
+    });
+    if (res.ok) {
+      var data = await res.json();
+      if (data && data.length > 0) {
+        biens = data.map(function(b) { b.id = parseInt(b.id); return b; });
+        nextId = Math.max.apply(null, biens.map(function(b){return b.id;})) + 1;
+        // Mettre à jour localStorage
+        localStorage.setItem('nathalie_biens', JSON.stringify(biens));
+        localStorage.setItem('nathalie_nextId', String(nextId));
+        renderHomeGrid();
+        console.log('✅ ' + biens.length + ' biens chargés depuis Supabase');
+      }
+    } else {
+      console.warn('Supabase: table biens non trouvée - utilisez localStorage');
+    }
   } catch(e) {
-    console.warn('Erreur chargement:', e.message);
+    console.warn('Supabase indisponible, localStorage utilisé');
   }
-  renderHomeGrid();
 }
 
+// Cookies
 function initCookieBanner() {
   if (!localStorage.getItem('cookieConsent')) {
     setTimeout(function() { var b=document.getElementById('cookie-banner'); if(b)b.style.display='flex'; }, 1500);
   }
 }
-function closeCookieBanner(accepted) {
-  localStorage.setItem('cookieConsent', accepted?'accepted':'refused');
+function closeCookieBanner(a) {
+  localStorage.setItem('cookieConsent', a?'accepted':'refused');
   var b=document.getElementById('cookie-banner'); if(b)b.style.display='none';
 }
 function openCookieModal(){var m=document.getElementById('modal-cookies');if(m)m.classList.add('open');}
@@ -3392,16 +3476,16 @@ function saveCookiePrefs(){localStorage.setItem('cookieConsent','custom');closeC
 function showCookieSection(key,el){
   document.querySelectorAll('.cookies-nav-item').forEach(function(i){i.classList.remove('active');});
   el.classList.add('active');
-  var titles={confidentialite:"Votre confidentialité",necessaires:"Cookies nécessaires",fonctionnalite:"Cookies de fonctionnalité",performance:"Cookies de performance",info:"Plus d'information"};
+  var titles={confidentialite:"Votre confidentialité",necessaires:"Cookies nécessaires",fonctionnalite:"Fonctionnalité",performance:"Performance",info:"Plus d'information"};
   var htmls={
-    confidentialite:"<p>Les cookies nous permettent d'améliorer votre expérience de navigation.</p>",
-    necessaires:"<p>Essentiels au fonctionnement du site.</p><div class='cookie-toggle'><div class='toggle-switch'></div><span>Toujours actif</span></div>",
-    fonctionnalite:"<p>Mémorisent vos préférences de navigation.</p>",
-    performance:"<p>Analysent la fréquentation du site de façon anonyme.</p>",
-    info:"<p>Pour toute question : nathalie.chaudet-morel@3gimmobilier.com</p>"
+    confidentialite:"<p>Les cookies améliorent votre navigation.</p>",
+    necessaires:"<p>Essentiels au fonctionnement du site.</p>",
+    fonctionnalite:"<p>Mémorisent vos préférences.</p>",
+    performance:"<p>Analysent la fréquentation de façon anonyme.</p>",
+    info:"<p>Contact: nathalie.chaudet-morel@3gimmobilier.com</p>"
   };
   var el2=document.getElementById('cookie-section-content');
-  if(el2 && titles[key]) el2.innerHTML='<h3>'+titles[key]+'</h3>'+htmls[key];
+  if(el2&&titles[key]) el2.innerHTML='<h3>'+titles[key]+'</h3>'+(htmls[key]||'');
 }
 </script>
 
