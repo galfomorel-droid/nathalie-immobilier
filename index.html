@@ -2515,7 +2515,7 @@ function showFiche(id) {
   document.getElementById('ficheSpecs').innerHTML = 
     '<table style="width:100%;border-collapse:collapse;font-size:.88rem;"><tbody>' + tableRows + '</tbody></table>';
 
-  document.getElementById('ficheDesc').textContent = b.desc;
+  document.getElementById('ficheDesc').textContent = b.description || b.desc || '';
 
   // Section prix détaillée
   const prixSection = document.getElementById('fichePrixSection');
@@ -2716,7 +2716,7 @@ function adminEdit(id) {
   document.getElementById('editHonoraires').value = b.honoraires || '';
 
   // === ONGLET 3 : DESCRIPTION ===
-  document.getElementById('editDesc').value = b.desc || '';
+  document.getElementById('editDesc').value = b.description || b.desc || '';
 
   // === ONGLET 4 : PRIX & DPE ===
   document.getElementById('editPrix').value = b.prix || '';
@@ -2763,7 +2763,7 @@ function saveEdit() {
   b.honoraires = parseFloat(document.getElementById('editHonoraires').value) || 0;
 
   // Onglet 3 - Description
-  b.desc = document.getElementById('editDesc').value;
+  b.description = document.getElementById('editDesc').value;
 
   // Onglet 4 - Prix & DPE
   b.prix   = parseInt(document.getElementById('editPrix').value) || 0;
@@ -2787,6 +2787,8 @@ function saveEdit() {
   alert('✅ Bien modifié avec succès !');
 }
 
+
+var villes = ['La Baule', 'Guérande', 'Le Pouliguen', 'Batz-sur-Mer', 'La Turballe', 'Piriac-sur-Mer'];
 
 function refreshVilleSelects() {
   // Filtre biens
@@ -3016,7 +3018,7 @@ function adminAddBien() {
     annee:      document.getElementById('aAnnee').value.trim(),
     honoraires: document.getElementById('aHonoraires').value,
     montantHonoraires: parseInt(document.getElementById('aMontantHonoraires').value) || 0,
-    desc:       document.getElementById('aDesc').value || 'Description à compléter.',
+    description: document.getElementById('aDesc').value || 'Description à compléter.',
     prixFAI:    parseInt(document.getElementById('aPrixFAI').value) || 0,
     prixHH:     parseInt(document.getElementById('aPrixHH').value) || 0,
     pctHonoraires: parseFloat(document.getElementById('aPctHonoraires').value) || 0,
@@ -3444,7 +3446,11 @@ async function loadBiens() {
     if (res.ok) {
       var data = await res.json();
       if (data && data.length > 0) {
-        biens = data.map(function(b) { b.id = parseInt(b.id); return b; });
+        biens = data.map(function(b) { 
+          b.id = parseInt(b.id); 
+          if (b.description && !b.desc) b.desc = b.description;
+          return b; 
+        });
         nextId = Math.max.apply(null, biens.map(function(b){return b.id;})) + 1;
         // Mettre à jour localStorage
         localStorage.setItem('nathalie_biens', JSON.stringify(biens));
