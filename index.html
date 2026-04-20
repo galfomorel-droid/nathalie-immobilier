@@ -3149,29 +3149,38 @@ async function submitEstimation() {
     return;
   }
 
-  var FORMSPREE_ID = 'YOUR_FORM_ID';
-  
-  if (FORMSPREE_ID === 'YOUR_FORM_ID') {
-    var subject = encodeURIComponent('Demande estimation - ' + nom);
-    var body = encodeURIComponent('Nom: ' + nom + ' | Email: ' + email + ' | Tel: ' + tel + ' | Adresse: ' + adresse + ' | Ville: ' + ville + ' | Type: ' + type + ' | Surface: ' + surface + 'm2');
-    window.open('mailto:nathalie.chaudet-morel@3gimmobilier.com?subject=' + subject + '&body=' + body);
-    alert("Votre client mail va s'ouvrir. Envoyez la demande à Nathalie.");
-    return;
-  }
+  var btn = document.querySelector('#page-estimation .form-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoi en cours...'; }
 
   try {
-    var res = await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+    var res = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ nom, email, tel, adresse, ville, type, surface })
+      body: JSON.stringify({
+        access_key: '2b135d1f-77a0-403b-b5a5-0b433bbee5ed',
+        subject: 'Demande estimation depuis votre site - ' + nom,
+        name: nom,
+        email: email,
+        phone: tel,
+        adresse: adresse,
+        ville: ville,
+        type_bien: type,
+        surface: surface + 'm2'
+      })
     });
-    if (res.ok) {
-      alert('✅ Demande envoyée ! Nathalie vous contactera sous 24h.');
+    var data = await res.json();
+    if (data.success) {
+      alert('✅ Demande envoyée ! Nathalie vous contactera sous 24h avec votre estimation.');
+      ['estimNom','estimEmail','estimTel','estimAdresse','estimSurface'].forEach(function(id) {
+        var el = document.getElementById(id); if(el) el.value = '';
+      });
     } else {
       alert('Erreur. Contactez directement : 06 48 38 43 75');
     }
   } catch(e) {
     alert('Erreur réseau. Contactez directement : 06 48 38 43 75');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Demander une estimation'; }
   }
 }
 
@@ -3186,25 +3195,24 @@ async function submitContact() {
     return;
   }
 
-  // Formspree - remplacer YOUR_FORM_ID par votre ID Formspree
-  var FORMSPREE_ID = 'YOUR_FORM_ID';
-  
-  if (FORMSPREE_ID === 'YOUR_FORM_ID') {
-    // Fallback : ouvrir le client mail
-    var subject = encodeURIComponent('Contact depuis votre site - ' + nom);
-    var body = encodeURIComponent('Nom: ' + nom + ' | Email: ' + email + ' | Tel: ' + tel + ' | Message: ' + msg);
-    window.open('mailto:nathalie.chaudet-morel@3gimmobilier.com?subject=' + subject + '&body=' + body);
-    alert("Votre client mail va s'ouvrir. Envoyez le message à Nathalie.");
-    return;
-  }
+  var btn = document.querySelector('#page-contact .form-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoi en cours...'; }
 
   try {
-    var res = await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+    var res = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ nom: nom, email: email, tel: tel, message: msg })
+      body: JSON.stringify({
+        access_key: '2b135d1f-77a0-403b-b5a5-0b433bbee5ed',
+        subject: 'Nouveau message depuis votre site - ' + nom,
+        name: nom,
+        email: email,
+        phone: tel,
+        message: msg
+      })
     });
-    if (res.ok) {
+    var data = await res.json();
+    if (data.success) {
       alert('✅ Message envoyé ! Nathalie vous répondra très rapidement.');
       ['contactNom','contactEmail','contactTel','contactMessage'].forEach(function(id) {
         var el = document.getElementById(id); if(el) el.value = '';
@@ -3214,6 +3222,8 @@ async function submitContact() {
     }
   } catch(e) {
     alert('Erreur réseau. Contactez directement : 06 48 38 43 75');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Envoyer le message'; }
   }
 }
 
