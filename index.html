@@ -3379,19 +3379,65 @@ function saveBiens() {
   } catch(e) {}
 }
 
+function bienToSupabase(b) {
+  return {
+    id: b.id,
+    titre: b.titre || '',
+    type: b.type || '',
+    ville: b.ville || '',
+    prix: b.prix || 0,
+    surface: b.surface || 0,
+    pieces: b.pieces || 0,
+    chambres: b.chambres || 0,
+    sdb: b.sdb || 0,
+    niveaux: b.niveaux || 0,
+    terrain: b.terrain || 0,
+    annee: b.annee || '',
+    exclusif: b.exclusif || false,
+    ref: b.ref || '',
+    description: b.description || b.desc || '',
+    img: b.img || '',
+    photos: b.photos || [],
+    dpe: b.dpe || '',
+    dpeClasse: b.dpeClasse || b.dpe || '',
+    dpeVal: b.dpeVal || 0,
+    ges: b.ges || '',
+    gesVal: b.gesVal || 0,
+    prixHH: b.prixHH || 0,
+    prixFAI: b.prixFAI || b.prix || 0,
+    pctHonoraires: b.pctHonoraires || 0,
+    montantHonoraires: b.montantHonoraires || 0,
+    honoraires: b.honoraires || 0
+  };
+}
+
 async function addBienToSupabase(b) {
   try {
+    var data = bienToSupabase(b);
+    // Utiliser upsert pour éviter les conflits d'id
+    var headers = supaHeaders();
+    headers['Prefer'] = 'resolution=merge-duplicates,return=representation';
     var res = await fetch(SUPA_URL + '/rest/v1/biens', {
       method: 'POST',
-      headers: supaHeaders(),
-      body: JSON.stringify(b)
+      headers: headers,
+      body: JSON.stringify(data)
     });
     if (res.ok) {
-      console.log('✅ Bien ajouté dans Supabase');
+      console.log('✅ Bien sauvegardé dans Supabase');
       return true;
     } else {
       var err = await res.text();
-      console.warn('Supabase erreur ajout:', err);
+      console.warn('Supabase erreur:', err);
+      // Essayer avec PUT (update)
+      var res2 = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
+        method: 'PATCH',
+        headers: supaHeaders(),
+        body: JSON.stringify(data)
+      });
+      if (res2.ok) {
+        console.log('✅ Bien mis à jour dans Supabase');
+        return true;
+      }
       return false;
     }
   } catch(e) {
@@ -3402,12 +3448,14 @@ async function addBienToSupabase(b) {
 
 async function updateBienInSupabase(b) {
   try {
+    var data = bienToSupabase(b);
     var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
       method: 'PATCH',
       headers: supaHeaders(),
-      body: JSON.stringify(b)
+      body: JSON.stringify(data)
     });
     if (res.ok) console.log('✅ Bien modifié dans Supabase');
+    else { var err = await res.text(); console.warn('Supabase update erreur:', err); }
   } catch(e) { console.warn('Supabase update échoué:', e.message); }
 }
 
@@ -3453,14 +3501,20 @@ async function loadBiens() {
           return b; 
         });
         nextId = Math.max.apply(null, biens.map(function(b){return b.id;})) + 1;
-        // Mettre à jour localStorage
         localStorage.setItem('nathalie_biens', JSON.stringify(biens));
         localStorage.setItem('nathalie_nextId', String(nextId));
         renderHomeGrid();
         console.log('✅ ' + biens.length + ' biens chargés depuis Supabase');
+      } else {
+        // Supabase vide - sauvegarder les biens locaux dans Supabase
+        console.log('Supabase vide - envoi des biens locaux...');
+        for (var i = 0; i < biens.length; i++) {
+          await addBienToSupabase(biens[i]);
+        }
+        console.log('✅ Biens locaux envoyés vers Supabase');
       }
     } else {
-      console.warn('Supabase: table biens non trouvée - utilisez localStorage');
+      console.warn('Supabase erreur:', res.status);
     }
   } catch(e) {
     console.warn('Supabase indisponible, localStorage utilisé');
