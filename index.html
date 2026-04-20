@@ -5,6 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nathalie Chaudet Morel – Immobilier de la Presqu'île Guérandaise</title>
 <meta name="description" content="Agent immobilier indépendante sur La Baule, Le Pouliguen, Guérande. Acheter, vendre, estimer votre bien avec un accompagnement sur-mesure et une expertise locale incontournable.">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Nathalie Chaudet Morel — Immobilier Presqu'île Guérandaise">
+  <meta property="og:description" content="Villas, maisons et appartements à La Baule, Guérande, Le Pouliguen. Achat, vente, estimation.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://galfomorel-droid.github.io/nathalie-immobilier/">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80">
+  <meta property="og:locale" content="fr_FR">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Nathalie Chaudet Morel — Immobilier Presqu'île Guérandaise">
+  <meta name="twitter:description" content="Villas, maisons et appartements à La Baule, Guérande, Le Pouliguen.">
+  <meta name="twitter:image" content="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80">
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏡</text></svg>">
 <meta name="keywords" content="immobilier La Baule, agence immobilière Guérande, villa bord de mer, immobilier presqu'île guérandaise, Nathalie Chaudet Morel">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2030,15 +2044,15 @@ footer {
       <h3>Envoyez-moi un message</h3>
       <div class="form-row">
         <label class="form-label">Votre nom</label>
-        <input type="text" class="form-input" placeholder="Prénom Nom">
+        <input type="text" class="form-input" id="contactNom" placeholder="Prénom Nom">
       </div>
       <div class="form-row">
         <label class="form-label">Email</label>
-        <input type="email" class="form-input" placeholder="votre@email.fr">
+        <input type="email" class="form-input" id="contactEmail" placeholder="votre@email.fr">
       </div>
       <div class="form-row">
         <label class="form-label">Téléphone</label>
-        <input type="tel" class="form-input" placeholder="06 00 00 00 00">
+        <input type="tel" class="form-input" id="contactTel" placeholder="06 00 00 00 00">
       </div>
       <div class="form-row">
         <label class="form-label">Votre message</label>
@@ -3121,12 +3135,86 @@ function submitModal() {
   }, 3000);
 }
 
-function submitEstimation() {
-  alert('Merci ! Nathalie vous contactera sous 24h avec votre estimation personnalisée.');
+async function submitEstimation() {
+  var nom = (document.getElementById('estimNom')||{}).value || '';
+  var email = (document.getElementById('estimEmail')||{}).value || '';
+  var tel = (document.getElementById('estimTel')||{}).value || '';
+  var adresse = (document.getElementById('estimAdresse')||{}).value || '';
+  var ville = (document.getElementById('estimVille')||{}).value || '';
+  var type = (document.getElementById('estimType')||{}).value || '';
+  var surface = (document.getElementById('estimSurface')||{}).value || '';
+
+  if (!nom || !email) {
+    alert('Merci de remplir votre nom et email.');
+    return;
+  }
+
+  var FORMSPREE_ID = 'YOUR_FORM_ID';
+  
+  if (FORMSPREE_ID === 'YOUR_FORM_ID') {
+    var subject = encodeURIComponent('Demande estimation - ' + nom);
+    var body = encodeURIComponent('Nom: ' + nom + ' | Email: ' + email + ' | Tel: ' + tel + ' | Adresse: ' + adresse + ' | Ville: ' + ville + ' | Type: ' + type + ' | Surface: ' + surface + 'm2');
+    window.open('mailto:nathalie.chaudet-morel@3gimmobilier.com?subject=' + subject + '&body=' + body);
+    alert("Votre client mail va s'ouvrir. Envoyez la demande à Nathalie.");
+    return;
+  }
+
+  try {
+    var res = await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ nom, email, tel, adresse, ville, type, surface })
+    });
+    if (res.ok) {
+      alert('✅ Demande envoyée ! Nathalie vous contactera sous 24h.');
+    } else {
+      alert('Erreur. Contactez directement : 06 48 38 43 75');
+    }
+  } catch(e) {
+    alert('Erreur réseau. Contactez directement : 06 48 38 43 75');
+  }
 }
 
-function submitContact() {
-  alert('Message envoyé ! Nathalie vous répondra très rapidement.');
+async function submitContact() {
+  var nom = (document.getElementById('contactNom')||{}).value || '';
+  var email = (document.getElementById('contactEmail')||{}).value || '';
+  var tel = (document.getElementById('contactTel')||{}).value || '';
+  var msg = (document.getElementById('contactMessage')||{}).value || '';
+  
+  if (!nom || !email || !msg) {
+    alert('Merci de remplir votre nom, email et message.');
+    return;
+  }
+
+  // Formspree - remplacer YOUR_FORM_ID par votre ID Formspree
+  var FORMSPREE_ID = 'YOUR_FORM_ID';
+  
+  if (FORMSPREE_ID === 'YOUR_FORM_ID') {
+    // Fallback : ouvrir le client mail
+    var subject = encodeURIComponent('Contact depuis votre site - ' + nom);
+    var body = encodeURIComponent('Nom: ' + nom + ' | Email: ' + email + ' | Tel: ' + tel + ' | Message: ' + msg);
+    window.open('mailto:nathalie.chaudet-morel@3gimmobilier.com?subject=' + subject + '&body=' + body);
+    alert("Votre client mail va s'ouvrir. Envoyez le message à Nathalie.");
+    return;
+  }
+
+  try {
+    var res = await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ nom: nom, email: email, tel: tel, message: msg })
+    });
+    if (res.ok) {
+      alert('✅ Message envoyé ! Nathalie vous répondra très rapidement.');
+      ['contactNom','contactEmail','contactTel','contactMessage'].forEach(function(id) {
+        var el = document.getElementById(id); if(el) el.value = '';
+      });
+    } else {
+      alert('Erreur envoi. Contactez directement : 06 48 38 43 75');
+    }
+  } catch(e) {
+    alert('Erreur réseau. Contactez directement : 06 48 38 43 75');
+  }
 }
 
 // ===== HAMBURGER =====
