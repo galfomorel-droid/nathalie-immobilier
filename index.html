@@ -2867,6 +2867,35 @@ function addNewVille() {
 // ===== STOCKAGE DES PHOTOS UPLOADÉES (base64) =====
 let uploadedPhotos = [];
 
+async function uploadPhotoToSupabase(file) {
+  try {
+    var filename = Date.now() + '_' + Math.random().toString(36).substr(2,9) + '.' + file.name.split('.').pop();
+    var res = await fetch(SUPA_URL + '/storage/v1/object/photos/' + filename, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Content-Type': file.type,
+        'x-upsert': 'true'
+      },
+      body: file
+    });
+    if (res.ok) {
+      var publicUrl = SUPA_URL + '/storage/v1/object/public/photos/' + filename;
+      console.log('✅ Photo uploadée:', publicUrl);
+      return publicUrl;
+    } else {
+      var err = await res.text();
+      console.warn('Erreur upload photo:', err);
+      // Fallback : base64
+      return null;
+    }
+  } catch(e) {
+    console.warn('Upload photo échoué:', e.message);
+    return null;
+  }
+}
+
 function previewPhotos(input) {
   const previews = document.getElementById('photoPreviews');
   previews.innerHTML = '';
@@ -2874,18 +2903,28 @@ function previewPhotos(input) {
   const files = Array.from(input.files);
   if (files.length === 0) return;
 
-  let loaded = 0;
-  files.forEach((file, i) => {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      uploadedPhotos[i] = e.target.result;
-      loaded++;
-      if (loaded === files.length) renderPhotoPreviews();
-    };
-    reader.readAsDataURL(file);
+  document.getElementById('photoUploadZone').innerHTML = '<div style="font-size:.82rem;color:var(--or);">Upload en cours...</div>';
+
+  var promises = files.map(function(file, i) {
+    return uploadPhotoToSupabase(file).then(function(url) {
+      if (url) {
+        uploadedPhotos[i] = url;
+      } else {
+        // Fallback base64
+        return new Promise(function(resolve) {
+          var reader = new FileReader();
+          reader.onload = function(e) { uploadedPhotos[i] = e.target.result; resolve(); };
+          reader.readAsDataURL(file);
+        });
+      }
+    });
   });
 
-  document.getElementById('photoUploadZone').innerHTML = '<div style="font-size:.82rem;color:var(--or);font-weight:400">' + files.length + ' photo(s) sélectionnée(s)</div><div style="font-size:.72rem;color:var(--gris);margin-top:4px">Cliquez pour changer</div>';
+  Promise.all(promises).then(function() {
+    uploadedPhotos = uploadedPhotos.filter(Boolean);
+    renderPhotoPreviews();
+    document.getElementById('photoUploadZone').innerHTML = '<div style="font-size:.82rem;color:var(--or);font-weight:400">' + uploadedPhotos.length + ' photo(s) prête(s)</div><div style="font-size:.72rem;color:var(--gris);margin-top:4px">Cliquez pour changer</div>';
+  });
 }
 
 function renderPhotoPreviews() {
@@ -3334,10 +3373,19 @@ function switchEditTab(n, btn) {
 }
 
 function editAddPhotos(input) {
-  Array.from(input.files).forEach(function(f) {
-    var r = new FileReader();
-    r.onload = function(e) { editPhotos.push(e.target.result); renderEditPhotoGrid(); };
-    r.readAsDataURL(f);
+  var files = Array.from(input.files);
+  files.forEach(function(f) {
+    uploadPhotoToSupabase(f).then(function(url) {
+      if (url) {
+        editPhotos.push(url);
+      } else {
+        var r = new FileReader();
+        r.onload = function(e) { editPhotos.push(e.target.result); renderEditPhotoGrid(); };
+        r.readAsDataURL(f);
+        return;
+      }
+      renderEditPhotoGrid();
+    });
   });
   input.value = '';
 }
