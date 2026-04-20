@@ -2371,7 +2371,7 @@ function showPage(id) {
   // Init pages dynamiques
   if (id === 'home') renderHomeGrid();
   if (id === 'biens') { renderBiensGrid(); refreshVilleSelects(); }
-  if (id === 'admin') { renderAdmin(); refreshVilleSelects(); }
+  if (id === 'admin') { renderAdmin(); switchTab(1); refreshVilleSelects(); }
   if (id === 'estimation') refreshVilleSelects();
 }
 
@@ -2660,6 +2660,7 @@ function checkAdmin() {
 }
 
 function renderAdmin() {
+  refreshVilleSelects();
   const list = document.getElementById('adminList');
   if (!list) return;
   list.innerHTML = biens.map(b => `
