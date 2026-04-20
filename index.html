@@ -2338,7 +2338,7 @@ const galImgs = [
   'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400&q=80',
 ];
 
-let biens = [
+const DEFAULT_BIENS = [
   { id:1, titre:"Villa pieds dans l'eau", type:"Villa", ville:"La Baule", prix:1850000, surface:210, pieces:7, chambres:5, exclusif:true, desc:"Exceptionnelle villa en première ligne de mer à La Baule. Vue panoramique sur l'Atlantique, terrasse de 60m², piscine chauffée, double garage. Prestations haut de gamme tout au long de cette demeure d'exception.", img:defaultImgs[0] },
   { id:2, titre:"Maison de caractère avec jardin", type:"Maison", ville:"Guérande", prix:595000, surface:145, pieces:6, chambres:4, exclusif:false, desc:"Belle maison de caractère dans le bourg médiéval de Guérande. Jardin arboré de 600m², cuisine équipée, salon cathédrale, cave. À deux pas des remparts.", img:defaultImgs[1] },
   { id:3, titre:"Appartement vue océan", type:"Appartement", ville:"Le Pouliguen", prix:380000, surface:68, pieces:3, chambres:2, exclusif:true, desc:"Bel appartement avec vue mer dégagée au Pouliguen. Terrasse plein sud, parkings privatifs, résidence sécurisée. Idéal pied-à-terre ou résidence principale.", img:defaultImgs[2] },
@@ -2346,7 +2346,8 @@ let biens = [
   { id:5, titre:"Longère bretonne rénovée", type:"Maison", ville:"Batz-sur-Mer", prix:420000, surface:130, pieces:5, chambres:3, exclusif:false, desc:"Authentique longère rénovée avec soin à Batz-sur-Mer. Pierres apparentes, poutres, grand séjour lumineux. Terrain de 900m² avec dépendances.", img:defaultImgs[4] },
   { id:6, titre:"T4 neuf programme immobilier", type:"Appartement", ville:"La Baule", prix:495000, surface:89, pieces:4, chambres:3, exclusif:false, desc:"Appartement T4 dans une résidence neuve en cœur de La Baule. Finitions premium, balcon, parking double, cave. Livraison 2025.", img:defaultImgs[5] },
 ];
-
+;
+let biens = []
 let nextId = 7;
 let filterType = 'all';
 let filterVille = '';
@@ -3357,7 +3358,7 @@ function editRemovePhoto(i) { editPhotos.splice(i,1); renderEditPhotoGrid(); }
 
 // ===== SUPABASE CONFIG =====
 var SUPA_URL = 'https://xfosdlaqzglljpcnpeir.supabase.co';
-var SUPA_KEY = 'sb_publishable_V68TAsKpyJSLclPFoOCG5A_YeBC-G9B';
+var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhmb3NkbGFxemdsbGpwY25wZWlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NzU0NTksImV4cCI6MjA5MjI1MTQ1OX0.KDG_02zsJpI3ZVfNSrvWwsdE7miCn4FNzBOtidkM_xo';
 
 function supaHeaders() {
   return {
@@ -3380,6 +3381,11 @@ function saveBiens() {
 }
 
 function bienToSupabase(b) {
+  // Filtrer les photos base64 (trop volumineuses pour Supabase)
+  var cleanPhotos = (b.photos || []).filter(function(p) {
+    return p && !p.startsWith('data:');
+  });
+  var cleanImg = (b.img && b.img.startsWith('data:')) ? '' : (b.img || '');
   return {
     id: b.id,
     titre: b.titre || '',
@@ -3396,20 +3402,21 @@ function bienToSupabase(b) {
     exclusif: b.exclusif || false,
     ref: b.ref || '',
     description: b.description || b.desc || '',
-    img: b.img || '',
-    photos: b.photos || [],
+    img: cleanImg,
+    photos: cleanPhotos,
     dpe: b.dpe || '',
     dpeClasse: b.dpeClasse || b.dpe || '',
-    dpeVal: b.dpeVal || 0,
+    dpeVal: b.dpeVal || null,
     ges: b.ges || '',
-    gesVal: b.gesVal || 0,
-    prixHH: b.prixHH || 0,
+    gesVal: b.gesVal || null,
+    prixHH: b.prixHH || null,
     prixFAI: b.prixFAI || b.prix || 0,
     pctHonoraires: parseFloat(b.pctHonoraires) || null,
     montantHonoraires: parseInt(b.montantHonoraires) || null,
     honoraires: parseFloat(b.honoraires) || null
   };
 }
+
 
 async function addBienToSupabase(b) {
   try {
@@ -3487,14 +3494,12 @@ async function loadBiens() {
   // 2. Charger depuis Supabase (source de vérité partagée)
   try {
     var res = await fetch(SUPA_URL + '/rest/v1/biens?order=id.asc', {
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + SUPA_KEY
-      }
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
     if (res.ok) {
       var data = await res.json();
       if (data && data.length > 0) {
+        // Supabase a des données → c'est la source de vérité
         biens = data.map(function(b) { 
           b.id = parseInt(b.id); 
           if (b.description && !b.desc) b.desc = b.description;
@@ -3505,19 +3510,37 @@ async function loadBiens() {
         localStorage.setItem('nathalie_nextId', String(nextId));
         renderHomeGrid();
         console.log('✅ ' + biens.length + ' biens chargés depuis Supabase');
-      } else {
-        // Supabase vide - sauvegarder les biens locaux dans Supabase
-        console.log('Supabase vide - envoi des biens locaux...');
+      } else if (biens.length === 0) {
+        // Supabase ET localStorage vides → utiliser les biens par défaut
+        biens = JSON.parse(JSON.stringify(DEFAULT_BIENS));
+        nextId = 7;
+        renderHomeGrid();
+        // Envoyer les biens par défaut vers Supabase
+        console.log('Initialisation Supabase avec les biens par défaut...');
         for (var i = 0; i < biens.length; i++) {
           await addBienToSupabase(biens[i]);
         }
-        console.log('✅ Biens locaux envoyés vers Supabase');
+        localStorage.setItem('nathalie_biens', JSON.stringify(biens));
+        console.log('✅ Supabase initialisé');
       }
-    } else {
-      console.warn('Supabase erreur:', res.status);
+      // Si biens.length > 0 mais Supabase vide = localStorage a les données
+      // → on les envoie vers Supabase
+      else if (data.length === 0 && biens.length > 0) {
+        console.log('Sync localStorage → Supabase...');
+        for (var j = 0; j < biens.length; j++) {
+          await addBienToSupabase(biens[j]);
+        }
+        console.log('✅ Sync terminée');
+      }
     }
   } catch(e) {
-    console.warn('Supabase indisponible, localStorage utilisé');
+    // Supabase indisponible - utiliser localStorage ou défauts
+    if (biens.length === 0) {
+      biens = JSON.parse(JSON.stringify(DEFAULT_BIENS));
+      nextId = 7;
+      renderHomeGrid();
+    }
+    console.warn('Supabase indisponible, données locales utilisées');
   }
 }
 
