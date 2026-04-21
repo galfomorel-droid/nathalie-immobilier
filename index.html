@@ -529,86 +529,91 @@ section { padding: 8rem 6%; }
 
 /* Corps de carte — plus généreux */
 .bien-card-body {
-  padding: 1.4rem 1.8rem 1.6rem;
+  padding: 1.6rem 1.8rem 1.6rem;
 }
 .biens-page-grid .bien-card-body {
-  padding: 1.8rem 2rem 2rem;
+  padding: 2rem 2rem 2rem;
 }
 .bien-card-type {
   font-family: var(--sans);
-  font-size: 1.15rem;
+  font-size: 1.5rem;
   font-weight: 500;
   color: var(--noir);
-  margin-bottom: 0.3rem;
-  letter-spacing: 0.01em;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 .biens-page-grid .bien-card-type {
-  font-size: 1.35rem;
+  font-size: 1.7rem;
 }
 .bien-card-title {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 0.95rem;
-  color: var(--gris);
-  margin-bottom: 1rem;
-  line-height: 1.4;
-}
-.biens-page-grid .bien-card-title {
-  font-size: 1.05rem;
-  margin-bottom: 1.2rem;
+  display: none;
 }
 .bien-card-loc {
-  font-size: 0.88rem;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 400;
   color: var(--gris);
-  margin-bottom: 0.8rem;
+  margin-bottom: 1.4rem;
+  line-height: 1.3;
+}
+.biens-page-grid .bien-card-loc {
+  font-size: 1.1rem;
 }
 .bien-card-specs {
   display: flex;
-  gap: 1.8rem;
+  gap: 2rem;
   align-items: center;
-  margin-bottom: 1rem;
-  font-size: 0.88rem;
+  margin-bottom: 1.4rem;
+  font-size: 0.92rem;
   color: var(--noir);
+  font-weight: 400;
 }
 .biens-page-grid .bien-card-specs {
-  font-size: 0.95rem;
-  gap: 2rem;
+  font-size: 1rem;
+  gap: 2.2rem;
 }
 .bien-card-spec {
-  display: flex; align-items: center; gap: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   color: var(--noir);
 }
 .bien-card-spec-icon {
-  font-size: 1.05rem;
+  width: 20px;
+  height: 20px;
   color: var(--or);
+  flex-shrink: 0;
 }
 .bien-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid var(--beige);
-  padding-top: 1rem;
-  margin-top: 0.4rem;
+  padding-top: 1.1rem;
+  margin-top: 0.2rem;
   gap: 1rem;
 }
 .bien-card-ref {
-  font-size: 0.68rem;
+  font-family: var(--sans);
+  font-size: 0.7rem;
   color: var(--gris);
-  border: 1px solid var(--beige-dark);
-  padding: 0.3rem 0.7rem;
-  letter-spacing: 0.08em;
-  background: var(--beige);
-  border-radius: 2px;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  letter-spacing: 0.06em;
+  background: #F5F3EE;
+  border-radius: 3px;
+  font-weight: 400;
 }
 .bien-card-price {
   font-family: var(--sans);
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   color: var(--noir);
   font-weight: 500;
   letter-spacing: -0.01em;
 }
 .biens-page-grid .bien-card-price {
-  font-size: 1.4rem;
+  font-size: 1.45rem;
 }
 .bien-card-details {
   display: flex;
@@ -1136,6 +1141,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   grid-template-rows: 400px;
   gap: 0.4rem;
   max-height: 480px;
+  position: relative;
 }
 .fiche-gallery img {
   width: 100%; height: 100%;
@@ -1144,10 +1150,46 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   transition: opacity 0.2s;
 }
 .fiche-gallery img:hover { opacity: 0.9; }
+.fiche-gallery-main {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
 .fiche-gallery-sub {
   display: grid;
   grid-template-rows: 1fr 1fr;
   gap: 0.4rem;
+}
+/* Bouton "X Photos" en bas à gauche de la photo principale */
+.fiche-photos-btn {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: rgba(255,255,255,0.95);
+  color: var(--noir);
+  border: none;
+  padding: 0.6rem 1rem;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: background 0.2s, transform 0.2s;
+  z-index: 5;
+}
+.fiche-photos-btn:hover {
+  background: var(--white);
+  transform: translateY(-1px);
+}
+.fiche-photos-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 /* ===== LIGHTBOX ===== */
@@ -1232,31 +1274,503 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   margin-bottom: 2.5rem;
   border-top: 1px solid var(--beige);
 }
-.fiche-desc { font-size: 0.95rem; line-height: 1.9; color: var(--gris); }
+/* ==============================================
+   DESCRIPTION PREMIUM — Fiche bien
+   ============================================== */
+.fiche-desc {
+  font-size: 0.98rem;
+  line-height: 1.75;
+  color: var(--noir);
+}
+
+/* Hook / tagline principale */
+.desc-hook {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.6rem;
+  line-height: 1.35;
+  color: var(--noir);
+  margin: 0 0 1.2rem;
+  letter-spacing: -0.005em;
+}
+@media (max-width: 600px) {
+  .desc-hook { font-size: 1.3rem; }
+}
+
+/* Tags en chips dorés */
+.desc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.8rem;
+}
+.desc-tag {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  background: var(--white);
+  color: var(--or);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--or);
+  border-radius: 99px;
+}
+
+/* Intro body */
+.desc-intro {
+  margin-bottom: 2.2rem;
+}
+.desc-intro p {
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--gris);
+  margin: 0;
+}
+
+/* Grille cartes features clés */
+.desc-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.8rem;
+  margin: 0 0 1.2rem;
+}
+.desc-feature-card {
+  background: var(--white);
+  border: 1px solid var(--beige);
+  border-radius: 8px;
+  padding: 1.1rem 0.9rem 1.2rem;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.desc-feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+}
+.desc-feature-icon {
+  width: 34px; height: 34px;
+  margin: 0 auto 0.5rem;
+  color: var(--or);
+}
+.desc-feature-icon svg { width: 100%; height: 100%; }
+.desc-feature-value {
+  font-family: var(--sans);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--noir);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.desc-feature-label {
+  font-size: 0.78rem;
+  color: var(--gris);
+  margin-top: 0.2rem;
+  letter-spacing: 0.02em;
+}
+
+/* Chips secondaires : poêle, jardin, etc. */
+.desc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2.2rem;
+}
+.desc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.9rem;
+  background: #FAF7F1;
+  color: var(--noir);
+  font-size: 0.82rem;
+  border-radius: 99px;
+  border: 1px solid var(--beige);
+}
+.desc-chip-icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: var(--or);
+}
+.desc-chip-icon svg { width: 100%; height: 100%; }
+
+/* Section proximités */
+.desc-prox-section {
+  margin-bottom: 2.4rem;
+}
+.desc-prox-title {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--noir);
+  margin: 0 0 1rem;
+  letter-spacing: -0.005em;
+}
+.desc-prox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.7rem;
+}
+.desc-prox-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem;
+  background: var(--white);
+  border: 1px solid var(--beige);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+.desc-prox-card:hover { border-color: var(--or); }
+.desc-prox-icon {
+  width: 38px; height: 38px;
+  flex-shrink: 0;
+  background: #FAF7F1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--or);
+}
+.desc-prox-icon svg { width: 20px; height: 20px; }
+.desc-prox-text { flex: 1; min-width: 0; }
+.desc-prox-time {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--noir);
+  line-height: 1.2;
+}
+.desc-prox-place {
+  font-size: 0.78rem;
+  color: var(--gris);
+  text-transform: capitalize;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  margin-top: 0.15rem;
+}
+
+/* Sections (cartes premium) */
+.desc-card {
+  background: var(--white);
+  border: 1px solid var(--beige);
+  border-radius: 10px;
+  padding: 1.8rem 1.8rem 1.6rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  transition: box-shadow 0.25s ease;
+}
+.desc-card:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.07);
+}
+@media (max-width: 600px) {
+  .desc-card { padding: 1.4rem 1.3rem 1.3rem; border-radius: 8px; }
+}
+.desc-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--beige);
+}
+.desc-card-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  color: var(--or);
+  background: #FAF7F1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.desc-card-icon svg { width: 19px; height: 19px; }
+.desc-card-title {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--noir);
+  margin: 0;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+}
+.desc-card-text {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--gris);
+  margin: 0 0 0.9rem;
+}
+.desc-card-text:last-child { margin-bottom: 0; }
+.desc-card-closing {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--beige);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--noir);
+  line-height: 1.65;
+}
+
+.desc-card-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.55rem 1.8rem;
+}
+.desc-card-list-2col {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.desc-card-list li {
+  position: relative;
+  padding-left: 1.4rem;
+  color: var(--noir);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+.desc-card-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.58em;
+  width: 6px;
+  height: 6px;
+  background: var(--or);
+  border-radius: 50%;
+}
+
+/* Bloc légal */
+.desc-legal {
+  display: block;
+  margin-top: 2.5rem;
+  padding: 1.25rem 1.4rem;
+  background: #FAF7F1;
+  border-left: 3px solid var(--or);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.78rem;
+  line-height: 1.65;
+  color: var(--gris);
+}
+.desc-legal p {
+  margin: 0 0 0.55rem;
+  font-size: 0.78rem;
+  color: var(--gris);
+  line-height: 1.65;
+}
+.desc-legal p:last-child { margin-bottom: 0; }
+.desc-legal a { color: inherit; text-decoration: underline; }
 .fiche-sidebar {
   position: sticky;
-  top: 220px;
+  top: 120px;
   height: fit-content;
 }
-.fiche-contact-card {
+
+/* ===== BARNES-STYLE AGENT CARD ===== */
+.fiche-price-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: var(--noir);
-  padding: 2rem;
   color: var(--white);
+  padding: 1rem 1.2rem;
+  gap: 1rem;
+  min-height: 96px;
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: multiply;
+  background-color: rgba(0,0,0,0.55);
+  margin-bottom: 0;
 }
-.fiche-contact-title {
-  font-family: var(--serif);
-  font-size: 1.3rem;
-  font-style: italic;
+.fiche-price-bar-title {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--white);
+  line-height: 1.2;
+}
+.fiche-price-bar-price {
+  font-family: var(--sans);
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--white);
+  white-space: nowrap;
+}
+.fiche-agent-card {
+  background: var(--white);
+  padding: 1.4rem 1.2rem;
+  border: 1px solid var(--beige);
+  border-top: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.fiche-agent-photo {
+  width: 74px;
+  height: 90px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--beige);
+}
+.fiche-agent-info {
+  flex: 1;
+  min-width: 0;
+}
+.fiche-agent-name {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--noir);
   margin-bottom: 0.5rem;
+  line-height: 1.25;
 }
-.fiche-contact-sub { font-size: 0.82rem; color: rgba(255,255,255,0.5); margin-bottom: 1.5rem; }
-.fiche-tel {
-  display: flex; align-items: center; gap: 0.5rem;
-  font-family: var(--serif);
-  font-size: 1.3rem;
+.fiche-agent-contacts {
+  display: flex;
+  gap: 0.55rem;
+}
+.fiche-agent-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
   color: var(--or);
-  margin-bottom: 1.5rem;
+  border: 1px solid var(--or);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.fiche-agent-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.fiche-agent-icon:hover {
+  background: var(--or);
+  color: var(--white);
+}
+.fiche-agency-link {
+  display: block;
+  text-align: center;
+  padding: 0.9rem 1rem;
+  background: var(--white);
+  color: var(--or);
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--beige);
+  border-top: none;
+  text-decoration: none;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.fiche-agency-link:hover {
+  background: #FAF7F2;
+}
+
+/* Formulaire contact sidebar */
+.fiche-contact-form {
+  background: var(--white);
+  padding: 1.6rem 1.4rem 1.8rem;
+  border: 1px solid var(--beige);
+  border-top: 1px solid var(--beige);
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.fiche-contact-form-title {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--noir);
+  margin-bottom: 0.4rem;
+}
+.fiche-form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+.fiche-input, .fiche-textarea {
+  width: 100%;
+  padding: 0.85rem 0.9rem;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  color: var(--noir);
+  background: var(--white);
+  border: 1px solid var(--beige-dark, #E5DED1);
+  border-radius: 2px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.fiche-input:focus, .fiche-textarea:focus {
+  outline: none;
+  border-color: var(--or);
+}
+.fiche-textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.fiche-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.75rem;
+  color: var(--gris);
+  line-height: 1.45;
+  cursor: pointer;
+}
+.fiche-check input {
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--or);
+}
+.fiche-submit-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--or);
+  color: var(--white);
+  border: none;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 0.4rem;
+}
+.fiche-submit-btn:hover {
+  background: var(--or-light, #C5A35C);
+}
+.fiche-legal-text {
+  font-size: 0.68rem;
+  color: var(--gris);
+  line-height: 1.55;
+  margin-top: 1rem;
+  padding: 0 0.2rem;
+}
+.fiche-contact-success {
+  display: none;
+  padding: 1.2rem;
+  background: #F4FBF4;
+  border: 1px solid #B7E2B7;
+  color: #2F5F2F;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.fiche-contact-success.show { display: block; }
+@media (max-width: 900px) {
+  .fiche-sidebar { position: static; }
+  .fiche-form-row-2 { grid-template-columns: 1fr; }
 }
 .back-btn {
   display: inline-flex; align-items: center; gap: 0.5rem;
@@ -2302,18 +2816,60 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       <p class="fiche-loc" id="ficheLoc"></p>
       <div class="fiche-price" id="fichePrix"></div>
       <div class="fiche-specs" id="ficheSpecs"></div>
-      <p class="fiche-desc" id="ficheDesc"></p>
+      <div class="fiche-desc" id="ficheDesc"></div>
       <div id="fichePrixSection"></div>
+      <div id="ficheLegal"></div>
       <div id="ficheDPE"></div>
       <div id="ficheSimilaires" style="margin-top:3rem;padding-top:2rem;border-top:1px solid var(--beige);"></div>
     </div>
     <div class="fiche-sidebar">
-      <div class="fiche-contact-card">
-        <div class="fiche-contact-title">Intéressé par ce bien ?</div>
-        <p class="fiche-contact-sub">Contactez Nathalie pour organiser une visite ou obtenir plus d'informations.</p>
-        <a class="fiche-tel" href="tel:+33648384375">☎ 06 48 38 43 75</a>
-        <button class="form-submit" onclick="openModal('modal-contact')">Demander une visite</button>
+      <!-- Bandeau prix avec photo du bien en fond -->
+      <div class="fiche-price-bar" id="fichePriceBar">
+        <div>
+          <div class="fiche-price-bar-title" id="fichePriceBarTitle">MAISON</div>
+        </div>
+        <div class="fiche-price-bar-price" id="fichePriceBarPrice">—</div>
       </div>
+
+      <!-- Carte agent -->
+      <div class="fiche-agent-card">
+        <img class="fiche-agent-photo" id="ficheAgentPhoto" src="" alt="Nathalie Chaudet Morel">
+        <div class="fiche-agent-info">
+          <div class="fiche-agent-name">Nathalie<br>Chaudet Morel</div>
+          <div class="fiche-agent-contacts">
+            <a href="tel:+33648384375" class="fiche-agent-icon" aria-label="Téléphone" title="06 48 38 43 75">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </a>
+            <a href="https://wa.me/33648384375" target="_blank" rel="noopener" class="fiche-agent-icon" aria-label="WhatsApp" title="WhatsApp">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      <a class="fiche-agency-link" href="#" onclick="showPage('apropos');window.scrollTo(0,0);return false;">Découvrir l'agence</a>
+
+      <!-- Formulaire de contact -->
+      <form class="fiche-contact-form" onsubmit="submitFicheContact(event)">
+        <div class="fiche-contact-form-title">Intéressé par ce bien ?</div>
+        <div class="fiche-form-row-2">
+          <input type="text" name="nom" class="fiche-input" placeholder="Nom *" required>
+          <input type="text" name="prenom" class="fiche-input" placeholder="Prénom *" required>
+        </div>
+        <input type="tel" name="telephone" class="fiche-input" placeholder="Téléphone *" required>
+        <input type="email" name="email" class="fiche-input" placeholder="Email *" required>
+        <textarea name="message" class="fiche-textarea" id="ficheContactMessage" placeholder="Message *" required></textarea>
+        <label class="fiche-check">
+          <input type="checkbox" name="consent">
+          <span>J'accepte que Nathalie Chaudet Morel m'envoie par e-mail ses actualités et ses offres concernant ses autres services.</span>
+        </label>
+        <button type="submit" class="fiche-submit-btn">Envoyer votre message</button>
+        <div class="fiche-contact-success" id="ficheContactSuccess">
+          Merci, votre message a bien été envoyé. Nathalie vous recontactera rapidement.
+        </div>
+        <p class="fiche-legal-text">
+          Les données recueillies sont traitées par Nathalie Chaudet Morel pour gérer votre demande. Vous pouvez exercer vos droits d'accès, de rectification et de suppression par email.
+        </p>
+      </form>
     </div>
   </div>
 </div>
@@ -2710,8 +3266,12 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
             <input type="number" class="form-input" id="aChambres" placeholder="Ex: 6">
           </div>
           <div class="form-row">
-            <label class="form-label">Salles de bain / d'eau</label>
-            <input type="number" class="form-input" id="aSDB" placeholder="Ex: 2">
+            <label class="form-label">Salle de bain</label>
+            <input type="number" class="form-input" id="aSalleBain" placeholder="Ex: 1">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Salle d'eau</label>
+            <input type="number" class="form-input" id="aSDB" placeholder="Ex: 1">
           </div>
           <div class="form-row">
             <label class="form-label">Niveaux</label>
@@ -3043,6 +3603,451 @@ function genRef(id) {
   return 'REF. NCM-' + String(id).padStart(4, '0');
 }
 
+// ===== MISE EN FORME DESCRIPTION =====
+function escapeHtmlDesc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ==================================================================
+// MISE EN FORME PREMIUM DES DESCRIPTIONS IMMOBILIÈRES
+// ==================================================================
+
+function formatDescription(text, bien) {
+  if (!text) return '';
+  var raw = String(text).replace(/\r/g, '').trim();
+  if (!raw) return '';
+  bien = bien || {};
+
+  // 1) Isoler le bloc légal
+  var split = _descSplitLegal(raw);
+  var mainText = split.main;
+  var legalText = split.legal;
+
+  // 2) Extraire les sections structurées
+  var parsed = _descParseSections(mainText);
+
+  // 3) Extraire proximités / distances / temps
+  var proximities = _descExtractProximities(mainText);
+
+  // 4) Extraire intro + hook/tags
+  var introData = _descProcessIntro(parsed.intro);
+
+  // 5) Construire le HTML premium
+  return _descBuildHtml({
+    hook: introData.hook,
+    tags: introData.tags,
+    introBody: introData.body,
+    sections: parsed.sections,
+    proximities: proximities,
+    bien: bien,
+    legal: legalText
+  });
+}
+
+function _descSplitLegal(text) {
+  var patterns = [
+    /Honoraires de \d/i,
+    /Honoraires à la charge/i,
+    /Consulter le barème/i,
+    /Votre agent commercial/i,
+    /Selon l['']article/i,
+    /Les informations sur les risques/i,
+    /\* ?Prix net/i,
+    /Document non contractuel/i,
+    /RSAC de /i,
+    /Code Monétaire/i
+  ];
+  var start = -1;
+  for (var i = 0; i < patterns.length; i++) {
+    var m = text.search(patterns[i]);
+    if (m !== -1 && (start === -1 || m < start)) start = m;
+  }
+  if (start > 0) {
+    return { main: text.substring(0, start).trim(), legal: text.substring(start).trim() };
+  }
+  return { main: text, legal: '' };
+}
+
+function _descParseSections(mainText) {
+  // Catégories de sections avec mapping vers un titre premium et un type
+  var headerGroups = [
+    { regex: /^(Au rez-de-chaussée|Au rez de chaussée|Rez-de-chaussée)$/i, title: 'Au rez-de-chaussée', type: 'rdc', icon: 'home' },
+    { regex: /^(À l['']étage|A l['']étage|Au 1er étage|Au premier étage|Au 1er Étage)$/i, title: 'À l\u2019étage', type: 'etage', icon: 'stairs' },
+    { regex: /^(Au 2ème étage|Au 2nd étage|Au 2e étage|Au second étage|Au 3ème étage)$/i, title: 'Étage supérieur', type: 'etage-haut', icon: 'stairs' },
+    { regex: /^(Au sous-sol|En sous-sol|Sous-sol)$/i, title: 'Au sous-sol', type: 'sousol', icon: 'layers' },
+    { regex: /^(Au rez-de-jardin|Rez-de-jardin)$/i, title: 'Rez-de-jardin', type: 'rdj', icon: 'leaf' },
+    { regex: /^(À l['']extérieur|A l['']extérieur|Extérieurs?|Jardin|Terrasse)$/i, title: 'L\u2019extérieur', type: 'exterieur', icon: 'leaf' },
+    { regex: /^(Prestations techniques|Prestations)$/i, title: 'Les prestations', type: 'prestations', icon: 'gear' },
+    { regex: /^(Caractéristiques techniques|Caractéristiques)$/i, title: 'Caractéristiques', type: 'carac', icon: 'gear' },
+    { regex: /^(Situation|Emplacement|À proximité|A proximité)$/i, title: 'La situation', type: 'situation', icon: 'map' },
+    { regex: /^(Annexes)$/i, title: 'Les annexes', type: 'annexes', icon: 'layers' },
+    { regex: /^(Côté nuit)$/i, title: 'Côté nuit', type: 'nuit', icon: 'stairs' },
+    { regex: /^(Côté jour)$/i, title: 'Côté jour', type: 'jour', icon: 'home' }
+  ];
+
+  var allNames = [
+    "Au rez-de-chaussée", "Au rez de chaussée", "Rez-de-chaussée",
+    "À l'étage", "A l'étage", "À l\u2019étage", "A l\u2019étage",
+    "Au 1er étage", "Au premier étage",
+    "Au 2ème étage", "Au 2nd étage", "Au 2e étage", "Au second étage", "Au 3ème étage",
+    "Au sous-sol", "En sous-sol", "Sous-sol",
+    "À l'extérieur", "A l'extérieur", "Extérieurs", "Extérieur",
+    "Prestations techniques", "Prestations",
+    "Situation", "Emplacement", "À proximité", "A proximité",
+    "Jardin", "Terrasse",
+    "Caractéristiques techniques", "Caractéristiques",
+    "Annexes", "Au rez-de-jardin", "Rez-de-jardin",
+    "Côté nuit", "Côté jour"
+  ];
+  allNames.sort(function(a,b){ return b.length - a.length; });
+  var escNames = allNames.map(function(h){ return h.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'); });
+  var sectionRe = new RegExp('(^|[\\.\\s])(' + escNames.join('|') + ')\\s*:\\s*', 'gi');
+
+  var found = [];
+  var mm;
+  while ((mm = sectionRe.exec(mainText)) !== null) {
+    var offset = mm.index + mm[1].length;
+    found.push({ idx: offset, raw: mm[2], end: sectionRe.lastIndex });
+  }
+
+  var result = { intro: '', sections: [] };
+  if (found.length === 0) { result.intro = mainText; return result; }
+  result.intro = mainText.substring(0, found[0].idx).trim();
+
+  for (var j = 0; j < found.length; j++) {
+    var match = found[j];
+    var nextIdx = (j + 1 < found.length) ? found[j + 1].idx : mainText.length;
+    var content = mainText.substring(match.end, nextIdx).trim();
+
+    var matched = null;
+    for (var k = 0; k < headerGroups.length; k++) {
+      if (headerGroups[k].regex.test(match.raw)) { matched = headerGroups[k]; break; }
+    }
+    var title = matched ? matched.title : match.raw;
+    var type = matched ? matched.type : 'other';
+    var icon = matched ? matched.icon : 'home';
+    var items = _descExtractItems(content);
+    // Détecter un texte de clôture collé au dernier item (ex: "... à proximité Belle prestation...")
+    var closing = '';
+    if (items.length > 0) {
+      var lastItem = items[items.length - 1];
+      var closeMatch = lastItem.match(/^([^.]{3,}?)\.\s+([A-ZÀ-Ý].*)$/);
+      if (closeMatch && closeMatch[2].length >= 12) {
+        items[items.length - 1] = closeMatch[1].trim();
+        closing = closeMatch[2].trim();
+      }
+    }
+    result.sections.push({
+      title: title,
+      originalTitle: match.raw,
+      type: type,
+      icon: icon,
+      content: content,
+      items: items,
+      closing: closing,
+      textBefore: _descTextBeforeBullets(content)
+    });
+  }
+  return result;
+}
+
+function _descExtractItems(content) {
+  if (!/[·•]/.test(content)) return [];
+  var first = content.search(/[·•]/);
+  var listPart = content.substring(first);
+  return listPart.split(/\s*[·•]\s*/)
+    .map(function(s){ return s.trim(); })
+    .filter(function(s){ return s.length > 0; });
+}
+function _descTextBeforeBullets(content) {
+  if (!/[·•]/.test(content)) return content.trim();
+  var first = content.search(/[·•]/);
+  return content.substring(0, first).trim();
+}
+
+function _descProcessIntro(intro) {
+  if (!intro) return { hook: '', tags: [], body: '' };
+  var txt = intro.trim();
+  // Détection tags em-dash au début : "... — Tag1 — Tag2 — Suite de phrase"
+  var tags = [];
+  var body = txt;
+  if (txt.indexOf('\u2014') !== -1 || txt.indexOf(' - ') !== -1) {
+    var segs = txt.split(/\s*\u2014\s*/);
+    if (segs.length >= 3) {
+      // On retire les segments courts et ponctués (tags)
+      var middle = segs.slice(1, -1);
+      var lastSeg = segs[segs.length - 1];
+      // Essayer de séparer tag initial du reste dans le dernier segment
+      var lastMatch = lastSeg.match(/^([^.\n]{3,60}?)\s+(Située|Situé|Implantée|Implanté|Cette|Ce|Construite|Construit|Entièrement|Au coeur|Au cœur|Nichée|Niché|Dans|En plein|Profitez|Vous serez|Offrant|Idéal)\s+(.+)$/);
+      if (lastMatch) {
+        middle.push(lastMatch[1].trim());
+        body = segs[0].trim() + ' ' + lastMatch[2] + ' ' + lastMatch[3];
+      } else {
+        body = segs[0].trim() + (lastSeg ? ' ' + lastSeg.trim() : '');
+      }
+      tags = middle.map(function(s){ return s.trim(); }).filter(function(s){ return s.length >= 3 && s.length <= 80; });
+    }
+  }
+  // Hook = première tagline courte ; on la retire des tags secondaires
+  var hook = '';
+  if (tags.length > 0) {
+    hook = tags[0];
+    tags = tags.slice(1);
+  }
+  return { hook: hook, tags: tags, body: body.trim() };
+}
+
+function _descExtractProximities(text) {
+  var prox = [];
+  var seen = {};
+  // "5 minutes de la plage", "10 min du centre-ville", "à 2 min de la gare"
+  var re = /(?:à\s+)?(\d+)\s*(?:minutes?|min\.?|mn)\s+(?:de|du|des|à|a)\s+(la |le |l['\u2019]|les )?([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\-\u2019' ]{1,40}?)(?=[\s\.\,·•]|\n|$)/gi;
+  var m;
+  while ((m = re.exec(text)) !== null) {
+    var mins = parseInt(m[1]);
+    var place = (m[3] || '').trim().replace(/[\.,]$/, '');
+    if (!place || place.length > 40) continue;
+    // Nettoyer sur premier mot / deux mots pertinents
+    var placeParts = place.split(/\s+/).slice(0, 3);
+    var key = placeParts.join(' ').toLowerCase();
+    if (seen[key]) continue;
+    seen[key] = true;
+    prox.push({ mins: mins, place: placeParts.join(' ') });
+    if (prox.length >= 6) break;
+  }
+  return prox;
+}
+
+function _descProxIcon(place) {
+  var p = place.toLowerCase();
+  if (/plage|mer|océan|ocean/.test(p)) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 21c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><circle cx="12" cy="8" r="3"/></svg>';
+  if (/gare|train|tgv/.test(p)) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><circle cx="8.5" cy="15.5" r="1"/><circle cx="15.5" cy="15.5" r="1"/><path d="M8 19l-2 3M16 19l2 3"/></svg>';
+  if (/centre.?ville|bourg|centre/.test(p)) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-7h6v7"/></svg>';
+  if (/école|ecole|collège|college|lycée|lycee/.test(p)) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>';
+  if (/commerce|marché|marche|boutique/.test(p)) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M8 9V6a4 4 0 018 0v3"/></svg>';
+  if (/aéroport|aeroport|avion/.test(p)) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.18 9L2 12l8 3 2 7 2-6 6-6-3-3-7 2z"/></svg>';
+  if (/autoroute|accès|acces|route/.test(p)) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-16M20 20l-4-16M12 4v4M12 12v4M12 20v0"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-7.5-8-13a8 8 0 0116 0c0 5.5-8 13-8 13z"/><circle cx="12" cy="9" r="3"/></svg>';
+}
+
+function _descSectionIcon(iconKey) {
+  switch(iconKey) {
+    case 'home': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11L12 3l9 8v10H3z"/><path d="M9 21v-7h6v7"/></svg>';
+    case 'stairs': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4v-4h4v-4h4V8h4V4"/></svg>';
+    case 'layers': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
+    case 'leaf': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 014 13c0-5 4-9 9-9h6v6c0 5-4 9-9 9z"/><path d="M2 22l6-6"/></svg>';
+    case 'gear': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 01-2.9 2.9l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1.2-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 01-2.9-2.9l.1-.1a1.7 1.7 0 00.3-1.8A1.7 1.7 0 003 14H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1.2 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 012.9-2.9l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 012.9 2.9l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>';
+    case 'map': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6l7-3 8 3 7-3v15l-7 3-8-3-7 3V6z"/><path d="M8 3v15M16 6v15"/></svg>';
+    default: return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/></svg>';
+  }
+}
+
+function _descKeyFeatures(bien, mainText) {
+  var feats = [];
+  if (bien && bien.chambres) {
+    feats.push({ value: bien.chambres, label: bien.chambres > 1 ? 'chambres' : 'chambre', icon: 'bed' });
+  }
+  if (bien && bien.surface) {
+    feats.push({ value: bien.surface + ' m²', label: 'habitables', icon: 'square' });
+  }
+  if (bien && bien.terrain) {
+    feats.push({ value: bien.terrain + ' m²', label: 'de terrain', icon: 'tree' });
+  }
+  if (bien && bien.pieces) {
+    feats.push({ value: bien.pieces, label: bien.pieces > 1 ? 'pièces' : 'pièce', icon: 'grid' });
+  }
+  // Détection de features textuelles
+  var detected = [];
+  var lowTxt = (mainText || '').toLowerCase();
+  var featureHints = [
+    { re: /piscine/, label: 'Piscine', icon: 'pool' },
+    { re: /poêle\s*(?:à\s*bois|bois)/, label: 'Poêle à bois', icon: 'fire' },
+    { re: /cheminée/, label: 'Cheminée', icon: 'fire' },
+    { re: /garage/, label: 'Garage', icon: 'car' },
+    { re: /jardin(?:s| arboré| paysagé)?/, label: 'Jardin', icon: 'tree' },
+    { re: /terrasse/, label: 'Terrasse', icon: 'sun' },
+    { re: /cave/, label: 'Cave', icon: 'layers' },
+    { re: /dépendance/, label: 'Dépendance', icon: 'home' },
+    { re: /dressing/, label: 'Dressing', icon: 'grid' }
+  ];
+  featureHints.forEach(function(h){
+    if (h.re.test(lowTxt)) detected.push({ value: '', label: h.label, icon: h.icon, small: true });
+  });
+  return { primary: feats.slice(0, 4), secondary: detected.slice(0, 6) };
+}
+
+function _descFeatureIcon(iconKey) {
+  switch(iconKey) {
+    case 'bed': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16v-5a3 3 0 013-3h14a3 3 0 013 3v5"/><path d="M2 20v-4h20v4"/></svg>';
+    case 'square': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h4M9 3v4"/></svg>';
+    case 'tree': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L8 8h3v6h2V8h3z"/><path d="M12 14v8M8 22h8"/></svg>';
+    case 'grid': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>';
+    case 'pool': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20c2 0 2-2 5-2s3 2 5 2 2-2 5-2 3 2 5 2"/><path d="M6 14V6a3 3 0 013-3"/><path d="M18 14V6a3 3 0 00-3-3"/></svg>';
+    case 'fire': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 6 4 10a4 4 0 01-8 0c0-2 1-3 2-4 0 0-1-3 2-6z"/></svg>';
+    case 'car': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l2-5h10l2 5"/><rect x="3" y="13" width="18" height="6" rx="2"/><circle cx="7" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>';
+    case 'sun': return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M4 12H2M22 12h-2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4l1.4-1.4M17 7l1.4-1.4"/></svg>';
+    case 'layers': return _descSectionIcon('layers');
+    case 'home': return _descSectionIcon('home');
+    default: return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/></svg>';
+  }
+}
+
+function _descBuildHtml(ctx) {
+  var html = '';
+  var hasSections = ctx.sections && ctx.sections.length > 0;
+
+  // ========== HOOK + INTRO ==========
+  if (ctx.hook) {
+    html += '<div class="desc-hook">' + escapeHtmlDesc(ctx.hook) + '</div>';
+  }
+  if (ctx.tags && ctx.tags.length > 0) {
+    html += '<div class="desc-tags">';
+    ctx.tags.forEach(function(t){
+      html += '<span class="desc-tag">' + escapeHtmlDesc(t) + '</span>';
+    });
+    html += '</div>';
+  }
+  if (ctx.introBody) {
+    html += '<div class="desc-intro"><p>' + escapeHtmlDesc(ctx.introBody) + '</p></div>';
+  }
+
+  // ========== KEY FEATURES (badges) ==========
+  var feats = _descKeyFeatures(ctx.bien, ctx.introBody + ' ' + ctx.sections.map(function(s){return s.content;}).join(' '));
+  if (feats.primary.length > 0) {
+    html += '<div class="desc-features-grid">';
+    feats.primary.forEach(function(f){
+      html += '<div class="desc-feature-card">' +
+        '<div class="desc-feature-icon">' + _descFeatureIcon(f.icon) + '</div>' +
+        '<div class="desc-feature-value">' + escapeHtmlDesc(f.value) + '</div>' +
+        '<div class="desc-feature-label">' + escapeHtmlDesc(f.label) + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+  if (feats.secondary.length > 0) {
+    html += '<div class="desc-chips">';
+    feats.secondary.forEach(function(f){
+      html += '<span class="desc-chip">' +
+        '<span class="desc-chip-icon">' + _descFeatureIcon(f.icon) + '</span>' +
+        escapeHtmlDesc(f.label) +
+      '</span>';
+    });
+    html += '</div>';
+  }
+
+  // ========== PROXIMITIES ==========
+  if (ctx.proximities && ctx.proximities.length > 0) {
+    html += '<div class="desc-prox-section">';
+    html += '<h3 class="desc-prox-title">À proximité</h3>';
+    html += '<div class="desc-prox-grid">';
+    ctx.proximities.forEach(function(p){
+      html += '<div class="desc-prox-card">' +
+        '<div class="desc-prox-icon">' + _descProxIcon(p.place) + '</div>' +
+        '<div class="desc-prox-text">' +
+          '<div class="desc-prox-time">' + p.mins + ' min</div>' +
+          '<div class="desc-prox-place">' + escapeHtmlDesc(p.place) + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // ========== SECTIONS ==========
+  ctx.sections.forEach(function(sec){
+    // La section "Situation" est déjà représentée via les proximités si elles ont été détectées
+    if (sec.type === 'situation' && ctx.proximities.length > 0) {
+      // Filtrer les items qui ne sont pas des distances
+      var nonProxItems = sec.items.filter(function(it){
+        return !/\d+\s*(min|minute|mn)/i.test(it);
+      });
+      if (nonProxItems.length === 0 && !sec.textBefore) return;
+      html += _descRenderCard(sec, nonProxItems);
+    } else if (sec.type === 'prestations' || sec.type === 'carac') {
+      html += _descRenderPrestationsCard(sec);
+    } else {
+      html += _descRenderCard(sec, sec.items);
+    }
+  });
+
+  // Si aucune section n'a été détectée, afficher l'intro restante
+  if (!hasSections && !ctx.introBody && ctx.sections.length === 0) {
+    // Déjà rendu dans l'intro
+  }
+
+  // ========== LEGAL ==========
+  if (ctx.legal) {
+    html += _descRenderLegal(ctx.legal);
+  }
+
+  return html || '<p>' + escapeHtmlDesc(ctx.introBody || '') + '</p>';
+}
+
+function _descRenderCard(sec, items) {
+  var html = '<section class="desc-card">';
+  html += '<header class="desc-card-header">';
+  html += '<div class="desc-card-icon">' + _descSectionIcon(sec.icon) + '</div>';
+  html += '<h3 class="desc-card-title">' + escapeHtmlDesc(sec.title) + '</h3>';
+  html += '</header>';
+
+  if (sec.textBefore) {
+    html += '<p class="desc-card-text">' + escapeHtmlDesc(sec.textBefore) + '</p>';
+  }
+  if (items && items.length > 0) {
+    html += '<ul class="desc-card-list">';
+    items.forEach(function(it){
+      html += '<li>' + escapeHtmlDesc(it) + '</li>';
+    });
+    html += '</ul>';
+  } else if (!sec.textBefore && sec.content) {
+    html += '<p class="desc-card-text">' + escapeHtmlDesc(sec.content) + '</p>';
+  }
+  if (sec.closing) {
+    html += '<p class="desc-card-closing">' + escapeHtmlDesc(sec.closing) + '</p>';
+  }
+  html += '</section>';
+  return html;
+}
+
+function _descRenderPrestationsCard(sec) {
+  var html = '<section class="desc-card desc-card-prestations">';
+  html += '<header class="desc-card-header">';
+  html += '<div class="desc-card-icon">' + _descSectionIcon(sec.icon) + '</div>';
+  html += '<h3 class="desc-card-title">' + escapeHtmlDesc(sec.title) + '</h3>';
+  html += '</header>';
+  if (sec.textBefore) {
+    html += '<p class="desc-card-text">' + escapeHtmlDesc(sec.textBefore) + '</p>';
+  }
+  if (sec.items && sec.items.length > 0) {
+    html += '<ul class="desc-card-list desc-card-list-2col">';
+    sec.items.forEach(function(it){
+      html += '<li>' + escapeHtmlDesc(it) + '</li>';
+    });
+    html += '</ul>';
+  }
+  if (sec.closing) {
+    html += '<p class="desc-card-closing">' + escapeHtmlDesc(sec.closing) + '</p>';
+  }
+  html += '</section>';
+  return html;
+}
+
+function _descRenderLegal(legalText) {
+  var html = escapeHtmlDesc(legalText)
+    .replace(/ (https?:\/\/\S+|www\.\S+)/gi, ' <a href="$1" target="_blank" rel="noopener">$1</a>');
+  html = html.replace(/(Consulter le barème[^.]*\.?)/i, '</p><p>$1')
+             .replace(/(Votre agent commercial[^.]*)/i, '</p><p>$1')
+             .replace(/(Selon l['']article[^.]*\.)/i, '</p><p>$1</p><p>')
+             .replace(/(Les informations sur les risques[^.]*\.?[^.]*\.?)/i, '</p><p>$1')
+             .replace(/(\* ?Prix net[^.]*\.)/i, '</p><p>$1')
+             .replace(/(Document non contractuel\.?)/i, '</p><p>$1</p>');
+  var out = '<aside class="desc-legal"><p>' + html + '</p></aside>';
+  return out.replace(/<p>\s*<\/p>/g, '');
+}
+
 function bienCardHTML(b) {
   var div = document.createElement('div');
   div.className = 'bien-card';
@@ -3059,11 +4064,11 @@ function bienCardHTML(b) {
       '<span class="bien-card-discover">Découvrir ce bien →</span>' +
     '</div>' +
     '<div class="bien-card-body">' +
-      '<div class="bien-card-type">' + (b.ville || b.type || '—') + '</div>' +
-      (b.titre ? '<div class="bien-card-title">' + b.titre + '</div>' : '') +
+      '<div class="bien-card-type">' + (b.type || '—') + '</div>' +
+      '<div class="bien-card-loc">' + (b.ville || '') + '</div>' +
       '<div class="bien-card-specs">' +
-        (chambres > 0 ? '<span class="bien-card-spec"><span class="bien-card-spec-icon">⬢</span> ' + chambres + ' chambre' + (chambres > 1 ? 's' : '') + '</span>' : '') +
-        (b.surface ? '<span class="bien-card-spec"><span class="bien-card-spec-icon">⬜</span> ' + b.surface + ' m²</span>' : '') +
+        (chambres > 0 ? '<span class="bien-card-spec"><svg class="bien-card-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16v-5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v5"/><path d="M2 20v-4h20v4"/><path d="M6 11V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"/></svg> ' + chambres + ' chambre' + (chambres > 1 ? 's' : '') + '</span>' : '') +
+        (b.surface ? '<span class="bien-card-spec"><svg class="bien-card-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h4M3 15h4M9 3v4M15 3v4M17 21v-4M21 9h-4M21 15h-4M9 21v-4"/></svg> ' + b.surface + ' m²</span>' : '') +
       '</div>' +
       '<div class="bien-card-footer">' +
         '<span class="bien-card-ref">' + ref + '</span>' +
@@ -3121,7 +4126,7 @@ function showFiche(id) {
   previousPage = document.querySelector('.page.active').id.replace('page-','');
   
   document.getElementById('ficheTitre').textContent = b.titre;
-  document.getElementById('ficheLoc').textContent = b.ville + ' · Presqu\'île Guérandaise';
+  document.getElementById('ficheLoc').textContent = b.ville || '';
   document.getElementById('fichePrix').textContent = formatPrix(b.prix);
   
   const refDisplay = b.ref || genRef(b.id).replace('REF. ','');
@@ -3133,8 +4138,9 @@ function showFiche(id) {
   let tableRows = '';
   tableRows += buildRow('Référence agence', refDisplay, 'Pièces', b.pieces ? b.pieces + ' pièces' : '—');
   tableRows += buildRow('Secteur / Ville', b.ville, 'Chambres', b.chambres ? b.chambres + ' chambres' : '—');
-  tableRows += buildRow('Type de bien', b.type, 'Salles de bain', b.sdb ? b.sdb + ' salle(s)' : '—');
-  tableRows += buildRow('Surface', b.surface ? b.surface + ' m²' : '—', 'Niveaux', b.niveaux ? b.niveaux + ' niveaux' : '—');
+  tableRows += buildRow('Type de bien', b.type, 'Salle de bain', b.salleBain ? b.salleBain + ' salle(s)' : '—');
+  tableRows += buildRow('Salle d\'eau', b.sdb ? b.sdb + ' salle(s)' : '—', 'Niveaux', b.niveaux ? b.niveaux + ' niveaux' : '—');
+  tableRows += buildRow('Surface', b.surface ? b.surface + ' m²' : '—', '', '');
   if (b.terrain) tableRows += buildRow('Terrain', b.terrain + ' m²', '', '');
   if (b.annee) tableRows += buildRow('Année de construction', b.annee, '', '');
   tableRows += buildRow('Prix', formatPrix(b.prix), '', '');
@@ -3144,7 +4150,7 @@ function showFiche(id) {
   document.getElementById('ficheSpecs').innerHTML = 
     '<table style="width:100%;border-collapse:collapse;font-size:.88rem;"><tbody>' + tableRows + '</tbody></table>';
 
-  document.getElementById('ficheDesc').textContent = b.description || b.desc || '';
+  document.getElementById('ficheDesc').innerHTML = formatDescription(b.description || b.desc || '', b);
 
   // Section prix détaillée
   const prixSection = document.getElementById('fichePrixSection');
@@ -3158,6 +4164,30 @@ function showFiche(id) {
     prixHtml += '</div>';
   }
   if (prixSection) prixSection.innerHTML = prixHtml;
+
+  // Bloc légal obligatoire affiché à la fin de chaque annonce
+  const legalSection = document.getElementById('ficheLegal');
+  if (legalSection) {
+    legalSection.innerHTML =
+      '<div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--beige);font-size:.8rem;line-height:1.7;color:var(--gris);">' +
+        '<p style="margin-bottom:.8rem;">' +
+          'Votre agent commercial 3G IMMO sur place — ' +
+          '<strong style="color:var(--noir);font-weight:500;">Nathalie CHAUDET-MOREL</strong>, ' +
+          'inscrite au RSAC de Saint-Nazaire n° <strong style="color:var(--noir);font-weight:500;">753 478 916</strong>.' +
+        '</p>' +
+        '<p style="margin-bottom:.8rem;">' +
+          'Selon l\'article L.561-5 du Code Monétaire et Financier, pour l\'organisation de la visite, ' +
+          'la présentation d\'une pièce d\'identité vous sera demandée.' +
+        '</p>' +
+        '<p style="margin-bottom:.8rem;">' +
+          'Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : ' +
+          '<a href="https://www.georisques.gouv.fr" target="_blank" rel="noopener" style="color:var(--or);border-bottom:1px solid var(--or);">www.georisques.gouv.fr</a>' +
+        '</p>' +
+        '<p style="font-style:italic;font-size:.75rem;margin-top:1rem;">' +
+          '* Prix net, hors frais notariés, d\'enregistrement et de publicité foncière. Document non contractuel.' +
+        '</p>' +
+      '</div>';
+  }
 
   // DPE
   const dpeSection = document.getElementById('ficheDPE');
@@ -3176,14 +4206,97 @@ function showFiche(id) {
   if (photo3) subHtml += '<img src="' + photo3 + '" alt="Vue 3" onclick="openLightbox(2)">';
   if (!photo2 && !photo3) subHtml = '<div style="background:var(--beige);height:100%;display:flex;align-items:center;justify-content:center;color:var(--gris);font-size:.8rem;">Aucune<br>photo</div><div style="background:var(--beige);"></div>';
 
-  document.getElementById('ficheGallery').innerHTML = 
-    '<img src="' + photo1 + '" alt="' + b.titre + '" onclick="openLightbox(0)">' +
+  var nbPhotos = photos.length;
+  var photoBtnHtml = '<button type="button" class="fiche-photos-btn" onclick="event.stopPropagation();openLightbox(0)">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>' +
+      nbPhotos + ' Photo' + (nbPhotos > 1 ? 's' : '') +
+    '</button>';
+
+  document.getElementById('ficheGallery').innerHTML =
+    '<div class="fiche-gallery-main">' +
+      '<img src="' + photo1 + '" alt="' + (b.titre || '') + '" onclick="openLightbox(0)">' +
+      photoBtnHtml +
+    '</div>' +
     '<div class="fiche-gallery-sub">' + subHtml + '</div>';
+
+  // ===== Sidebar Barnes-style : bandeau prix + photo agent =====
+  var priceBar = document.getElementById('fichePriceBar');
+  if (priceBar) {
+    priceBar.style.backgroundImage = photo1 ? 'url("' + photo1 + '")' : '';
+  }
+  var priceBarTitle = document.getElementById('fichePriceBarTitle');
+  if (priceBarTitle) {
+    var titleTxt = (b.type || '').toUpperCase();
+    if (b.ville) titleTxt += ' ' + b.ville.toUpperCase();
+    if (b.surface) titleTxt += ' - ' + b.surface + ' M²';
+    priceBarTitle.textContent = titleTxt || 'BIEN';
+  }
+  var priceBarPrice = document.getElementById('fichePriceBarPrice');
+  if (priceBarPrice) priceBarPrice.textContent = formatPrix(b.prix);
+
+  // Photo Nathalie : récupérer depuis la page À propos
+  var agentPhoto = document.getElementById('ficheAgentPhoto');
+  var nathalieImg = document.querySelector('.nathalie-image');
+  if (agentPhoto && nathalieImg && nathalieImg.src) {
+    agentPhoto.src = nathalieImg.src;
+  }
+
+  // Pré-remplir message de contact avec la référence du bien
+  var msgField = document.getElementById('ficheContactMessage');
+  var refBien = b.ref && String(b.ref).trim() ? String(b.ref).trim() : genRef(b.id);
+  if (msgField) {
+    msgField.value = "Bonjour, je souhaiterais plus d'informations sur le bien (Réf : " + refBien + "). Pouvez-vous me recontacter à ce sujet ?";
+  }
+  var successBox = document.getElementById('ficheContactSuccess');
+  if (successBox) successBox.classList.remove('show');
 
   // Biens similaires
   renderSimilaires(b);
 
   showPage('fiche');
+}
+
+// Soumission du formulaire contact depuis la fiche
+function submitFicheContact(e) {
+  e.preventDefault();
+  var form = e.target;
+  var data = {
+    nom: form.nom.value.trim(),
+    prenom: form.prenom.value.trim(),
+    telephone: form.telephone.value.trim(),
+    email: form.email.value.trim(),
+    message: form.message.value.trim(),
+    consent: form.consent.checked
+  };
+  if (!data.nom || !data.prenom || !data.email || !data.telephone || !data.message) return;
+
+  // Afficher message succès
+  var successBox = document.getElementById('ficheContactSuccess');
+  if (successBox) successBox.classList.add('show');
+  form.querySelector('.fiche-submit-btn').disabled = true;
+
+  // Envoi via Formspree / endpoint existant si présent
+  try {
+    fetch('https://formspree.io/f/xwpldapj', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        subject: 'Nouvelle demande depuis une fiche bien - ' + data.nom + ' ' + data.prenom,
+        nom: data.nom + ' ' + data.prenom,
+        email: data.email,
+        telephone: data.telephone,
+        message: data.message
+      })
+    }).catch(function(){});
+  } catch(err) {}
+
+  setTimeout(function() {
+    form.reset();
+    if (successBox) successBox.classList.remove('show');
+    var btn = form.querySelector('.fiche-submit-btn');
+    if (btn) btn.disabled = false;
+  }, 5000);
+  return false;
 }
 
 function renderSimilaires(b) {
@@ -3236,7 +4349,7 @@ function buildDPEHtml(b) {
     dpeBar += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:3px;">' +
       '<div style="width:' + w + 'px;height:26px;background:' + dpeColors[c] + ';clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);display:flex;align-items:center;padding-left:8px;">' +
       '<span style="color:white;font-weight:700;font-size:.85rem;">' + c + '</span></div>' +
-      (active ? '<span style="font-size:.8rem;font-weight:600;color:' + dpeColors[c] + ';">' + b.dpeConso + ' kWh/m².an</span>' : '') +
+      (active && b.dpeConso ? '<span style="font-size:.8rem;font-weight:600;color:' + dpeColors[c] + ';">' + b.dpeConso + ' kWh/m².an</span>' : '') +
       '</div>';
   });
 
@@ -3250,7 +4363,7 @@ function buildDPEHtml(b) {
         '<div style="width:' + w + 'px;height:26px;background:' + gesColors[c] + ';border-radius:0 13px 13px 0;display:flex;align-items:center;justify-content:center;">' +
         '<span style="color:' + textColor + ';font-weight:700;font-size:.85rem;">' + c + '</span>' +
         '</div>' +
-        (active ? '<span style="font-size:.8rem;font-weight:600;color:#3a4f80;">' + b.gesConso + ' kg CO₂/m².an</span>' : '') +
+        (active && b.gesConso ? '<span style="font-size:.8rem;font-weight:600;color:#3a4f80;">' + b.gesConso + ' kg CO₂/m².an</span>' : '') +
         '</div>';
     });
   }
@@ -3261,10 +4374,16 @@ function buildDPEHtml(b) {
   html += '<div>';
   html += '<div style="font-size:.72rem;color:' + dpeColors[b.dpeClasse] + ';font-weight:600;margin-bottom:.6rem;">' + (dpeLabel[b.dpeClasse]||'') + '</div>';
   html += dpeBar;
-  html += '<div style="display:flex;gap:1.5rem;margin-top:.8rem;font-size:.78rem;color:var(--gris);">';
-  html += '<div><div style="font-weight:700;font-size:1.3rem;color:var(--noir);">' + b.dpeConso + '</div>kWh/m².an<br>consommation</div>';
-  if (b.gesConso) html += '<div><div style="font-weight:700;font-size:1.3rem;color:var(--noir);">' + b.gesConso + '</div>kg CO₂/m².an<br>émission</div>';
-  html += '</div></div>';
+  // Bloc chiffres sous la barre : on n'affiche que ce qui existe
+  if (b.dpeConso || b.gesConso) {
+    html += '<div style="display:flex;gap:1.5rem;margin-top:.8rem;font-size:.78rem;color:var(--gris);">';
+    if (b.dpeConso) html += '<div><div style="font-weight:700;font-size:1.3rem;color:var(--noir);">' + b.dpeConso + '</div>kWh/m².an<br>consommation</div>';
+    if (b.gesConso) html += '<div><div style="font-weight:700;font-size:1.3rem;color:var(--noir);">' + b.gesConso + '</div>kg CO₂/m².an<br>émission</div>';
+    html += '</div>';
+  } else {
+    html += '<div style="margin-top:.8rem;font-size:.78rem;color:var(--gris);font-style:italic;">Consommation non renseignée</div>';
+  }
+  html += '</div>';
   if (b.gesClasse) {
     html += '<div><div style="font-size:.72rem;color:#3a4f80;font-weight:600;margin-bottom:.6rem;">' + (gesLabel[b.gesClasse]||'') + '</div>' + gesBar + '</div>';
   }
@@ -3353,6 +4472,7 @@ function adminEdit(id) {
   document.getElementById('editPieces').value = b.pieces || '';
   document.getElementById('editChambres').value = b.chambres || '';
   document.getElementById('editSDB').value = b.sdb || '';
+  document.getElementById('editSalleBain').value = b.salleBain || '';
   document.getElementById('editNiveaux').value = b.niveaux || '';
   document.getElementById('editAnnee').value = b.annee || '';
   document.getElementById('editHonoraires').value = b.honoraires || '';
@@ -3400,6 +4520,7 @@ function saveEdit() {
   b.pieces     = parseInt(document.getElementById('editPieces').value) || 0;
   b.chambres   = parseInt(document.getElementById('editChambres').value) || 0;
   b.sdb        = parseInt(document.getElementById('editSDB').value) || 0;
+  b.salleBain  = parseInt(document.getElementById('editSalleBain').value) || 0;
   b.niveaux    = parseInt(document.getElementById('editNiveaux').value) || 0;
   b.annee      = parseInt(document.getElementById('editAnnee').value) || 0;
   b.honoraires = parseFloat(document.getElementById('editHonoraires').value) || 0;
@@ -3711,6 +4832,7 @@ function adminAddBien() {
     pieces:     parseInt(document.getElementById('aPieces').value) || 0,
     chambres:   parseInt(document.getElementById('aChambres').value) || 0,
     sdb:        parseInt(document.getElementById('aSDB').value) || 0,
+    salleBain:  parseInt(document.getElementById('aSalleBain').value) || 0,
     niveaux:    parseInt(document.getElementById('aNiveaux').value) || 0,
     annee:      document.getElementById('aAnnee').value.trim(),
     honoraires: document.getElementById('aHonoraires').value,
@@ -3732,7 +4854,7 @@ function adminAddBien() {
   addBienToSupabase(b);
   
   // Reset tous les champs
-  ['aTitre','aPrix','aRef','aSurface','aTerrain','aPieces','aChambres','aSDB','aNiveaux','aAnnee','aMontantHonoraires','aDesc','aPrixFAI','aPrixHH','aPctHonoraires','aDPEconso','aGESconso'].forEach(id => {
+  ['aTitre','aPrix','aRef','aSurface','aTerrain','aPieces','aChambres','aSDB','aSalleBain','aNiveaux','aAnnee','aMontantHonoraires','aDesc','aPrixFAI','aPrixHH','aPctHonoraires','aDPEconso','aGESconso'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -4080,7 +5202,8 @@ if (_lb) { _lb.addEventListener('click', function(e) { if (e.target === this) cl
         <div class="form-row"><label class="form-label">Terrain (m²)</label><input type="number" class="form-input" id="editTerrain"></div>
         <div class="form-row"><label class="form-label">Pièces</label><input type="number" class="form-input" id="editPieces"></div>
         <div class="form-row"><label class="form-label">Chambres</label><input type="number" class="form-input" id="editChambres"></div>
-        <div class="form-row"><label class="form-label">Salles de bain</label><input type="number" class="form-input" id="editSDB"></div>
+        <div class="form-row"><label class="form-label">Salle de bain</label><input type="number" class="form-input" id="editSalleBain"></div>
+        <div class="form-row"><label class="form-label">Salle d'eau</label><input type="number" class="form-input" id="editSDB"></div>
         <div class="form-row"><label class="form-label">Niveaux</label><input type="number" class="form-input" id="editNiveaux"></div>
         <div class="form-row"><label class="form-label">Année construction</label><input type="number" class="form-input" id="editAnnee" placeholder="Ex: 1985"></div>
         <div class="form-row"><label class="form-label">Honoraires (%)</label><input type="number" class="form-input" id="editHonoraires" placeholder="Ex: 5"></div>
@@ -4222,6 +5345,7 @@ function bienToSupabase(b) {
     pieces: b.pieces || 0,
     chambres: b.chambres || 0,
     sdb: b.sdb || 0,
+    salleBain: b.salleBain || 0,
     niveaux: b.niveaux || 0,
     terrain: b.terrain || 0,
     annee: b.annee || '',
@@ -4438,6 +5562,16 @@ function showCookieSection(key,el){
   }
 })();
 </script>
+
+<!-- ===== LIGHTBOX GALLERIE ===== -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Galerie photos">
+  <button id="lightbox-close" onclick="closeLightbox()" aria-label="Fermer">✕</button>
+  <div id="lightbox-counter">1 / 1</div>
+  <button id="lightbox-prev" onclick="lightboxNav(-1)" aria-label="Photo précédente">‹</button>
+  <img id="lightbox-img" src="" alt="">
+  <button id="lightbox-next" onclick="lightboxNav(1)" aria-label="Photo suivante">›</button>
+  <div id="lightbox-thumbs"></div>
+</div>
 
 </body>
 </html>
