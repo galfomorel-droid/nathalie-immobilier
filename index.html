@@ -2306,21 +2306,21 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">Prénom *</label>
-          <input type="text" class="form-input" placeholder="Votre prénom" required>
+          <input type="text" id="estimPrenom" class="form-input" placeholder="Votre prénom" required>
         </div>
         <div class="form-row">
           <label class="form-label">Nom *</label>
-          <input type="text" class="form-input" placeholder="Votre nom" required>
+          <input type="text" id="estimNom" class="form-input" placeholder="Votre nom" required>
         </div>
       </div>
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">Email *</label>
-          <input type="email" class="form-input" placeholder="votre@email.fr" required>
+          <input type="email" id="estimEmail" class="form-input" placeholder="votre@email.fr" required>
         </div>
         <div class="form-row">
           <label class="form-label">Téléphone *</label>
-          <input type="tel" class="form-input" placeholder="06 00 00 00 00" required>
+          <input type="tel" id="estimTel" class="form-input" placeholder="06 00 00 00 00" required>
         </div>
       </div>
 
@@ -2328,7 +2328,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">Type de bien *</label>
-          <select class="form-select" required>
+          <select id="estimType" class="form-select" required>
             <option value="">— Choisir —</option>
             <option>Maison</option>
             <option>Appartement</option>
@@ -2341,7 +2341,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
         </div>
         <div class="form-row">
           <label class="form-label">Ville *</label>
-          <select class="form-select" required>
+          <select id="estimVille" class="form-select" required>
             <option value="">— Choisir —</option>
             <option>La Baule</option>
             <option>Guérande</option>
@@ -2357,48 +2357,48 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       </div>
       <div class="form-row">
         <label class="form-label">Adresse du bien (facultatif)</label>
-        <input type="text" class="form-input" placeholder="Rue, numéro — pour un pré-repérage">
+        <input type="text" id="estimAdresse" class="form-input" placeholder="Rue, numéro — pour un pré-repérage">
       </div>
 
       <!-- Caractéristiques -->
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">Surface habitable (m²) *</label>
-          <input type="number" class="form-input" placeholder="Ex: 120" min="0" required>
+          <input type="number" id="estimSurface" class="form-input" placeholder="Ex: 120" min="0" required>
         </div>
         <div class="form-row">
           <label class="form-label">Surface terrain (m²)</label>
-          <input type="number" class="form-input" placeholder="Ex: 500" min="0">
+          <input type="number" id="estimTerrain" class="form-input" placeholder="Ex: 500" min="0">
         </div>
       </div>
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">Nombre de pièces</label>
-          <input type="number" class="form-input" placeholder="Ex: 5" min="0">
+          <input type="number" id="estimPieces" class="form-input" placeholder="Ex: 5" min="0">
         </div>
         <div class="form-row">
           <label class="form-label">Nombre de chambres</label>
-          <input type="number" class="form-input" placeholder="Ex: 3" min="0">
+          <input type="number" id="estimChambres" class="form-input" placeholder="Ex: 3" min="0">
         </div>
       </div>
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">Salles de bain / d'eau</label>
-          <input type="number" class="form-input" placeholder="Ex: 2" min="0">
+          <input type="number" id="estimSdb" class="form-input" placeholder="Ex: 2" min="0">
         </div>
         <div class="form-row">
           <label class="form-label">Année de construction</label>
-          <input type="number" class="form-input" placeholder="Ex: 1985" min="1800" max="2030">
+          <input type="number" id="estimAnnee" class="form-input" placeholder="Ex: 1985" min="1800" max="2030">
         </div>
       </div>
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">Étage (si appartement)</label>
-          <input type="text" class="form-input" placeholder="Ex: 2e sur 4">
+          <input type="text" id="estimEtage" class="form-input" placeholder="Ex: 2e sur 4">
         </div>
         <div class="form-row">
           <label class="form-label">État général</label>
-          <select class="form-select">
+          <select id="estimEtat" class="form-select">
             <option value="">— Choisir —</option>
             <option>Neuf / récent</option>
             <option>Très bon état</option>
@@ -2412,15 +2412,15 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       <!-- Extérieurs / prestations -->
       <div class="form-row">
         <label class="form-label">Extérieurs & prestations</label>
-        <div class="form-checks">
-          <label class="form-check"><input type="checkbox"> Jardin</label>
-          <label class="form-check"><input type="checkbox"> Terrasse</label>
-          <label class="form-check"><input type="checkbox"> Balcon</label>
-          <label class="form-check"><input type="checkbox"> Piscine</label>
-          <label class="form-check"><input type="checkbox"> Garage</label>
-          <label class="form-check"><input type="checkbox"> Parking</label>
-          <label class="form-check"><input type="checkbox"> Cave</label>
-          <label class="form-check"><input type="checkbox"> Vue mer</label>
+        <div class="form-checks" id="estimPrestations">
+          <label class="form-check"><input type="checkbox" value="Jardin"> Jardin</label>
+          <label class="form-check"><input type="checkbox" value="Terrasse"> Terrasse</label>
+          <label class="form-check"><input type="checkbox" value="Balcon"> Balcon</label>
+          <label class="form-check"><input type="checkbox" value="Piscine"> Piscine</label>
+          <label class="form-check"><input type="checkbox" value="Garage"> Garage</label>
+          <label class="form-check"><input type="checkbox" value="Parking"> Parking</label>
+          <label class="form-check"><input type="checkbox" value="Cave"> Cave</label>
+          <label class="form-check"><input type="checkbox" value="Vue mer"> Vue mer</label>
         </div>
       </div>
 
@@ -2428,7 +2428,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">Votre projet</label>
-          <select class="form-select">
+          <select id="estimProjet" class="form-select">
             <option value="">— Choisir —</option>
             <option>Vente à court terme (&lt; 3 mois)</option>
             <option>Vente à moyen terme (3–12 mois)</option>
@@ -2439,7 +2439,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
         </div>
         <div class="form-row">
           <label class="form-label">DPE (si connu)</label>
-          <select class="form-select">
+          <select id="estimDpe" class="form-select">
             <option value="">— Non connu —</option>
             <option>A</option>
             <option>B</option>
@@ -2453,7 +2453,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       </div>
       <div class="form-row">
         <label class="form-label">Informations complémentaires</label>
-        <textarea class="form-input" rows="3" placeholder="Travaux récents, particularités, contexte du projet…"></textarea>
+        <textarea id="estimMessage" class="form-input" rows="3" placeholder="Travaux récents, particularités, contexte du projet…"></textarea>
       </div>
 
       <p style="font-size:.72rem;color:var(--gris);margin:0.5rem 0 1rem;line-height:1.5;">
@@ -2523,7 +2523,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       </div>
       <div class="form-row">
         <label class="form-label">Votre message</label>
-        <textarea class="form-textarea" placeholder="Décrivez votre projet..."></textarea>
+        <textarea class="form-textarea" id="contactMessage" placeholder="Décrivez votre projet..."></textarea>
       </div>
       <button class="form-submit" onclick="submitContact()">Envoyer le message</button>
     </div>
@@ -3648,19 +3648,41 @@ function submitModal() {
 }
 
 async function submitEstimation() {
-  var nom = (document.getElementById('estimNom')||{}).value || '';
-  var email = (document.getElementById('estimEmail')||{}).value || '';
-  var tel = (document.getElementById('estimTel')||{}).value || '';
-  var adresse = (document.getElementById('estimAdresse')||{}).value || '';
-  var ville = (document.getElementById('estimVille')||{}).value || '';
-  var type = (document.getElementById('estimType')||{}).value || '';
-  var surface = (document.getElementById('estimSurface')||{}).value || '';
+  var v = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var prenom    = v('estimPrenom');
+  var nom       = v('estimNom');
+  var email     = v('estimEmail');
+  var tel       = v('estimTel');
+  var type      = v('estimType');
+  var ville     = v('estimVille');
+  var adresse   = v('estimAdresse');
+  var surface   = v('estimSurface');
+  var terrain   = v('estimTerrain');
+  var pieces    = v('estimPieces');
+  var chambres  = v('estimChambres');
+  var sdb       = v('estimSdb');
+  var annee     = v('estimAnnee');
+  var etage     = v('estimEtage');
+  var etat      = v('estimEtat');
+  var projet    = v('estimProjet');
+  var dpe       = v('estimDpe');
+  var message   = v('estimMessage');
 
-  if (!nom || !email) {
-    alert('Merci de remplir votre nom et email.');
-    return;
-  }
+  // Cases prestations
+  var prestations = [];
+  document.querySelectorAll('#estimPrestations input[type=checkbox]:checked').forEach(function(cb){
+    prestations.push(cb.value);
+  });
 
+  // Validation : champs obligatoires
+  if (!prenom || !nom) { alert('Merci de renseigner vos prénom et nom.'); return; }
+  if (!email)          { alert('Merci de renseigner votre email.'); return; }
+  if (!tel)            { alert('Merci de renseigner votre téléphone.'); return; }
+  if (!type)           { alert('Merci de sélectionner le type de bien.'); return; }
+  if (!ville)          { alert('Merci de sélectionner la ville.'); return; }
+  if (!surface)        { alert('Merci d\'indiquer la surface habitable.'); return; }
+
+  var fullName = prenom + ' ' + nom;
   var btn = document.querySelector('#page-estimation .form-submit');
   if (btn) { btn.disabled = true; btn.textContent = 'Envoi en cours...'; }
 
@@ -3670,29 +3692,45 @@ async function submitEstimation() {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
         access_key: '2b135d1f-77a0-403b-b5a5-0b433bbee5ed',
-        subject: 'Demande estimation depuis votre site - ' + nom,
-        name: nom,
+        subject: 'Demande estimation depuis votre site - ' + fullName,
+        name: fullName,
         email: email,
         phone: tel,
-        adresse: adresse,
-        ville: ville,
         type_bien: type,
-        surface: surface + 'm2'
+        ville: ville,
+        adresse: adresse || '—',
+        surface_habitable: surface ? surface + ' m²' : '—',
+        surface_terrain: terrain ? terrain + ' m²' : '—',
+        nb_pieces: pieces || '—',
+        nb_chambres: chambres || '—',
+        salles_de_bain: sdb || '—',
+        annee_construction: annee || '—',
+        etage: etage || '—',
+        etat_general: etat || '—',
+        prestations: prestations.length ? prestations.join(', ') : '—',
+        projet: projet || '—',
+        dpe: dpe || '—',
+        message: message || '—'
       })
     });
     var data = await res.json();
     if (data.success) {
       alert('✅ Demande envoyée ! Nathalie vous contactera sous 24h avec votre estimation.');
-      ['estimNom','estimEmail','estimTel','estimAdresse','estimSurface'].forEach(function(id) {
+      ['estimPrenom','estimNom','estimEmail','estimTel','estimAdresse','estimSurface','estimTerrain',
+       'estimPieces','estimChambres','estimSdb','estimAnnee','estimEtage','estimMessage'].forEach(function(id){
         var el = document.getElementById(id); if(el) el.value = '';
       });
+      ['estimType','estimVille','estimEtat','estimProjet','estimDpe'].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.selectedIndex = 0;
+      });
+      document.querySelectorAll('#estimPrestations input[type=checkbox]').forEach(function(cb){ cb.checked = false; });
     } else {
       alert('Erreur. Contactez directement : 06 48 38 43 75');
     }
   } catch(e) {
     alert('Erreur réseau. Contactez directement : 06 48 38 43 75');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Demander une estimation'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Demander mon estimation gratuite'; }
   }
 }
 
