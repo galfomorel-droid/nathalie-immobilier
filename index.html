@@ -432,53 +432,130 @@ section { padding: 8rem 6%; }
   max-width: 1300px;
   margin: 0 auto;
 }
+/* Grille "large" pour la page Biens — 2 colonnes, photos imposantes */
+.biens-page-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
 .bien-card {
   background: var(--white);
   cursor: pointer;
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
   overflow: hidden;
   border: 1px solid var(--beige);
+  position: relative;
 }
-.bien-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+.bien-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(0,0,0,0.12); }
+
 .bien-card-img {
   position: relative;
   overflow: hidden;
   aspect-ratio: 4/3;
+  background: var(--beige);
+}
+/* Sur la page Biens, aspect ratio plus cinématographique */
+.biens-page-grid .bien-card-img {
+  aspect-ratio: 16/10;
 }
 .bien-card-img img {
   width: 100%; height: 100%;
   object-fit: cover;
-  transition: transform 0.7s ease;
+  transition: transform 0.8s ease;
   display: block;
 }
-.bien-card:hover .bien-card-img img { transform: scale(1.05); }
+.bien-card:hover .bien-card-img img { transform: scale(1.06); }
+
+/* Overlay "Découvrir ce bien" au hover (style Barnes) */
+.bien-card-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.bien-card:hover .bien-card-img::after { opacity: 1; }
+.bien-card-discover {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: rgba(255,255,255,0.95);
+  color: var(--noir);
+  padding: 0.8rem 1.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 500;
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.bien-card:hover .bien-card-discover {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Badges */
 .bien-card-badge {
   position: absolute;
-  top: 1rem; left: 1rem;
-  background: var(--or);
-  color: var(--white);
+  top: 1.2rem; left: 1.2rem;
+  background: rgba(255,255,255,0.95);
+  color: var(--noir);
   font-size: 0.62rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  padding: 0.3rem 0.7rem;
+  padding: 0.45rem 0.9rem;
+  font-weight: 500;
+  z-index: 3;
 }
 .bien-card-exclusive {
   position: absolute;
-  top: 1rem; right: 1rem;
-  background: var(--noir);
+  top: 1.2rem; right: 1.2rem;
+  background: #C8102E;
   color: var(--white);
   font-size: 0.6rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  padding: 0.3rem 0.7rem;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  z-index: 3;
 }
-.bien-card-body { padding: 1.2rem 1.5rem 1.5rem; }
+
+/* Corps de carte — plus généreux */
+.bien-card-body {
+  padding: 1.4rem 1.8rem 1.6rem;
+}
+.biens-page-grid .bien-card-body {
+  padding: 1.8rem 2rem 2rem;
+}
 .bien-card-type {
-  font-size: 1.1rem;
+  font-family: var(--sans);
+  font-size: 1.15rem;
   font-weight: 500;
   color: var(--noir);
-  margin-bottom: 0.2rem;
-  font-family: var(--sans);
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.01em;
+}
+.biens-page-grid .bien-card-type {
+  font-size: 1.35rem;
+}
+.bien-card-title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--gris);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.biens-page-grid .bien-card-title {
+  font-size: 1.05rem;
+  margin-bottom: 1.2rem;
 }
 .bien-card-loc {
   font-size: 0.88rem;
@@ -487,39 +564,62 @@ section { padding: 8rem 6%; }
 }
 .bien-card-specs {
   display: flex;
-  gap: 1.2rem;
+  gap: 1.8rem;
   align-items: center;
-  margin-bottom: 0.8rem;
-  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
   color: var(--noir);
 }
+.biens-page-grid .bien-card-specs {
+  font-size: 0.95rem;
+  gap: 2rem;
+}
 .bien-card-spec {
-  display: flex; align-items: center; gap: 0.4rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  color: var(--noir);
 }
 .bien-card-spec-icon {
-  font-size: 1rem;
-  color: var(--gris);
+  font-size: 1.05rem;
+  color: var(--or);
 }
 .bien-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid var(--beige);
-  padding-top: 0.8rem;
+  padding-top: 1rem;
   margin-top: 0.4rem;
+  gap: 1rem;
 }
 .bien-card-ref {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--gris);
   border: 1px solid var(--beige-dark);
-  padding: 0.25rem 0.6rem;
-  letter-spacing: 0.05em;
+  padding: 0.3rem 0.7rem;
+  letter-spacing: 0.08em;
+  background: var(--beige);
+  border-radius: 2px;
 }
 .bien-card-price {
-  font-size: 1.1rem;
+  font-family: var(--sans);
+  font-size: 1.2rem;
   color: var(--noir);
   font-weight: 500;
-  font-family: var(--sans);
+  letter-spacing: -0.01em;
+}
+.biens-page-grid .bien-card-price {
+  font-size: 1.4rem;
+}
+.bien-card-details {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--gris);
+}
+.bien-card-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 /* ===== POURQUOI ===== */
@@ -1021,12 +1121,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   padding-right: 2rem;
 }
 .biens-page-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
   padding: 3rem 6%;
-  max-width: 1300px;
-  margin: 0 auto;
 }
 
 /* ===== FICHE BIEN ===== */
@@ -2954,21 +3049,25 @@ function bienCardHTML(b) {
   div.style.cursor = 'pointer';
   div.setAttribute('data-id', b.id);
   var exclu = b.exclusif ? '<span class="bien-card-exclusive">Exclusivité</span>' : '';
+  var ref = b.ref && String(b.ref).trim() ? String(b.ref).trim() : genRef(b.id);
+  var chambres = b.chambres ? b.chambres : (b.pieces ? b.pieces - 1 : 0);
   div.innerHTML =
     '<div class="bien-card-img">' +
       '<img src="' + (b.img||'') + '" alt="' + (b.titre||'') + '" loading="lazy" onerror="this.src=defaultImgs[0]">' +
       '<span class="bien-card-badge">' + (b.type||'') + '</span>' +
       exclu +
+      '<span class="bien-card-discover">Découvrir ce bien →</span>' +
     '</div>' +
     '<div class="bien-card-body">' +
       '<div class="bien-card-type">' + (b.ville || b.type || '—') + '</div>' +
-      '<div class="bien-card-title">' + (b.titre||'') + '</div>' +
+      (b.titre ? '<div class="bien-card-title">' + b.titre + '</div>' : '') +
+      '<div class="bien-card-specs">' +
+        (chambres > 0 ? '<span class="bien-card-spec"><span class="bien-card-spec-icon">⬢</span> ' + chambres + ' chambre' + (chambres > 1 ? 's' : '') + '</span>' : '') +
+        (b.surface ? '<span class="bien-card-spec"><span class="bien-card-spec-icon">⬜</span> ' + b.surface + ' m²</span>' : '') +
+      '</div>' +
       '<div class="bien-card-footer">' +
+        '<span class="bien-card-ref">' + ref + '</span>' +
         '<div class="bien-card-price">' + formatPrix(b.prix) + '</div>' +
-        '<div class="bien-card-details">' +
-          '<span class="bien-card-detail">⬜ ' + (b.surface||0) + 'm²</span>' +
-          '<span class="bien-card-detail">⬡ ' + (b.pieces||0) + 'p</span>' +
-        '</div>' +
       '</div>' +
     '</div>';
   div.addEventListener('click', function() { showFiche(parseInt(b.id)); });
@@ -3952,7 +4051,7 @@ if (_lb) { _lb.addEventListener('click', function(e) { if (e.target === this) cl
       <button onclick="switchEditTab(1,this)" id="etab1" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--or);margin-bottom:-2px;color:var(--noir);">Informations</button>
       <button onclick="switchEditTab(2,this)" id="etab2" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--gris);">Détails</button>
       <button onclick="switchEditTab(3,this)" id="etab3" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--gris);">Description</button>
-      <button onclick="switchEditTab(4,this)" id="etab4" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--gris);">Prix & DPE</button>
+      <button onclick="switchEditTab(4,this)" id="etab4" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--gris);">Prix avancé & DPE</button>
       <button onclick="switchEditTab(5,this)" id="etab5" style="padding:.6rem 1rem;font-family:var(--sans);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--gris);">Photos</button>
     </div>
 
@@ -3966,6 +4065,7 @@ if (_lb) { _lb.addEventListener('click', function(e) { if (e.target === this) cl
           </select>
         </div>
         <div class="form-row"><label class="form-label">Ville</label><select class="form-select" id="editVille"></select></div>
+        <div class="form-row"><label class="form-label">Prix FAI (€) *</label><input type="number" class="form-input" id="editPrix" placeholder="Ex: 850000" style="border-color:var(--or);"></div>
         <div class="form-row"><label class="form-label">Référence agence</label><input type="text" class="form-input" id="editRef" placeholder="Ex: NCM-2025-001"></div>
         <div class="form-row"><label class="form-label">Exclusivité</label>
           <select class="form-select" id="editExclu"><option value="0">Non</option><option value="1">Oui</option></select>
@@ -3995,11 +4095,10 @@ if (_lb) { _lb.addEventListener('click', function(e) { if (e.target === this) cl
       </div>
     </div>
 
-    <!-- Onglet 4 : Prix & DPE -->
+    <!-- Onglet 4 : Prix avancé & DPE -->
     <div id="edit-tab-4" style="display:none;">
       <div class="admin-form-grid">
-        <div class="form-row"><label class="form-label">Prix FAI (€)</label><input type="number" class="form-input" id="editPrix" placeholder="Ex: 850000"></div>
-        <div class="form-row"><label class="form-label">Prix HH (€)</label><input type="number" class="form-input" id="editPrixHH" placeholder="Hors honoraires"></div>
+        <div class="form-row"><label class="form-label">Prix HH — hors honoraires (€)</label><input type="number" class="form-input" id="editPrixHH" placeholder="Ex: 810000"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
         <div>
