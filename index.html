@@ -2774,11 +2774,14 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
     <button class="modal-close" onclick="closeModal('modal-admin')">✕</button>
     <h2 class="modal-title">Espace privé</h2>
     <p class="modal-sub">Accès réservé à l'administrateur.</p>
-    <div class="form-row">
-      <label class="form-label">Mot de passe</label>
-      <input type="password" class="form-input" id="adminPwd" placeholder="••••••••" onkeypress="if(event.key==='Enter')checkAdmin()">
-    </div>
-    <button class="form-submit" onclick="checkAdmin()">Accéder</button>
+    <form onsubmit="event.preventDefault();checkAdmin();" autocomplete="on" method="post" action="#">
+      <input type="text" name="username" id="adminUser" value="admin-nathalie" autocomplete="username" style="position:absolute;opacity:0;pointer-events:none;height:0;width:0;" readonly tabindex="-1">
+      <div class="form-row">
+        <label class="form-label" for="adminPwd">Mot de passe</label>
+        <input type="password" class="form-input" id="adminPwd" name="password" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button type="submit" class="form-submit">Accéder</button>
+    </form>
     <p id="adminError" style="color:#dc2626;font-size:.8rem;margin-top:.8rem;display:none;">Mot de passe incorrect.</p>
   </div>
 </div>
@@ -2958,7 +2961,7 @@ function bienCardHTML(b) {
       exclu +
     '</div>' +
     '<div class="bien-card-body">' +
-      '<div class="bien-card-type">' + (b.ville||'') + '</div>' +
+      '<div class="bien-card-type">' + (b.ville || b.type || '—') + '</div>' +
       '<div class="bien-card-title">' + (b.titre||'') + '</div>' +
       '<div class="bien-card-footer">' +
         '<div class="bien-card-price">' + formatPrix(b.prix) + '</div>' +
@@ -3177,6 +3180,18 @@ const ADMIN_PWD = 'nathalie2025';
 function checkAdmin() {
   const pwd = document.getElementById('adminPwd').value;
   if (pwd === ADMIN_PWD) {
+    // Proposer au navigateur d'enregistrer le mot de passe
+    // (API Credential Management — déclenche la popup "Enregistrer ce mot de passe ?")
+    if (window.PasswordCredential && navigator.credentials && navigator.credentials.store) {
+      try {
+        const cred = new PasswordCredential({
+          id: 'admin-nathalie',
+          name: 'Admin Nathalie',
+          password: pwd
+        });
+        navigator.credentials.store(cred).catch(function(){ /* silent */ });
+      } catch(e) { /* navigateur non compatible : on ignore */ }
+    }
     closeModal('modal-admin');
     document.getElementById('adminPwd').value = '';
     document.getElementById('adminError').style.display = 'none';
@@ -3316,7 +3331,7 @@ function saveEdit() {
 }
 
 
-var villes = ['La Baule', 'Guérande', 'Le Pouliguen', 'Batz-sur-Mer', 'La Turballe', 'Piriac-sur-Mer'];
+var villes = ['Le Pouliguen', 'La Baule', 'Guérande', 'Batz-sur-Mer', 'La Turballe', 'Piriac-sur-Mer', 'Pornichet', 'Saint-Nazaire'];
 
 function refreshVilleSelects() {
   // Filtre biens
@@ -3337,6 +3352,10 @@ function refreshVilleSelects() {
     const currentVal = adminSel.value;
     // Garder les options existantes + ajouter nouvelles villes + option ajout
     adminSel.innerHTML = '';
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = ''; defaultOpt.textContent = '— Sélectionner une ville —';
+    defaultOpt.disabled = true;
+    adminSel.appendChild(defaultOpt);
     villes.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v; opt.textContent = v;
@@ -3346,6 +3365,10 @@ function refreshVilleSelects() {
     const newOpt = document.createElement('option');
     newOpt.value = '__new__'; newOpt.textContent = '+ Ajouter une ville...';
     adminSel.appendChild(newOpt);
+    // Si aucune valeur actuelle, on sélectionne la première ville réelle
+    if (!currentVal && villes.length > 0) {
+      adminSel.value = villes[0];
+    }
   }
   // Estimation
   const estimSel = document.getElementById('estimVille');
@@ -3563,6 +3586,14 @@ function switchTab(n) {
 function adminAddBien() {
   const titre = document.getElementById('aTitre').value.trim();
   if (!titre) { alert('Veuillez saisir un titre (onglet Informations).'); switchTab(1); return; }
+
+  const villeVal = document.getElementById('aVille').value;
+  if (!villeVal || villeVal === '__new__') {
+    alert('Veuillez sélectionner une ville (onglet Informations).');
+    switchTab(1);
+    document.getElementById('aVille').focus();
+    return;
+  }
   
   const imgPrincipale = uploadedPhotos.length > 0 
     ? uploadedPhotos[0] 
@@ -4179,7 +4210,11 @@ async function loadBiens() {
     if (saved) {
       var parsed = JSON.parse(saved);
       if (parsed && parsed.length > 0) {
-        biens = parsed.map(function(b) { b.id = parseInt(b.id); return b; });
+        biens = parsed.map(function(b) {
+          b.id = parseInt(b.id);
+          if (!b.ville || !String(b.ville).trim()) b.ville = 'Le Pouliguen';
+          return b;
+        });
         nextId = parseInt(localStorage.getItem('nathalie_nextId') || String(biens.length + 1));
         renderHomeGrid();
         console.log('✅ ' + biens.length + ' biens chargés localement');
@@ -4199,6 +4234,8 @@ async function loadBiens() {
         biens = data.map(function(b) { 
           b.id = parseInt(b.id); 
           if (b.description && !b.desc) b.desc = b.description;
+          // Ville manquante ou vide → fallback pour éviter un rendu cassé
+          if (!b.ville || !String(b.ville).trim()) b.ville = 'Le Pouliguen';
           return b; 
         });
         nextId = Math.max.apply(null, biens.map(function(b){return b.id;})) + 1;
