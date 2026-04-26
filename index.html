@@ -7128,7 +7128,7 @@ function bienToSupabase(b) {
 
   // ⚠️ IMPORTANT : tous les champs numériques passent par _num() / _int()
   // qui garantissent un nombre OU null (jamais de chaîne vide qui ferait planter Postgres)
-  return {
+  var out = {
     id: b.id,
     titre: b.titre || '',
     type: b.type || '',
@@ -7155,10 +7155,20 @@ function bienToSupabase(b) {
     prixFAI: _int(b.prixFAI || b.prix) || 0,
     pctHonoraires: _num(b.pctHonoraires),
     montantHonoraires: _num(b.montantHonoraires),
-    honoraires: (typeof b.honoraires === 'string') ? b.honoraires : (b.honoraires ? 'acquéreur' : null),
+    honoraires: (typeof b.honoraires === 'string' && b.honoraires.trim()) ? b.honoraires : null,
     statut: b.statut || 'en_vente',
     dateVente: b.dateVente || null
   };
+  // 🛡️ GARDE-FOU FINAL : pour CHAQUE champ numérique, si la valeur est "" ou NaN, force null
+  ['prix','surface','pieces','chambres','sdb','salleBain','niveaux','terrain',
+   'annee','dpeVal','gesVal','prixHH','prixFAI','pctHonoraires','montantHonoraires'].forEach(function(k){
+    if (out[k] === '' || out[k] === undefined || out[k] !== out[k]) out[k] = null;
+  });
+  // Champs texte qui ne doivent jamais être ""
+  ['dpe','ges','honoraires','statut'].forEach(function(k){
+    if (out[k] === '') out[k] = null;
+  });
+  return out;
 }
 
 // Version "safe" : retire TOUTES les colonnes potentiellement absentes ou problématiques
