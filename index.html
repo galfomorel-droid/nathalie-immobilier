@@ -7161,12 +7161,17 @@ function bienToSupabase(b) {
   };
 }
 
-// Version "safe" : retire TOUTES les colonnes potentiellement absentes du schéma Supabase
+// Version "safe" : retire TOUTES les colonnes potentiellement absentes ou problématiques
 function bienToSupabaseSafe(b) {
   var data = bienToSupabase(b);
-  // Colonnes "récentes" qui peuvent ne pas être encore créées dans la table Supabase
+  // Colonnes "récentes" / "ambigües" qui peuvent ne pas exister, ou avoir un type strict
   ['statut','dateVente','salleBain','dpeClasse','dpeConso','gesClasse','gesConso',
-   'pctHonoraires','prixFAI','annee'].forEach(function(k){ delete data[k]; });
+   'pctHonoraires','prixFAI','annee','prixHH','montantHonoraires','honoraires',
+   'dpeVal','gesVal'].forEach(function(k){ delete data[k]; });
+  // En + : nettoyer toute valeur "" résiduelle qui pourrait poser problème sur une colonne numeric
+  Object.keys(data).forEach(function(k){
+    if (data[k] === '') data[k] = null;
+  });
   return data;
 }
 
@@ -7247,7 +7252,8 @@ async function updateBienInSupabase(b) {
     var att = attemptsConfig[i];
     var data = att.fn(b);
     try {
-      console.log('📤 Update Supabase bien #' + b.id + ' (' + att.name + ') — DPE:', data.dpe || '—', '· dpeVal:', data.dpeVal || '—', '· img:', (data.img || '').substring(0, 60));
+      console.log('📤 Update Supabase bien #' + b.id + ' (' + att.name + ')');
+      console.log('  Payload :', data);
       var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
         method: 'PATCH',
         headers: supaHeaders(),
@@ -7260,10 +7266,15 @@ async function updateBienInSupabase(b) {
         return true;
       }
       var err = await res.text();
-      console.warn('❌ Tentative "' + att.name + '" échouée (HTTP ' + res.status + '):', err.substring(0, 250));
-      // Erreur "column not found" → on retry au niveau suivant
-      // Erreur 400 autre (type incorrect) → on retry aussi
-      // Erreur 5xx réseau → on arrête
+      console.warn('❌ Tentative "' + att.name + '" échouée (HTTP ' + res.status + '):', err.substring(0, 300));
+      // Si l'erreur identifie un champ vide problématique, on le révèle
+      var emptyMatch = /invalid input syntax for type \w+: ""/.exec(err);
+      if (emptyMatch) {
+        console.warn('  → 🔍 Une colonne reçoit "". Champs envoyés (vérifie les "" et chaînes vides) :');
+        Object.keys(data).forEach(function(k){
+          if (data[k] === '' || data[k] === null) console.warn('     ', k, '=', JSON.stringify(data[k]));
+        });
+      }
       if (res.status >= 500) break;
     } catch(e) {
       console.warn('❌ Réseau:', e.message);
