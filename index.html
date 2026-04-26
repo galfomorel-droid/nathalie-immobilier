@@ -424,9 +424,15 @@ nav.scrolled .hamburger span { background: var(--noir); }
 /* ===== HERO ===== */
 #hero {
   position: relative;
-  height: 100vh; min-height: 700px;
+  height: 100vh;
+  height: 100dvh; /* dynamic viewport — corrige le bug barre URL iOS Safari */
+  min-height: 600px;
   display: flex; align-items: flex-end;
   overflow: hidden;
+}
+@media (max-height: 500px) {
+  /* iPhone en mode paysage */
+  #hero { height: auto; min-height: 380px; }
 }
 .hero-bg {
   position: absolute; inset: 0;
@@ -1423,23 +1429,80 @@ footer {
   margin: 0 auto;
 }
 
-/* ===== BOUTON ADMIN ===== */
-#btn-admin {
-  position: fixed;
-  bottom: 2rem; left: 2rem;
-  background: var(--noir);
-  color: rgba(255,255,255,0.5);
-  border: 1px solid rgba(255,255,255,0.1);
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0.6rem 1rem;
+/* ===== BOUTON ADMIN — masqué (l'accès est désormais dans le footer) ===== */
+#btn-admin { display: none !important; }
+
+/* ===== BLOC ADMIN DANS LE FOOTER (style "carte centrée") ===== */
+.footer-admin-block {
+  width: fit-content;
+  max-width: 90%;
+  margin: 2.5rem auto 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 1.4rem;
+  padding: 1.4rem 3rem;
+  border: 1px solid rgba(198, 168, 107, 0.55);
+  border-radius: 2px;
+  background: transparent;
   cursor: pointer;
-  z-index: 500;
-  font-family: var(--sans);
-  transition: all var(--transition);
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
 }
-#btn-admin:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+.footer-admin-block:hover,
+.footer-admin-block:focus-visible {
+  background: rgba(198, 168, 107, 0.08);
+  border-color: var(--or, #c6a86b);
+  outline: none;
+  transform: translateY(-1px);
+}
+.footer-admin-icon {
+  width: 28px;
+  height: 28px;
+  color: rgba(255,255,255,0.7);
+  flex-shrink: 0;
+  transition: color 0.25s ease;
+}
+.footer-admin-block:hover .footer-admin-icon,
+.footer-admin-block:focus-visible .footer-admin-icon {
+  color: var(--or, #c6a86b);
+}
+.footer-admin-text {
+  line-height: 1.5;
+  text-align: left;
+}
+.footer-admin-title {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.92);
+  font-weight: 500;
+}
+.footer-admin-sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.55);
+  margin-top: 0.25rem;
+}
+
+/* Wrapper pour centrer le bloc dans le footer */
+footer .footer-admin-block-wrap {
+  text-align: center;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+  .footer-admin-block {
+    padding: 1.1rem 1.4rem;
+    gap: 1rem;
+    width: auto;
+    max-width: calc(100% - 3rem);
+  }
+  .footer-admin-title { font-size: 0.78rem; letter-spacing: 0.15em; }
+  .footer-admin-sub { font-size: 0.78rem; }
+  .footer-admin-icon { width: 22px; height: 22px; }
+}
 
 /* ===== MODALS ===== */
 .modal-overlay {
@@ -3578,8 +3641,8 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
           <input type="text" name="nom" class="fiche-input" placeholder="Nom *" required>
           <input type="text" name="prenom" class="fiche-input" placeholder="Prénom *" required>
         </div>
-        <input type="tel" name="telephone" class="fiche-input" placeholder="Téléphone *" required>
-        <input type="email" name="email" class="fiche-input" placeholder="Email *" required>
+        <input type="tel" name="telephone" class="fiche-input" placeholder="Téléphone *" required pattern="[0-9 .+\-()]{8,20}" maxlength="20">
+        <input type="email" name="email" class="fiche-input" placeholder="Email *" required maxlength="120">
         <textarea name="message" class="fiche-textarea" id="ficheContactMessage" placeholder="Message *" required></textarea>
         <label class="fiche-check">
           <input type="checkbox" name="consent">
@@ -3690,11 +3753,11 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       <div class="form-row-2">
         <div class="form-row">
           <label class="form-label">Email *</label>
-          <input type="email" id="estimEmail" class="form-input" placeholder="votre@email.fr" required>
+          <input type="email" id="estimEmail" class="form-input" placeholder="votre@email.fr" required maxlength="120">
         </div>
         <div class="form-row">
           <label class="form-label">Téléphone *</label>
-          <input type="tel" id="estimTel" class="form-input" placeholder="06 00 00 00 00" required>
+          <input type="tel" id="estimTel" class="form-input" placeholder="06 00 00 00 00" required pattern="[0-9 .+\-()]{8,20}" maxlength="20">
         </div>
       </div>
 
@@ -3885,21 +3948,21 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       <h3>Envoyez-moi un message</h3>
       <div class="form-row">
         <label class="form-label">Votre nom</label>
-        <input type="text" class="form-input" id="contactNom" placeholder="Prénom Nom">
+        <input type="text" class="form-input" id="contactNom" placeholder="Prénom Nom" required maxlength="80">
       </div>
       <div class="form-row">
         <label class="form-label">Email</label>
-        <input type="email" class="form-input" id="contactEmail" placeholder="votre@email.fr">
+        <input type="email" class="form-input" id="contactEmail" placeholder="votre@email.fr" required maxlength="120">
       </div>
       <div class="form-row">
         <label class="form-label">Téléphone</label>
-        <input type="tel" class="form-input" id="contactTel" placeholder="06 00 00 00 00">
+        <input type="tel" class="form-input" id="contactTel" placeholder="06 00 00 00 00" required pattern="[0-9 .+\-()]{8,20}" maxlength="20">
       </div>
       <div class="form-row">
         <label class="form-label">Votre message</label>
-        <textarea class="form-textarea" id="contactMessage" placeholder="Décrivez votre projet..."></textarea>
+        <textarea class="form-textarea" id="contactMessage" placeholder="Décrivez votre projet..." maxlength="2000"></textarea>
       </div>
-      <button class="form-submit" onclick="submitContact()">Envoyer le message</button>
+      <button class="form-submit" id="contactSubmitBtn" onclick="submitContact()">Envoyer le message</button>
     </div>
   </div>
 </div>
@@ -4108,36 +4171,36 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
     <button class="modal-close" onclick="closeModal('modal-contact')">✕</button>
     <h2 class="modal-title">Parlons de votre projet</h2>
     <p class="modal-sub">Réponse garantie sous 24h. Premier échange toujours gratuit.</p>
-    <div id="contactFormWrap">
+    <form id="contactFormWrap" onsubmit="submitModal(event); return false;">
       <div class="form-row">
-        <label class="form-label">Votre nom</label>
-        <input type="text" class="form-input" placeholder="Prénom Nom">
+        <label class="form-label" for="modalNom">Votre nom *</label>
+        <input type="text" id="modalNom" name="nom" class="form-input" placeholder="Prénom Nom" required maxlength="80">
       </div>
       <div class="form-row-2">
         <div class="form-row">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-input" placeholder="votre@email.fr">
+          <label class="form-label" for="modalEmail">Email *</label>
+          <input type="email" id="modalEmail" name="email" class="form-input" placeholder="votre@email.fr" required maxlength="120">
         </div>
         <div class="form-row">
-          <label class="form-label">Téléphone</label>
-          <input type="tel" class="form-input" placeholder="06 00 00 00 00">
+          <label class="form-label" for="modalTel">Téléphone *</label>
+          <input type="tel" id="modalTel" name="telephone" class="form-input" placeholder="06 00 00 00 00" required pattern="[0-9 .+\-()]{8,20}" maxlength="20">
         </div>
       </div>
       <div class="form-row">
-        <label class="form-label">Votre projet</label>
-        <select class="form-select">
-          <option>Achat</option>
-          <option>Vente</option>
-          <option>Estimation</option>
-          <option>Renseignement</option>
+        <label class="form-label" for="modalProjet">Votre projet *</label>
+        <select id="modalProjet" name="projet" class="form-select" required>
+          <option value="Achat">Achat</option>
+          <option value="Vente">Vente</option>
+          <option value="Estimation">Estimation</option>
+          <option value="Renseignement">Renseignement</option>
         </select>
       </div>
       <div class="form-row">
-        <label class="form-label">Message (optionnel)</label>
-        <textarea class="form-textarea" placeholder="Décrivez votre projet..."></textarea>
+        <label class="form-label" for="modalMessage">Message (optionnel)</label>
+        <textarea id="modalMessage" name="message" class="form-textarea" placeholder="Décrivez votre projet..." maxlength="2000"></textarea>
       </div>
-      <button class="form-submit" onclick="submitModal()">Envoyer ma demande</button>
-    </div>
+      <button type="submit" class="form-submit" id="modalSubmitBtn">Envoyer ma demande</button>
+    </form>
     <div class="success-msg" id="contactSuccess">
       <div class="success-icon">✦</div>
       <div class="success-title">Message envoyé !</div>
@@ -4208,11 +4271,256 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
     <span>© 2026 Nathalie Chaudet Morel — SIRET 75347891600046</span>
     <span>Mandataire sous carte pro 3G Immobilier</span>
   </div>
+
+  <!-- Espace administrateur — carte centrée bordure dorée, comme l'inspiration Chez Juju -->
+  <div class="footer-admin-block-wrap">
+    <div class="footer-admin-block" onclick="openModal('modal-admin')" role="button" tabindex="0"
+         onkeypress="if(event.key==='Enter'){openModal('modal-admin')}"
+         aria-label="Accéder à l'espace administrateur">
+      <svg class="footer-admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="11" width="18" height="11" rx="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <div class="footer-admin-text">
+        <div class="footer-admin-title">Espace administrateur</div>
+        <div class="footer-admin-sub">Accès réservé à Nathalie — gestion des biens</div>
+      </div>
+    </div>
+  </div>
 </footer>
 
-<button id="btn-admin" onclick="openModal('modal-admin')">⚙ Admin</button>
+<!-- Email-decode (Cloudflare) — un seul import suffit -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>function saveBiens() {
+<!-- ===== SYSTÈME DE TOAST (remplace alert/confirm natifs) ===== -->
+<style>
+.toast-stack {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  z-index: 99999;
+  pointer-events: none;
+  max-width: calc(100vw - 3rem);
+}
+.toast {
+  pointer-events: auto;
+  background: var(--noir, #111);
+  color: #fff;
+  padding: 0.95rem 1.2rem 0.95rem 1rem;
+  border-radius: 6px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.25);
+  font-family: var(--sans, system-ui);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 280px;
+  max-width: 420px;
+  animation: toast-in 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  border-left: 4px solid var(--or, #c6a86b);
+}
+.toast.success { border-left-color: #1B7A3E; }
+.toast.error   { border-left-color: #D9372C; }
+.toast.warning { border-left-color: #C24D0C; }
+.toast.info    { border-left-color: var(--or, #c6a86b); }
+.toast .toast-icon {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.15);
+}
+.toast.success .toast-icon { background: #1B7A3E; }
+.toast.error   .toast-icon { background: #D9372C; }
+.toast.warning .toast-icon { background: #C24D0C; }
+.toast.info    .toast-icon { background: var(--or, #c6a86b); color: #111; }
+.toast.fade-out { animation: toast-out 0.3s forwards; }
+.toast-close {
+  background: none; border: 0; color: rgba(255,255,255,0.6);
+  cursor: pointer; padding: 0; margin-left: auto;
+  font-size: 1.05rem; line-height: 1;
+  transition: color 0.2s;
+}
+.toast-close:hover { color: #fff; }
+@keyframes toast-in {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes toast-out {
+  to { transform: translateX(110%); opacity: 0; }
+}
+@media (max-width: 600px) {
+  .toast-stack { left: 0.8rem; right: 0.8rem; top: 0.8rem; }
+  .toast { min-width: 0; }
+}
+
+/* Confirmation modale (remplace confirm()) */
+.confirm-overlay {
+  position: fixed; inset: 0;
+  background: rgba(17,17,17,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 99998;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 1.5rem;
+}
+.confirm-overlay.open { display: flex; }
+.confirm-box {
+  background: #fff;
+  border-radius: 8px;
+  max-width: 460px;
+  width: 100%;
+  padding: 2rem;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+  animation: confirm-in 0.2s ease-out;
+}
+@keyframes confirm-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.confirm-title {
+  font-family: var(--serif, Georgia);
+  font-size: 1.3rem;
+  font-style: italic;
+  color: var(--noir, #111);
+  margin-bottom: 0.7rem;
+}
+.confirm-msg {
+  font-size: 0.95rem;
+  color: var(--gris, #555);
+  line-height: 1.55;
+  margin-bottom: 1.5rem;
+  white-space: pre-line;
+}
+.confirm-actions {
+  display: flex; gap: 0.6rem; justify-content: flex-end;
+}
+.confirm-btn {
+  font-family: var(--sans, system-ui);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.7rem 1.2rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+.confirm-btn-cancel { background: transparent; color: var(--gris, #555); border-color: #ddd; }
+.confirm-btn-cancel:hover { background: #f5f5f5; }
+.confirm-btn-ok { background: var(--noir, #111); color: #fff; }
+.confirm-btn-ok:hover { background: var(--or, #c6a86b); }
+.confirm-btn-danger { background: #D9372C; color: #fff; }
+.confirm-btn-danger:hover { background: #B82A20; }
+</style>
+<div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+<div class="confirm-overlay" id="confirmOverlay" role="dialog" aria-modal="true">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Confirmation</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-actions">
+      <button type="button" class="confirm-btn confirm-btn-cancel" id="confirmCancelBtn">Annuler</button>
+      <button type="button" class="confirm-btn confirm-btn-ok" id="confirmOkBtn">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============== SYSTÈME DE TOAST + CONFIRM ==============
+(function(){
+  var stack = null;
+  function getStack() {
+    if (!stack) stack = document.getElementById('toastStack');
+    return stack;
+  }
+  var icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
+  window.showToast = function(message, type, duration) {
+    type = type || 'info';
+    duration = duration || 4000;
+    var s = getStack();
+    if (!s) { console.log('[toast]', type, message); return; }
+    var t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.innerHTML = '<span class="toast-icon">' + (icons[type]||'i') + '</span>' +
+                  '<span class="toast-text"></span>' +
+                  '<button type="button" class="toast-close" aria-label="Fermer">✕</button>';
+    t.querySelector('.toast-text').textContent = message;
+    s.appendChild(t);
+    var close = function(){
+      t.classList.add('fade-out');
+      setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); }, 300);
+    };
+    t.querySelector('.toast-close').addEventListener('click', close);
+    if (duration > 0) setTimeout(close, duration);
+    return close;
+  };
+
+  // Remplaçant moderne de confirm() — retourne une Promise
+  window.showConfirm = function(message, opts) {
+    opts = opts || {};
+    return new Promise(function(resolve){
+      var overlay = document.getElementById('confirmOverlay');
+      var msg = document.getElementById('confirmMsg');
+      var title = document.getElementById('confirmTitle');
+      var ok = document.getElementById('confirmOkBtn');
+      var cancel = document.getElementById('confirmCancelBtn');
+      title.textContent = opts.title || 'Confirmation';
+      msg.textContent = message;
+      ok.textContent = opts.okText || 'Confirmer';
+      cancel.textContent = opts.cancelText || 'Annuler';
+      ok.className = 'confirm-btn ' + (opts.danger ? 'confirm-btn-danger' : 'confirm-btn-ok');
+      overlay.classList.add('open');
+      var done = function(val){
+        overlay.classList.remove('open');
+        ok.removeEventListener('click', onOk);
+        cancel.removeEventListener('click', onCancel);
+        overlay.removeEventListener('click', onBg);
+        document.removeEventListener('keydown', onKey);
+        resolve(val);
+      };
+      var onOk = function(){ done(true); };
+      var onCancel = function(){ done(false); };
+      var onBg = function(e){ if (e.target === overlay) done(false); };
+      var onKey = function(e){
+        if (e.key === 'Escape') done(false);
+        if (e.key === 'Enter') done(true);
+      };
+      ok.addEventListener('click', onOk);
+      cancel.addEventListener('click', onCancel);
+      overlay.addEventListener('click', onBg);
+      document.addEventListener('keydown', onKey);
+      setTimeout(function(){ ok.focus(); }, 50);
+    });
+  };
+})();
+</script>
+
+<script>
+// ===== Mode DEBUG =====
+// Active les logs détaillés en ajoutant ?debug=1 à l'URL ou en tapant
+// localStorage.setItem('nathalie_debug', '1') dans la console.
+// En prod, les console.log/warn restent silencieux.
+(function(){
+  try {
+    var debug = (location.search.indexOf('debug=1') !== -1) ||
+                (localStorage.getItem('nathalie_debug') === '1');
+    if (!debug) {
+      var noop = function(){};
+      window.console.log = noop;
+      window.console.info = noop;
+      window.console.debug = noop;
+      // On garde console.warn et console.error pour les vraies anomalies
+    }
+  } catch(e) {}
+})();
+
+function saveBiens() {
   // 1. Sauvegarde locale SYNCHRONE - toujours en premier
   try {
     var data = JSON.stringify(biens);
@@ -4686,7 +4994,15 @@ function _descBuildHtml(ctx) {
     html += '</div>';
   }
   if (ctx.introBody) {
-    html += '<div class="desc-intro"><p>' + escapeHtmlDesc(ctx.introBody) + '</p></div>';
+    // Préserver les sauts de ligne saisis dans le textarea de l'admin :
+    // chaque double-saut = nouveau paragraphe ; saut simple = <br>
+    var paragraphs = ctx.introBody.split(/\n\s*\n+/);
+    var introHtml = paragraphs
+      .map(function(p){
+        return '<p>' + escapeHtmlDesc(p.trim()).replace(/\n/g, '<br>') + '</p>';
+      })
+      .join('');
+    html += '<div class="desc-intro">' + introHtml + '</div>';
   }
 
   // ========== KEY FEATURES (badges) ==========
@@ -4822,6 +5138,17 @@ function _descRenderLegal(legalText) {
   return out.replace(/<p>\s*<\/p>/g, '');
 }
 
+// Helper d'échappement HTML générique (utilisé partout pour les valeurs des biens)
+function _esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function bienCardHTML(b) {
   var div = document.createElement('div');
   div.className = 'bien-card';
@@ -4849,22 +5176,22 @@ function bienCardHTML(b) {
     ' - Nathalie Chaudet Morel';
   div.innerHTML =
     '<div class="bien-card-img">' +
-      '<img src="' + (b.img||'') + '" alt="' + altTxt.replace(/"/g,'&quot;') + '" loading="lazy" decoding="async" onerror="this.src=defaultImgs[0]">' +
-      '<span class="bien-card-badge">' + (b.type||'') + '</span>' +
+      '<img src="' + _esc(b.img||'') + '" alt="' + _esc(altTxt) + '" loading="lazy" decoding="async" onerror="this.src=defaultImgs[0]">' +
+      '<span class="bien-card-badge">' + _esc(b.type||'') + '</span>' +
       exclu +
       statutOverlay +
       '<span class="bien-card-discover">Découvrir ce bien →</span>' +
     '</div>' +
     '<div class="bien-card-body">' +
-      '<div class="bien-card-type">' + (b.type || '—') + '</div>' +
-      '<div class="bien-card-loc">' + (b.ville || '') + '</div>' +
+      '<div class="bien-card-type">' + _esc(b.type || '—') + '</div>' +
+      '<div class="bien-card-loc">' + _esc(b.ville || '') + '</div>' +
       '<div class="bien-card-specs">' +
         (chambres > 0 ? '<span class="bien-card-spec"><svg class="bien-card-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16v-5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v5"/><path d="M2 20v-4h20v4"/><path d="M6 11V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"/></svg> ' + chambres + ' chambre' + (chambres > 1 ? 's' : '') + '</span>' : '') +
         (b.surface ? '<span class="bien-card-spec"><svg class="bien-card-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h4M3 15h4M9 3v4M15 3v4M17 21v-4M21 9h-4M21 15h-4M9 21v-4"/></svg> ' + b.surface + ' m²</span>' : '') +
       '</div>' +
       '<div class="bien-card-footer">' +
-        '<span class="bien-card-ref">' + ref + '</span>' +
-        '<div class="bien-card-price">' + formatPrix(b.prix) + '</div>' +
+        '<span class="bien-card-ref">' + _esc(ref) + '</span>' +
+        '<div class="bien-card-price">' + _esc(formatPrix(b.prix)) + '</div>' +
       '</div>' +
     '</div>';
   div.addEventListener('click', function() { showFiche(parseInt(b.id)); });
@@ -5004,7 +5331,7 @@ function showFiche(id) {
   if (b.terrain) tableRows += buildRow('Terrain', b.terrain + ' m²', '', '');
   if (b.annee) tableRows += buildRow('Année de construction', b.annee, '', '');
   tableRows += buildRow('Prix', formatPrix(b.prix), '', '');
-  if (b.honoraires) tableRows += buildRow('Honoraires à la charge', "de l'" + b.honoraires, '', '');
+  // On affiche toujours « Honoraires acquéreur » avec le montant si renseigné
   if (b.montantHonoraires) tableRows += buildRow('Honoraires acquéreur', b.montantHonoraires.toLocaleString('fr-FR') + ' €', '', '');
 
   document.getElementById('ficheSpecs').innerHTML = 
@@ -5018,7 +5345,25 @@ function showFiche(id) {
   if (prixSection && (b.prixFAI || b.prixHH || b.pctHonoraires)) {
     prixHtml = '<div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--beige);">';
     prixHtml += '<h3 style="font-family:var(--sans);font-size:1rem;font-weight:500;margin-bottom:1rem;color:var(--noir);">À propos du prix</h3>';
-    if (b.pctHonoraires) prixHtml += '<p style="font-size:.88rem;color:var(--gris);margin-bottom:.5rem;">Honoraires TTC inclus à la charge de l\'acquéreur à <strong>' + b.pctHonoraires + '%</strong> du prix du bien hors honoraires.</p>';
+
+    // ⚠️ Pourcentage calculé DYNAMIQUEMENT depuis prixFAI et prixHH (toujours correct)
+    // On ignore la valeur stockée car elle peut être corrompue (parfois c'est le montant en €)
+    var pctCalc = null;
+    if (b.prixFAI && b.prixHH && b.prixHH > 0 && b.prixFAI > b.prixHH) {
+      pctCalc = ((b.prixFAI - b.prixHH) / b.prixHH * 100);
+    } else if (b.pctHonoraires && b.pctHonoraires > 0 && b.pctHonoraires <= 15) {
+      // Fallback : valeur stockée uniquement si elle est réaliste (≤ 15%)
+      pctCalc = parseFloat(b.pctHonoraires);
+    }
+    // Honoraires "à la charge de" : doit être un texte (acquéreur/vendeur/partagés)
+    var qui = (typeof b.honoraires === 'string' && b.honoraires) ? b.honoraires : 'acquéreur';
+    var quiTxt = (qui === 'vendeur') ? 'du vendeur' : (qui === 'partagés' ? 'partagés' : "de l'acquéreur");
+
+    if (pctCalc !== null) {
+      // Affichage propre : 1 décimale si non entier, sinon entier
+      var pctStr = (pctCalc === Math.floor(pctCalc)) ? pctCalc.toFixed(0) : pctCalc.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+      prixHtml += '<p style="font-size:.88rem;color:var(--gris);margin-bottom:.5rem;">Honoraires TTC inclus à la charge ' + quiTxt + ' à <strong>' + pctStr + '%</strong> du prix du bien hors honoraires.</p>';
+    }
     if (b.prixFAI) prixHtml += '<p style="font-size:.9rem;color:var(--noir);margin-bottom:.3rem;">Prix du bien honoraires inclus : <strong>' + b.prixFAI.toLocaleString('fr-FR') + ' €</strong></p>';
     if (b.prixHH) prixHtml += '<p style="font-size:.9rem;color:var(--noir);">Prix du bien hors honoraires : <strong>' + b.prixHH.toLocaleString('fr-FR') + ' €</strong></p>';
     prixHtml += '</div>';
@@ -5434,13 +5779,56 @@ function buildDPEHtml(b) {
 
 
 // ===== ADMIN =====
-const ADMIN_PWD = 'nathalie2025';
+// Le mot de passe est stocké sous forme de hash SHA-256 et non en clair.
+// Pour le changer : utiliser la fonction setNewAdminPwd('nouveau_mdp') dans la console
+// puis remplacer la valeur ci-dessous par le hash retourné.
+// Hash actuel = SHA-256 de 'NathalieImmo!2026'
+const ADMIN_PWD_HASH = '2b2beb36fa2d3a26f36a57e71fd876e59e950f87c514427f7f8abd33b8fef550';
+// Fallback désactivé en prod (mettre une chaîne aléatoire qui ne sera jamais saisie)
+const ADMIN_PWD_FALLBACK = '__FALLBACK_DISABLED_' + Math.random().toString(36);
 
-function checkAdmin() {
+// Anti brute-force : limite le nombre de tentatives
+var _adminAttempts = 0;
+var _adminLockedUntil = 0;
+
+async function _hashPwd(pwd) {
+  if (!window.crypto || !window.crypto.subtle) return null;
+  try {
+    var enc = new TextEncoder().encode(pwd);
+    var buf = await window.crypto.subtle.digest('SHA-256', enc);
+    return Array.prototype.map.call(new Uint8Array(buf), function(b){
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+  } catch (e) { return null; }
+}
+
+// Utilitaire pour générer un nouveau hash (à utiliser depuis la console)
+window.setNewAdminPwd = async function(newPwd) {
+  var h = await _hashPwd(newPwd);
+  console.log('Nouveau hash à coller dans le code (ADMIN_PWD_HASH) :');
+  console.log(h);
+  return h;
+};
+
+async function checkAdmin() {
+  // Verrouillage en cas de trop de tentatives
+  if (Date.now() < _adminLockedUntil) {
+    var sec = Math.ceil((_adminLockedUntil - Date.now()) / 1000);
+    showToast('Trop de tentatives. Réessaye dans ' + sec + ' s.', 'error');
+    return;
+  }
+
   const pwd = document.getElementById('adminPwd').value;
-  if (pwd === ADMIN_PWD) {
-    // Proposer au navigateur d'enregistrer le mot de passe
-    // (API Credential Management — déclenche la popup "Enregistrer ce mot de passe ?")
+  if (!pwd) { showToast('Mot de passe requis', 'error'); return; }
+
+  // Vérification : on essaie d'abord par hash SHA-256, sinon fallback texte
+  var ok = false;
+  var hashedInput = await _hashPwd(pwd);
+  if (hashedInput && hashedInput === ADMIN_PWD_HASH) ok = true;
+  else if (pwd === ADMIN_PWD_FALLBACK) ok = true;
+
+  if (ok) {
+    _adminAttempts = 0;
     if (window.PasswordCredential && navigator.credentials && navigator.credentials.store) {
       try {
         const cred = new PasswordCredential({
@@ -5448,16 +5836,25 @@ function checkAdmin() {
           name: 'Admin Nathalie',
           password: pwd
         });
-        navigator.credentials.store(cred).catch(function(){ /* silent */ });
-      } catch(e) { /* navigateur non compatible : on ignore */ }
+        navigator.credentials.store(cred).catch(function(){});
+      } catch(e) {}
     }
     closeModal('modal-admin');
     document.getElementById('adminPwd').value = '';
     document.getElementById('adminError').style.display = 'none';
     showPage('admin');
-  } else {
-    document.getElementById('adminError').style.display = 'block';
+    return;
   }
+
+  // Échec
+  _adminAttempts++;
+  if (_adminAttempts >= 5) {
+    _adminLockedUntil = Date.now() + 60000; // 1 minute de pénalité
+    _adminAttempts = 0;
+    showToast('Trop de tentatives — verrouillé 60 secondes.', 'error', 6000);
+  }
+  // Mauvais mot de passe : afficher l'erreur
+  document.getElementById('adminError').style.display = 'block';
 }
 
 function renderAdmin() {
@@ -5472,10 +5869,10 @@ function renderAdmin() {
     else if (statut === 'vendu') statutBadge = '<span class="admin-statut-badge admin-statut-vendu">Vendu</span>';
     return `
     <div class="admin-bien-row">
-      <img class="admin-bien-img" src="${b.img}" alt="${b.titre}">
+      <img class="admin-bien-img" src="${_esc(b.img)}" alt="${_esc(b.titre)}">
       <div class="admin-bien-info">
-        <h4>${b.titre} ${statutBadge}</h4>
-        <p>${b.ville} · ${b.type} · ${formatPrix(b.prix)}</p>
+        <h4>${_esc(b.titre)} ${statutBadge}</h4>
+        <p>${_esc(b.ville)} · ${_esc(b.type)} · ${_esc(formatPrix(b.prix))}</p>
       </div>
       <div class="admin-bien-actions">
         <button class="btn-edit" onclick="adminEdit(${b.id})">Modifier</button>
@@ -5561,7 +5958,18 @@ function adminEdit(id) {
   document.getElementById('editSalleBain').value = b.salleBain || '';
   document.getElementById('editNiveaux').value = b.niveaux || '';
   document.getElementById('editAnnee').value = b.annee || '';
-  document.getElementById('editHonoraires').value = b.honoraires || '';
+  // Honoraires "à la charge de" : peut être stocké en texte ('acquéreur'/'vendeur'/'partagés')
+  // Si c'est un nombre (ancienne version), on bascule sur 'acquéreur' par défaut
+  var honStored = b.honoraires;
+  var honText = '';
+  if (typeof honStored === 'string' && (honStored === 'acquéreur' || honStored === 'vendeur' || honStored === 'partagés')) {
+    honText = honStored;
+  } else if (honStored && !isNaN(parseFloat(honStored))) {
+    // Ancien format avec un nombre → on déduit "acquéreur" par défaut
+    honText = 'acquéreur';
+  }
+  document.getElementById('editHonoraires').value = honText;
+  document.getElementById('editMontantHonoraires').value = b.montantHonoraires || '';
 
   // === ONGLET 3 : DESCRIPTION ===
   document.getElementById('editDesc').value = b.description || b.desc || '';
@@ -5587,12 +5995,26 @@ function adminEdit(id) {
 function closeEditModal() {
   document.getElementById('modal-edit-bien').classList.remove('open');
   document.body.style.overflow = '';
+  // Reset des photos en mémoire (sinon mélange entre 2 biens édités à la suite)
+  if (typeof editPhotos !== 'undefined') editPhotos = [];
+  var grid = document.getElementById('editPhotoGrid');
+  if (grid) grid.innerHTML = '';
 }
 
-function saveEdit() {
+async function saveEdit() {
+  // Anti double-clic
+  var btnSave = document.getElementById('btnSaveEdit');
+  if (btnSave && btnSave.disabled) return;
+
   var id = parseInt(document.getElementById('editId').value);
   var b = biens.find(function(x){ return x.id == id; });
-  if (!b) return;
+  if (!b) {
+    showToast('❌ Bien introuvable. Ferme et rouvre la modale.', 'error');
+    return;
+  }
+  if (btnSave) { btnSave.disabled = true; btnSave.textContent = '⏳ Enregistrement…'; }
+
+  console.log('💾 Sauvegarde du bien #' + b.id + '…');
 
   // Onglet 1 - Informations
   b.titre    = document.getElementById('editTitre').value;
@@ -5610,14 +6032,24 @@ function saveEdit() {
   b.salleBain  = parseInt(document.getElementById('editSalleBain').value) || 0;
   b.niveaux    = parseInt(document.getElementById('editNiveaux').value) || 0;
   b.annee      = parseInt(document.getElementById('editAnnee').value) || 0;
-  b.honoraires = parseFloat(document.getElementById('editHonoraires').value) || 0;
+  // honoraires = qui paie (texte) ; montantHonoraires = combien (nombre)
+  b.honoraires = document.getElementById('editHonoraires').value || '';
+  b.montantHonoraires = parseInt(document.getElementById('editMontantHonoraires').value) || 0;
 
   // Onglet 3 - Description
   b.description = document.getElementById('editDesc').value;
 
   // Onglet 4 - Prix & DPE
-  b.prix   = parseInt(document.getElementById('editPrix').value) || 0;
-  b.prixHH = parseInt(document.getElementById('editPrixHH').value) || 0;
+  b.prix    = parseInt(document.getElementById('editPrix').value) || 0;
+  b.prixHH  = parseInt(document.getElementById('editPrixHH').value) || 0;
+  // Sync : prixFAI = prix (les deux représentent le prix Frais d'Agence Inclus)
+  b.prixFAI = b.prix;
+  // Recalcule pourcentage honoraires si on a les 2 prix
+  if (b.prix && b.prixHH && b.prixHH > 0 && b.prix > b.prixHH) {
+    b.pctHonoraires = parseFloat(((b.prix - b.prixHH) / b.prixHH * 100).toFixed(2));
+    // Si montantHonoraires non saisi, le déduire automatiquement
+    if (!b.montantHonoraires) b.montantHonoraires = b.prix - b.prixHH;
+  }
   // Sauvegarde avec le format unifié (dpeClasse/dpeConso) pour que l'affichage fonctionne
   b.dpeClasse = document.getElementById('editDPE').value;
   b.dpeConso  = parseInt(document.getElementById('editDPEval').value) || 0;
@@ -5633,14 +6065,45 @@ function saveEdit() {
   if (editPhotos.length > 0) {
     b.photos = editPhotos.slice();
     b.img    = editPhotos[0];
+  } else {
+    b.photos = [];
+    b.img = '';
   }
 
+  // Détecter si on a des photos en base64 (non sauvegardables sur Supabase)
+  var hasBase64 = (b.photos || []).some(function(p){ return p && p.startsWith('data:'); });
+
+  // Sauvegarde locale (toujours, instantané)
   saveBiens();
-  closeEditModal();
+  console.log('  ✅ Sauvegarde locale OK');
+
+  // Mise à jour de l'affichage local
   renderAdmin();
   renderHomeGrid();
-  updateBienInSupabase(b);
-  alert('✅ Bien modifié avec succès !');
+  if (typeof renderVendusCarousel === 'function') renderVendusCarousel();
+
+  // Sauvegarde Supabase (asynchrone)
+  var supabaseOk = true;
+  try {
+    if (typeof updateBienInSupabase === 'function') {
+      await updateBienInSupabase(b);
+    }
+  } catch (e) {
+    supabaseOk = false;
+    console.warn('  ❌ Sauvegarde Supabase échouée:', e.message);
+  }
+
+  closeEditModal();
+  if (btnSave) { btnSave.disabled = false; btnSave.textContent = '✓ Enregistrer les modifications'; }
+
+  // Feedback adapté selon le résultat
+  if (hasBase64) {
+    showToast('Bien modifié — ⚠️ certaines photos n\'ont pas pu être uploadées (visibles localement seulement).', 'warning', 7000);
+  } else if (!supabaseOk) {
+    showToast('Bien modifié localement — ⚠️ sync serveur en échec (voir console).', 'warning', 6000);
+  } else {
+    showToast('✅ Bien modifié avec succès !', 'success');
+  }
 }
 
 
@@ -5896,20 +6359,26 @@ function switchTab(n) {
   if (bAdd)  bAdd.style.display  = n === 5 ? 'inline-block' : 'none';
 }
 
-function adminAddBien() {
+async function adminAddBien() {
+  // Anti double-clic
+  var btnAdd = document.getElementById('btn-tab-add');
+  if (btnAdd && btnAdd.disabled) return;
+
   const titre = document.getElementById('aTitre').value.trim();
-  if (!titre) { alert('Veuillez saisir un titre (onglet Informations).'); switchTab(1); return; }
+  if (!titre) { showToast('Veuillez saisir un titre (onglet Informations).', 'error'); switchTab(1); return; }
 
   const villeVal = document.getElementById('aVille').value;
   if (!villeVal || villeVal === '__new__') {
-    alert('Veuillez sélectionner une ville (onglet Informations).');
+    showToast('Veuillez sélectionner une ville (onglet Informations).', 'error');
     switchTab(1);
     document.getElementById('aVille').focus();
     return;
   }
-  
-  const imgPrincipale = uploadedPhotos.length > 0 
-    ? uploadedPhotos[0] 
+
+  if (btnAdd) { btnAdd.disabled = true; btnAdd.textContent = 'Enregistrement…'; }
+
+  const imgPrincipale = uploadedPhotos.length > 0
+    ? uploadedPhotos[0]
     : defaultImgs[Math.floor(Math.random()*defaultImgs.length)];
   
   const b = {
@@ -5927,7 +6396,7 @@ function adminAddBien() {
     sdb:        parseInt(document.getElementById('aSDB').value) || 0,
     salleBain:  parseInt(document.getElementById('aSalleBain').value) || 0,
     niveaux:    parseInt(document.getElementById('aNiveaux').value) || 0,
-    annee:      document.getElementById('aAnnee').value.trim(),
+    annee:      parseInt(document.getElementById('aAnnee').value) || 0,
     honoraires: document.getElementById('aHonoraires').value,
     montantHonoraires: parseInt(document.getElementById('aMontantHonoraires').value) || 0,
     description: document.getElementById('aDesc').value || 'Description à compléter.',
@@ -5944,8 +6413,12 @@ function adminAddBien() {
   biens.unshift(b);
   saveBiens();
   renderHomeGrid();
-  addBienToSupabase(b);
-  
+  try {
+    await addBienToSupabase(b);
+  } catch (e) {
+    console.warn('addBienToSupabase failed:', e);
+  }
+
   // Reset tous les champs
   ['aTitre','aPrix','aRef','aSurface','aTerrain','aPieces','aChambres','aSDB','aSalleBain','aNiveaux','aAnnee','aMontantHonoraires','aDesc','aPrixFAI','aPrixHH','aPctHonoraires','aDPEconso','aGESconso'].forEach(id => {
     const el = document.getElementById(id);
@@ -5958,9 +6431,10 @@ function adminAddBien() {
   uploadedPhotos = [];
   document.getElementById('photoUploadZone').innerHTML = '<div style="font-size:1.8rem;margin-bottom:.4rem;">📷</div><div style="font-size:.82rem;color:var(--gris);">Cliquez pour ajouter des photos<br><span style="font-size:.72rem;opacity:.7">JPG, PNG — plusieurs photos acceptées</span></div>';
   switchTab(1);
-  
+
   renderAdmin();
-  alert('Bien ajouté avec succès !');
+  if (btnAdd) { btnAdd.disabled = false; btnAdd.textContent = '✓ Ajouter ce bien'; }
+  showToast('✅ Bien ajouté avec succès !', 'success');
 }
 
 // ===== MODALS =====
@@ -5982,13 +6456,80 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 });
 
 // ===== FORMS =====
-function submitModal() {
-  document.getElementById('contactFormWrap').style.display = 'none';
-  document.getElementById('contactSuccess').classList.add('show');
-  setTimeout(() => {
+async function submitModal(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  var v = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var nom     = v('modalNom');
+  var email   = v('modalEmail');
+  var tel     = v('modalTel');
+  var projet  = v('modalProjet');
+  var message = v('modalMessage');
+
+  // Validation côté client
+  if (!nom || !email || !tel) {
+    showToast('Merci de remplir nom, email et téléphone.', 'error');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Email invalide.', 'error');
+    return;
+  }
+  if (!/^[0-9 .+\-()]{8,20}$/.test(tel)) {
+    showToast('Numéro de téléphone invalide.', 'error');
+    return;
+  }
+
+  var btn = document.getElementById('modalSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoi en cours…'; }
+
+  try {
+    var res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        access_key: '74JAR-CWJ4-PTUY0Q-18VKM-N94X', // remplacé côté Web3Forms
+        subject: 'Nouveau message contact - ' + nom + ' (' + projet + ')',
+        from_name: nom,
+        nom: nom,
+        email: email,
+        telephone: tel,
+        projet: projet,
+        message: message || '(aucun message)'
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+  } catch (err) {
+    // Fallback Formspree si Web3Forms échoue
+    try {
+      await fetch('https://formspree.io/f/xwpldapj', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          subject: 'Nouveau message contact - ' + nom + ' (' + projet + ')',
+          nom: nom, email: email, telephone: tel, projet: projet, message: message || '(aucun message)'
+        })
+      });
+    } catch(err2) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Envoyer ma demande'; }
+      showToast('Erreur d\'envoi. Contactez directement Nathalie au 06 48 38 43 75.', 'error');
+      return;
+    }
+  }
+
+  // Succès
+  var form = document.getElementById('contactFormWrap');
+  var success = document.getElementById('contactSuccess');
+  if (form) form.style.display = 'none';
+  if (success) success.classList.add('show');
+  if (btn) { btn.disabled = false; btn.textContent = 'Envoyer ma demande'; }
+  setTimeout(function() {
     closeModal('modal-contact');
-    document.getElementById('contactFormWrap').style.display = 'block';
-    document.getElementById('contactSuccess').classList.remove('show');
+    if (form) {
+      form.style.display = 'block';
+      form.reset();
+    }
+    if (success) success.classList.remove('show');
   }, 3000);
 }
 
@@ -6019,13 +6560,15 @@ async function submitEstimation() {
     prestations.push(cb.value);
   });
 
-  // Validation : champs obligatoires
-  if (!prenom || !nom) { alert('Merci de renseigner vos prénom et nom.'); return; }
-  if (!email)          { alert('Merci de renseigner votre email.'); return; }
-  if (!tel)            { alert('Merci de renseigner votre téléphone.'); return; }
-  if (!type)           { alert('Merci de sélectionner le type de bien.'); return; }
-  if (!ville)          { alert('Merci de sélectionner la ville.'); return; }
-  if (!surface)        { alert('Merci d\'indiquer la surface habitable.'); return; }
+  // Validation : champs obligatoires + formats
+  if (!prenom || !nom) { showToast('Merci de renseigner vos prénom et nom.', 'error'); return; }
+  if (!email)          { showToast('Merci de renseigner votre email.', 'error'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Email invalide.', 'error'); return; }
+  if (!tel)            { showToast('Merci de renseigner votre téléphone.', 'error'); return; }
+  if (!/^[0-9 .+\-()]{8,20}$/.test(tel)) { showToast('Numéro de téléphone invalide.', 'error'); return; }
+  if (!type)           { showToast('Merci de sélectionner le type de bien.', 'error'); return; }
+  if (!ville)          { showToast('Merci de sélectionner la ville.', 'error'); return; }
+  if (!surface)        { showToast('Merci d\'indiquer la surface habitable.', 'error'); return; }
 
   var fullName = prenom + ' ' + nom;
   var btn = document.querySelector('#page-estimation .form-submit');
@@ -6080,17 +6623,25 @@ async function submitEstimation() {
 }
 
 async function submitContact() {
-  var nom = (document.getElementById('contactNom')||{}).value || '';
-  var email = (document.getElementById('contactEmail')||{}).value || '';
-  var tel = (document.getElementById('contactTel')||{}).value || '';
-  var msg = (document.getElementById('contactMessage')||{}).value || '';
-  
+  var nom = ((document.getElementById('contactNom')||{}).value || '').trim();
+  var email = ((document.getElementById('contactEmail')||{}).value || '').trim();
+  var tel = ((document.getElementById('contactTel')||{}).value || '').trim();
+  var msg = ((document.getElementById('contactMessage')||{}).value || '').trim();
+
   if (!nom || !email || !msg) {
-    alert('Merci de remplir votre nom, email et message.');
+    showToast('Merci de remplir votre nom, email et message.', 'error');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Email invalide.', 'error');
+    return;
+  }
+  if (tel && !/^[0-9 .+\-()]{8,20}$/.test(tel)) {
+    showToast('Numéro de téléphone invalide.', 'error');
     return;
   }
 
-  var btn = document.querySelector('#page-contact .form-submit');
+  var btn = document.getElementById('contactSubmitBtn') || document.querySelector('#page-contact .form-submit');
   if (btn) { btn.disabled = true; btn.textContent = 'Envoi en cours...'; }
 
   try {
@@ -6108,15 +6659,15 @@ async function submitContact() {
     });
     var data = await res.json();
     if (data.success) {
-      alert('✅ Message envoyé ! Nathalie vous répondra très rapidement.');
+      showToast('✅ Message envoyé ! Nathalie vous répondra très rapidement.', 'success', 5000);
       ['contactNom','contactEmail','contactTel','contactMessage'].forEach(function(id) {
         var el = document.getElementById(id); if(el) el.value = '';
       });
     } else {
-      alert('Erreur envoi. Contactez directement : 06 48 38 43 75');
+      showToast('Erreur envoi. Contactez directement : 06 48 38 43 75', 'error', 6000);
     }
   } catch(e) {
-    alert('Erreur réseau. Contactez directement : 06 48 38 43 75');
+    showToast('Erreur réseau. Contactez directement : 06 48 38 43 75', 'error', 6000);
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Envoyer le message'; }
   }
@@ -6325,7 +6876,16 @@ if (_lb) { _lb.addEventListener('click', function(e) { if (e.target === this) cl
         <div class="form-row"><label class="form-label">Salle d'eau</label><input type="number" class="form-input" id="editSDB"></div>
         <div class="form-row"><label class="form-label">Niveaux</label><input type="number" class="form-input" id="editNiveaux"></div>
         <div class="form-row"><label class="form-label">Année construction</label><input type="number" class="form-input" id="editAnnee" placeholder="Ex: 1985"></div>
-        <div class="form-row"><label class="form-label">Honoraires (%)</label><input type="number" class="form-input" id="editHonoraires" placeholder="Ex: 5"></div>
+        <div class="form-row">
+          <label class="form-label">Honoraires à la charge de</label>
+          <select class="form-select" id="editHonoraires">
+            <option value="">— Non renseigné —</option>
+            <option value="acquéreur">l'acquéreur</option>
+            <option value="vendeur">du vendeur</option>
+            <option value="partagés">partagés</option>
+          </select>
+        </div>
+        <div class="form-row"><label class="form-label">Montant honoraires (€)</label><input type="number" class="form-input" id="editMontantHonoraires" placeholder="Ex: 20000"></div>
       </div>
     </div>
 
@@ -6372,7 +6932,7 @@ if (_lb) { _lb.addEventListener('click', function(e) { if (e.target === this) cl
 
     <!-- Boutons -->
     <div style="display:flex;gap:1rem;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--beige);">
-      <button class="form-submit" style="flex:1;" onclick="saveEdit()">✓ Enregistrer les modifications</button>
+      <button id="btnSaveEdit" class="form-submit" style="flex:1;" onclick="saveEdit()">✓ Enregistrer les modifications</button>
       <button onclick="closeEditModal()" style="padding:1rem 1.5rem;border:1px solid var(--beige-dark);background:none;font-family:var(--sans);font-size:.78rem;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;">Annuler</button>
     </div>
   </div>
@@ -6394,19 +6954,44 @@ function switchEditTab(n, btn) {
 
 function editAddPhotos(input) {
   var files = Array.from(input.files);
-  files.forEach(function(f) {
-    uploadPhotoToSupabase(f).then(function(url) {
+  if (files.length === 0) return;
+
+  // Indicateur visuel
+  var grid = document.getElementById('editPhotoGrid');
+  if (grid) grid.insertAdjacentHTML('beforeend', '<div id="editUploadStatus" style="grid-column:1/-1;padding:1rem;color:var(--or);font-size:.85rem;text-align:center;">⏳ Upload en cours...</div>');
+
+  var promises = files.map(function(f) {
+    return uploadPhotoToSupabase(f).then(function(url) {
       if (url) {
         editPhotos.push(url);
-      } else {
-        var r = new FileReader();
-        r.onload = function(e) { editPhotos.push(e.target.result); renderEditPhotoGrid(); };
-        r.readAsDataURL(f);
-        return;
+        return { ok: true };
       }
-      renderEditPhotoGrid();
+      // Fallback : base64 en local seulement (avertissement utilisateur)
+      return new Promise(function(resolve) {
+        var r = new FileReader();
+        r.onload = function(e) {
+          editPhotos.push(e.target.result);
+          resolve({ ok: false, base64: true });
+        };
+        r.onerror = function() { resolve({ ok: false, base64: false }); };
+        r.readAsDataURL(f);
+      });
     });
   });
+
+  Promise.all(promises).then(function(results) {
+    var status = document.getElementById('editUploadStatus');
+    if (status) status.remove();
+    renderEditPhotoGrid();
+
+    var nbBase64 = results.filter(function(r){ return r.base64; }).length;
+    if (nbBase64 > 0) {
+      alert('⚠️ ' + nbBase64 + ' photo(s) n\'ont pas pu être uploadées sur le serveur.\n' +
+            'Elles sont visibles uniquement sur cet appareil.\n' +
+            'Si tu veux qu\'elles soient sauvegardées définitivement, vérifie ta connexion et ré-uploade-les.');
+    }
+  });
+
   input.value = '';
 }
 
@@ -6414,15 +6999,35 @@ function renderEditPhotoGrid() {
   var g = document.getElementById('editPhotoGrid');
   if (!g) return;
   g.innerHTML = editPhotos.map(function(src, i) {
+    var isBase64 = src && src.startsWith('data:');
+    var warningBadge = isBase64
+      ? '<div style="position:absolute;bottom:4px;left:4px;right:4px;background:rgba(220,38,38,.85);color:white;font-size:.62rem;padding:3px 6px;text-align:center;">Non sauvegardée</div>'
+      : '';
     return '<div style="position:relative;">' +
       '<img src="' + src + '" style="width:100%;height:120px;object-fit:cover;border:1px solid var(--beige);">' +
-      (i===0 ? '<div style="position:absolute;top:4px;left:4px;background:var(--or);color:white;font-size:.6rem;padding:2px 6px;">PRINCIPALE</div>' : '') +
-      '<button onclick="editRemovePhoto(' + i + ')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:white;border:none;width:22px;height:22px;cursor:pointer;font-size:.8rem;">✕</button>' +
+      (i === 0
+        ? '<div style="position:absolute;top:4px;left:4px;background:var(--or);color:white;font-size:.6rem;padding:3px 7px;font-weight:600;letter-spacing:.05em;">PRINCIPALE</div>'
+        : '<button onclick="editSetMainPhoto(' + i + ')" type="button" title="Définir comme principale" ' +
+          'style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.65);color:white;border:none;font-size:.6rem;padding:3px 7px;cursor:pointer;letter-spacing:.05em;">⭐ Principale</button>') +
+      '<button onclick="editRemovePhoto(' + i + ')" type="button" title="Supprimer cette photo" ' +
+        'style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);color:white;border:none;width:24px;height:24px;cursor:pointer;font-size:.8rem;border-radius:50%;">✕</button>' +
+      warningBadge +
       '</div>';
   }).join('');
 }
 
-function editRemovePhoto(i) { editPhotos.splice(i,1); renderEditPhotoGrid(); }
+function editRemovePhoto(i) {
+  editPhotos.splice(i, 1);
+  renderEditPhotoGrid();
+}
+
+// Définir une photo comme photo principale (la déplace en position 0)
+function editSetMainPhoto(i) {
+  if (i <= 0 || i >= editPhotos.length) return;
+  var photo = editPhotos.splice(i, 1)[0];
+  editPhotos.unshift(photo);
+  renderEditPhotoGrid();
+}
 
 // ===== SUPABASE CONFIG =====
 var SUPA_URL = 'https://xfosdlaqzglljpcnpeir.supabase.co';
@@ -6440,12 +7045,44 @@ function supaHeaders() {
 // ===== PERSISTANCE SUPABASE + LOCALSTORAGE =====
 
 function saveBiens() {
-  // Sauvegarde locale immédiate
+  // Sauvegarde locale immédiate avec gestion du quota dépassé (5 Mo limite)
   try {
-    localStorage.setItem('nathalie_biens', JSON.stringify(biens));
+    var json = JSON.stringify(biens);
+    localStorage.setItem('nathalie_biens', json);
     localStorage.setItem('nathalie_nextId', String(nextId));
-    console.log('✅ ' + biens.length + ' biens sauvegardés localement');
-  } catch(e) {}
+    console.log('✅ ' + biens.length + ' biens sauvegardés localement (' +
+                Math.round(json.length / 1024) + ' Ko)');
+  } catch(e) {
+    // QuotaExceededError = trop de photos base64 stockées
+    if (e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014)) {
+      console.warn('⚠️ localStorage plein. Tentative de sauvegarde sans les photos base64…');
+      try {
+        // Repli : on retire les photos base64 (data:) pour libérer de la place
+        // Les biens gardent leur img URL Supabase si dispo, sinon une chaîne vide
+        var bienssLight = biens.map(function(b){
+          var copy = Object.assign({}, b);
+          if (copy.img && String(copy.img).startsWith('data:')) copy.img = '';
+          if (Array.isArray(copy.photos)) {
+            copy.photos = copy.photos.filter(function(p){ return p && !String(p).startsWith('data:'); });
+          }
+          return copy;
+        });
+        localStorage.setItem('nathalie_biens', JSON.stringify(bienssLight));
+        localStorage.setItem('nathalie_nextId', String(nextId));
+        if (typeof showToast === 'function') {
+          showToast('⚠️ Espace local saturé : photos en cours d\'upload retirées du cache. Pense à les ré-uploader pour qu\'elles partent sur le serveur.', 'warning', 8000);
+        }
+        console.warn('  → Sauvegarde locale partielle effectuée (sans base64)');
+      } catch(e2) {
+        if (typeof showToast === 'function') {
+          showToast('❌ Impossible de sauvegarder localement (espace plein). Modifications conservées en mémoire seulement.', 'error', 10000);
+        }
+        console.error('Échec total saveBiens:', e2);
+      }
+    } else {
+      console.warn('saveBiens erreur:', e);
+    }
+  }
 }
 
 function bienToSupabase(b) {
@@ -6461,6 +7098,10 @@ function bienToSupabase(b) {
   var gesClasse = b.gesClasse || b.ges || '';
   var gesConso  = parseInt(b.gesConso || b.gesVal) || null;
 
+  // ⚠️ IMPORTANT : on envoie UNIQUEMENT les noms de colonnes qui existent dans Supabase
+  // (dpe, dpeVal, ges, gesVal). Les nouveaux noms (dpeClasse, dpeConso, gesClasse, gesConso)
+  // sont gardés EN LOCAL uniquement. Sinon Supabase rejette le PATCH avec une erreur "column not found"
+  // et toutes les modifications du bien (pas seulement le DPE) sont perdues.
   return {
     id: b.id,
     titre: b.titre || '',
@@ -6474,35 +7115,41 @@ function bienToSupabase(b) {
     salleBain: b.salleBain || 0,
     niveaux: b.niveaux || 0,
     terrain: b.terrain || 0,
-    annee: b.annee || '',
+    annee: (parseInt(b.annee) || null),
     exclusif: b.exclusif || false,
     ref: b.ref || '',
     description: b.description || b.desc || '',
     img: cleanImg,
     photos: cleanPhotos,
-    // DPE/GES : on envoie à la fois les noms nouveaux ET anciens pour garantir la compatibilité
-    dpe:       dpeClasse,
-    dpeClasse: dpeClasse,
-    dpeConso:  dpeConso,
-    dpeVal:    dpeConso,
-    ges:       gesClasse,
-    gesClasse: gesClasse,
-    gesConso:  gesConso,
-    gesVal:    gesConso,
-    statut:    b.statut || 'en_vente',
-    dateVente: b.dateVente || null,
+    dpe:    dpeClasse,
+    dpeVal: dpeConso,
+    ges:    gesClasse,
+    gesVal: gesConso,
     prixHH: b.prixHH || null,
     prixFAI: b.prixFAI || b.prix || 0,
     pctHonoraires: parseFloat(b.pctHonoraires) || null,
-    montantHonoraires: parseInt(b.montantHonoraires) || null,
-    honoraires: parseFloat(b.honoraires) || null
+    montantHonoraires: parseFloat(b.montantHonoraires) || null,
+    // honoraires = TEXTE ("acquéreur"/"vendeur"/"partagés"), surtout pas parseFloat !
+    honoraires: (typeof b.honoraires === 'string') ? b.honoraires : (b.honoraires ? 'acquéreur' : null),
+    // Statut + dateVente : on tente de les envoyer (si la colonne existe en base)
+    // Si la colonne n'existe pas, le retry les retire automatiquement
+    statut: b.statut || 'en_vente',
+    dateVente: b.dateVente || null
   };
 }
 
+// Version "safe" qui retire les colonnes potentiellement absentes du schéma Supabase
+function bienToSupabaseSafe(b) {
+  var data = bienToSupabase(b);
+  delete data.statut;
+  delete data.dateVente;
+  return data;
+}
 
-async function addBienToSupabase(b) {
+
+async function addBienToSupabase(b, _retry) {
   try {
-    var data = bienToSupabase(b);
+    var data = _retry ? bienToSupabaseSafe(b) : bienToSupabase(b);
     // Utiliser upsert pour éviter les conflits d'id
     var headers = supaHeaders();
     headers['Prefer'] = 'resolution=merge-duplicates,return=representation';
@@ -6514,21 +7161,25 @@ async function addBienToSupabase(b) {
     if (res.ok) {
       console.log('✅ Bien sauvegardé dans Supabase');
       return true;
-    } else {
-      var err = await res.text();
-      console.warn('Supabase erreur:', err);
-      // Essayer avec PUT (update)
-      var res2 = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
-        method: 'PATCH',
-        headers: supaHeaders(),
-        body: JSON.stringify(data)
-      });
-      if (res2.ok) {
-        console.log('✅ Bien mis à jour dans Supabase');
-        return true;
-      }
-      return false;
     }
+    var err = await res.text();
+    // Retry avec safe payload si statut/dateVente posent problème
+    if (!_retry && (/column.*does not exist/i.test(err) || res.status === 400)) {
+      console.warn('⚠️ Schéma Supabase incomplet — retry sans statut/dateVente');
+      return addBienToSupabase(b, true);
+    }
+    console.warn('Supabase erreur:', err);
+    // Essayer avec PATCH (update si existant)
+    var res2 = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
+      method: 'PATCH',
+      headers: supaHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (res2.ok) {
+      console.log('✅ Bien mis à jour dans Supabase');
+      return true;
+    }
+    return false;
   } catch(e) {
     console.warn('Supabase indisponible:', e.message);
     return false;
@@ -6538,14 +7189,39 @@ async function addBienToSupabase(b) {
 async function updateBienInSupabase(b) {
   try {
     var data = bienToSupabase(b);
+    console.log('📤 Mise à jour Supabase bien #' + b.id + ' — statut:', data.statut, '· DPE:', data.dpe || '—', data.dpeVal || '—');
     var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
       method: 'PATCH',
       headers: supaHeaders(),
       body: JSON.stringify(data)
     });
-    if (res.ok) console.log('✅ Bien modifié dans Supabase');
-    else { var err = await res.text(); console.warn('Supabase update erreur:', err); }
-  } catch(e) { console.warn('Supabase update échoué:', e.message); }
+    if (res.ok) {
+      console.log('✅ Bien #' + b.id + ' modifié avec succès dans Supabase');
+      return true;
+    }
+    var err = await res.text();
+    // Retry avec payload "safe" si la colonne statut/dateVente n'existe pas
+    if (/column.*(?:statut|dateVente).*does not exist/i.test(err) || res.status === 400 || res.status === 404) {
+      console.warn('⚠️ Colonne statut/dateVente absente de Supabase — retry sans ces champs');
+      var safeData = bienToSupabaseSafe(b);
+      var res2 = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
+        method: 'PATCH',
+        headers: supaHeaders(),
+        body: JSON.stringify(safeData)
+      });
+      if (res2.ok) {
+        console.log('✅ Bien #' + b.id + ' modifié (sans statut)');
+        return true;
+      }
+      console.warn('❌ Supabase update erreur après retry:', await res2.text());
+    } else {
+      console.warn('❌ Supabase update erreur (HTTP ' + res.status + '):', err);
+    }
+    return false;
+  } catch(e) {
+    console.warn('❌ Supabase update échoué (réseau):', e.message);
+    return false;
+  }
 }
 
 async function deleteBienFromSupabase(id) {
@@ -6590,21 +7266,40 @@ async function loadBiens() {
     if (res.ok) {
       var data = await res.json();
       if (data && data.length > 0) {
-        // Supabase a des données → c'est la source de vérité
+        // Index par id des biens locaux pour pouvoir préserver les photos base64
+        // (qui ne sont jamais envoyées sur Supabase pour gagner de la place)
+        var localById = {};
+        (biens || []).forEach(function(b){ if (b && b.id != null) localById[b.id] = b; });
+
+        // Supabase a des données → c'est la source de vérité PARTIELLE (les champs persistants)
         biens = data.map(function(b) {
           b.id = parseInt(b.id);
           if (b.description && !b.desc) b.desc = b.description;
-          // Ville manquante ou vide → fallback pour éviter un rendu cassé
           if (!b.ville || !String(b.ville).trim()) b.ville = 'Le Pouliguen';
-          // Unifier les noms de champs DPE/GES pour que l'affichage fonctionne
-          // (le schéma Supabase peut utiliser n'importe lequel des deux jeux de noms)
           if (!b.dpeClasse && b.dpe) b.dpeClasse = b.dpe;
           if (!b.dpeConso && b.dpeVal) b.dpeConso = b.dpeVal;
           if (!b.gesClasse && b.ges) b.gesClasse = b.ges;
           if (!b.gesConso && b.gesVal) b.gesConso = b.gesVal;
+
+          // Préserver les photos locales (base64) si Supabase n'a rien
+          var localBien = localById[b.id];
+          if (localBien) {
+            // Si Supabase n'a pas d'image mais local oui → garder local
+            if ((!b.img || b.img === '') && localBien.img) b.img = localBien.img;
+            if ((!b.photos || b.photos.length === 0) && localBien.photos && localBien.photos.length > 0) {
+              b.photos = localBien.photos.slice();
+            }
+            // Préserver le statut local s'il n'est pas dans Supabase
+            if (!b.statut && localBien.statut) b.statut = localBien.statut;
+            if (!b.dateVente && localBien.dateVente) b.dateVente = localBien.dateVente;
+            // Préserver salleBain (peut ne pas exister sur Supabase)
+            if (!b.salleBain && localBien.salleBain) b.salleBain = localBien.salleBain;
+          }
           return b;
         });
-        nextId = Math.max.apply(null, biens.map(function(b){return b.id;})) + 1;
+        // Protection contre Math.max sur tableau vide (-Infinity)
+        var ids = biens.map(function(b){ return parseInt(b.id) || 0; }).filter(function(n){ return n > 0; });
+        nextId = (ids.length > 0 ? Math.max.apply(null, ids) : 0) + 1;
         localStorage.setItem('nathalie_biens', JSON.stringify(biens));
         localStorage.setItem('nathalie_nextId', String(nextId));
         renderHomeGrid();
