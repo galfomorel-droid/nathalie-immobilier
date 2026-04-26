@@ -4289,8 +4289,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   </div>
 </footer>
 
-<!-- Email-decode (Cloudflare) — un seul import suffit -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<!-- (script Cloudflare email-decode retiré — inutile sur GitHub Pages, générait un 404) -->
 
 <!-- ===== SYSTÈME DE TOAST (remplace alert/confirm natifs) ===== -->
 <style>
@@ -7102,38 +7101,48 @@ function saveBiens() {
   }
 }
 
+// Helper : convertit en nombre OU null. Jamais "" ni NaN ni undefined.
+function _num(v) {
+  if (v === null || v === undefined || v === '') return null;
+  var n = (typeof v === 'number') ? v : parseFloat(String(v).replace(',', '.'));
+  return (isNaN(n) || !isFinite(n)) ? null : n;
+}
+// Helper : convertit en entier OU null
+function _int(v) {
+  var n = _num(v);
+  return n === null ? null : Math.round(n);
+}
+
 function bienToSupabase(b) {
   // Filtrer les photos base64 (trop volumineuses pour Supabase)
   var cleanPhotos = (b.photos || []).filter(function(p) {
-    return p && !p.startsWith('data:');
+    return p && !String(p).startsWith('data:');
   });
-  var cleanImg = (b.img && b.img.startsWith('data:')) ? '' : (b.img || '');
+  var cleanImg = (b.img && String(b.img).startsWith('data:')) ? '' : (b.img || '');
 
   // Unifier les valeurs DPE/GES — on récupère la valeur où qu'elle soit stockée
   var dpeClasse = b.dpeClasse || b.dpe || '';
-  var dpeConso  = parseInt(b.dpeConso || b.dpeVal) || null;
+  var dpeConso  = _int(b.dpeConso || b.dpeVal);
   var gesClasse = b.gesClasse || b.ges || '';
-  var gesConso  = parseInt(b.gesConso || b.gesVal) || null;
+  var gesConso  = _int(b.gesConso || b.gesVal);
 
-  // ⚠️ IMPORTANT : on envoie UNIQUEMENT les noms de colonnes qui existent dans Supabase
-  // (dpe, dpeVal, ges, gesVal). Les nouveaux noms (dpeClasse, dpeConso, gesClasse, gesConso)
-  // sont gardés EN LOCAL uniquement. Sinon Supabase rejette le PATCH avec une erreur "column not found"
-  // et toutes les modifications du bien (pas seulement le DPE) sont perdues.
+  // ⚠️ IMPORTANT : tous les champs numériques passent par _num() / _int()
+  // qui garantissent un nombre OU null (jamais de chaîne vide qui ferait planter Postgres)
   return {
     id: b.id,
     titre: b.titre || '',
     type: b.type || '',
     ville: b.ville || '',
-    prix: b.prix || 0,
-    surface: b.surface || 0,
-    pieces: b.pieces || 0,
-    chambres: b.chambres || 0,
-    sdb: b.sdb || 0,
-    salleBain: b.salleBain || 0,
-    niveaux: b.niveaux || 0,
-    terrain: b.terrain || 0,
-    annee: (parseInt(b.annee) || null),
-    exclusif: b.exclusif || false,
+    prix: _int(b.prix) || 0,
+    surface: _int(b.surface) || 0,
+    pieces: _int(b.pieces) || 0,
+    chambres: _int(b.chambres) || 0,
+    sdb: _int(b.sdb) || 0,
+    salleBain: _int(b.salleBain) || 0,
+    niveaux: _int(b.niveaux) || 0,
+    terrain: _int(b.terrain) || 0,
+    annee: _int(b.annee),
+    exclusif: !!b.exclusif,
     ref: b.ref || '',
     description: b.description || b.desc || '',
     img: cleanImg,
@@ -7142,14 +7151,11 @@ function bienToSupabase(b) {
     dpeVal: dpeConso,
     ges:    gesClasse,
     gesVal: gesConso,
-    prixHH: b.prixHH || null,
-    prixFAI: b.prixFAI || b.prix || 0,
-    pctHonoraires: parseFloat(b.pctHonoraires) || null,
-    montantHonoraires: parseFloat(b.montantHonoraires) || null,
-    // honoraires = TEXTE ("acquéreur"/"vendeur"/"partagés"), surtout pas parseFloat !
+    prixHH: _int(b.prixHH),
+    prixFAI: _int(b.prixFAI || b.prix) || 0,
+    pctHonoraires: _num(b.pctHonoraires),
+    montantHonoraires: _num(b.montantHonoraires),
     honoraires: (typeof b.honoraires === 'string') ? b.honoraires : (b.honoraires ? 'acquéreur' : null),
-    // Statut + dateVente : on tente de les envoyer (si la colonne existe en base)
-    // Si la colonne n'existe pas, le retry les retire automatiquement
     statut: b.statut || 'en_vente',
     dateVente: b.dateVente || null
   };
@@ -7224,32 +7230,41 @@ async function addBienToSupabase(b, _retry) {
   }
 }
 
+// Mémoire en session : on retient quel niveau marche pour ne pas refaire
+// les requêtes qui échouent à chaque save
+var _supaWorkingMode = null; // 'full' | 'safe' | 'minimal'
+
 async function updateBienInSupabase(b) {
-  // Stratégie en 3 étapes : full → safe → minimal
-  // À chaque échec on retire les colonnes potentiellement absentes
-  var attempts = [
-    { name: 'full',    data: bienToSupabase(b) },
-    { name: 'safe',    data: bienToSupabaseSafe(b) },
-    { name: 'minimal', data: bienToSupabaseMinimal(b) }
+  // On commence directement au niveau qui a marché la dernière fois
+  var modes = ['full', 'safe', 'minimal'];
+  var startIdx = _supaWorkingMode ? modes.indexOf(_supaWorkingMode) : 0;
+  var attemptsConfig = [
+    { name: 'full',    fn: bienToSupabase },
+    { name: 'safe',    fn: bienToSupabaseSafe },
+    { name: 'minimal', fn: bienToSupabaseMinimal }
   ];
-  for (var i = 0; i < attempts.length; i++) {
-    var att = attempts[i];
+  for (var i = startIdx; i < attemptsConfig.length; i++) {
+    var att = attemptsConfig[i];
+    var data = att.fn(b);
     try {
-      console.log('📤 Update Supabase bien #' + b.id + ' (' + att.name + ') — DPE:', att.data.dpe || '—', '· dpeVal:', att.data.dpeVal || '—', '· img:', (att.data.img || '').substring(0, 60));
+      console.log('📤 Update Supabase bien #' + b.id + ' (' + att.name + ') — DPE:', data.dpe || '—', '· dpeVal:', data.dpeVal || '—', '· img:', (data.img || '').substring(0, 60));
       var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
         method: 'PATCH',
         headers: supaHeaders(),
-        body: JSON.stringify(att.data)
+        body: JSON.stringify(data)
       });
       if (res.ok) {
+        _supaWorkingMode = att.name;
         if (i > 0) console.warn('⚠️ Sauvegardé en mode "' + att.name + '" — certaines colonnes manquent dans Supabase');
         else console.log('✅ Bien #' + b.id + ' modifié avec succès dans Supabase');
         return true;
       }
       var err = await res.text();
-      console.warn('❌ Tentative "' + att.name + '" échouée (HTTP ' + res.status + '):', err.substring(0, 200));
-      // Si l'erreur est autre qu'une colonne manquante, on arrête de retry
-      if (!/column.*does not exist|400|404/i.test(err) && res.status >= 500) break;
+      console.warn('❌ Tentative "' + att.name + '" échouée (HTTP ' + res.status + '):', err.substring(0, 250));
+      // Erreur "column not found" → on retry au niveau suivant
+      // Erreur 400 autre (type incorrect) → on retry aussi
+      // Erreur 5xx réseau → on arrête
+      if (res.status >= 500) break;
     } catch(e) {
       console.warn('❌ Réseau:', e.message);
       break;
