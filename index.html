@@ -6193,8 +6193,17 @@ function addNewVille() {
 let uploadedPhotos = [];
 
 async function uploadPhotoToSupabase(file) {
+  // Sécurité : limite taille (5 Mo) pour éviter localStorage explosion en cas de fallback base64
+  if (file.size > 5 * 1024 * 1024) {
+    if (typeof showToast === 'function') {
+      showToast('⚠️ Photo trop grande (' + Math.round(file.size/1024/1024) + ' Mo). Limite : 5 Mo.', 'error', 6000);
+    }
+    return null;
+  }
   try {
-    var filename = Date.now() + '_' + Math.random().toString(36).substr(2,9) + '.' + file.name.split('.').pop();
+    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    var filename = Date.now() + '_' + Math.random().toString(36).substr(2,9) + '.' + ext;
+    console.log('📤 Upload photo en cours :', filename, '(' + Math.round(file.size/1024) + ' Ko)');
     var res = await fetch(SUPA_URL + '/storage/v1/object/photos/' + filename, {
       method: 'POST',
       headers: {
@@ -6207,16 +6216,24 @@ async function uploadPhotoToSupabase(file) {
     });
     if (res.ok) {
       var publicUrl = SUPA_URL + '/storage/v1/object/public/photos/' + filename;
-      console.log('✅ Photo uploadée:', publicUrl);
+      console.log('✅ Photo uploadée :', publicUrl);
       return publicUrl;
-    } else {
-      var err = await res.text();
-      console.warn('Erreur upload photo:', err);
-      // Fallback : base64
-      return null;
     }
+    var err = await res.text();
+    console.warn('❌ Erreur upload Supabase Storage (HTTP ' + res.status + ') :', err);
+    if (typeof showToast === 'function') {
+      var hint = '';
+      if (res.status === 400 || /bucket not found/i.test(err)) {
+        hint = ' (le bucket "photos" est peut-être absent — créer dans Supabase Storage)';
+      } else if (res.status === 403 || /policy/i.test(err)) {
+        hint = ' (problème de policy Storage — autoriser INSERT sur le bucket photos)';
+      }
+      showToast('⚠️ Upload Supabase échoué' + hint + '. Photo conservée localement seulement.', 'warning', 8000);
+    }
+    return null;
   } catch(e) {
-    console.warn('Upload photo échoué:', e.message);
+    console.warn('❌ Upload photo échoué (réseau) :', e.message);
+    if (typeof showToast === 'function') showToast('⚠️ Erreur réseau pendant upload photo.', 'error');
     return null;
   }
 }
@@ -7138,12 +7155,33 @@ function bienToSupabase(b) {
   };
 }
 
-// Version "safe" qui retire les colonnes potentiellement absentes du schéma Supabase
+// Version "safe" : retire TOUTES les colonnes potentiellement absentes du schéma Supabase
 function bienToSupabaseSafe(b) {
   var data = bienToSupabase(b);
-  delete data.statut;
-  delete data.dateVente;
+  // Colonnes "récentes" qui peuvent ne pas être encore créées dans la table Supabase
+  ['statut','dateVente','salleBain','dpeClasse','dpeConso','gesClasse','gesConso',
+   'pctHonoraires','prixFAI','annee'].forEach(function(k){ delete data[k]; });
   return data;
+}
+
+// Version "minimum vital" : strict minimum si même bienToSupabaseSafe échoue
+function bienToSupabaseMinimal(b) {
+  return {
+    id: b.id,
+    titre: b.titre || '',
+    type: b.type || '',
+    ville: b.ville || '',
+    prix: b.prix || 0,
+    surface: b.surface || 0,
+    pieces: b.pieces || 0,
+    chambres: b.chambres || 0,
+    terrain: b.terrain || 0,
+    description: b.description || b.desc || '',
+    img: (b.img && !String(b.img).startsWith('data:')) ? b.img : '',
+    photos: (b.photos || []).filter(function(p){ return p && !String(p).startsWith('data:'); }),
+    exclusif: !!b.exclusif,
+    ref: b.ref || ''
+  };
 }
 
 
@@ -7187,41 +7225,37 @@ async function addBienToSupabase(b, _retry) {
 }
 
 async function updateBienInSupabase(b) {
-  try {
-    var data = bienToSupabase(b);
-    console.log('📤 Mise à jour Supabase bien #' + b.id + ' — statut:', data.statut, '· DPE:', data.dpe || '—', data.dpeVal || '—');
-    var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
-      method: 'PATCH',
-      headers: supaHeaders(),
-      body: JSON.stringify(data)
-    });
-    if (res.ok) {
-      console.log('✅ Bien #' + b.id + ' modifié avec succès dans Supabase');
-      return true;
-    }
-    var err = await res.text();
-    // Retry avec payload "safe" si la colonne statut/dateVente n'existe pas
-    if (/column.*(?:statut|dateVente).*does not exist/i.test(err) || res.status === 400 || res.status === 404) {
-      console.warn('⚠️ Colonne statut/dateVente absente de Supabase — retry sans ces champs');
-      var safeData = bienToSupabaseSafe(b);
-      var res2 = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
+  // Stratégie en 3 étapes : full → safe → minimal
+  // À chaque échec on retire les colonnes potentiellement absentes
+  var attempts = [
+    { name: 'full',    data: bienToSupabase(b) },
+    { name: 'safe',    data: bienToSupabaseSafe(b) },
+    { name: 'minimal', data: bienToSupabaseMinimal(b) }
+  ];
+  for (var i = 0; i < attempts.length; i++) {
+    var att = attempts[i];
+    try {
+      console.log('📤 Update Supabase bien #' + b.id + ' (' + att.name + ') — DPE:', att.data.dpe || '—', '· dpeVal:', att.data.dpeVal || '—', '· img:', (att.data.img || '').substring(0, 60));
+      var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
         method: 'PATCH',
         headers: supaHeaders(),
-        body: JSON.stringify(safeData)
+        body: JSON.stringify(att.data)
       });
-      if (res2.ok) {
-        console.log('✅ Bien #' + b.id + ' modifié (sans statut)');
+      if (res.ok) {
+        if (i > 0) console.warn('⚠️ Sauvegardé en mode "' + att.name + '" — certaines colonnes manquent dans Supabase');
+        else console.log('✅ Bien #' + b.id + ' modifié avec succès dans Supabase');
         return true;
       }
-      console.warn('❌ Supabase update erreur après retry:', await res2.text());
-    } else {
-      console.warn('❌ Supabase update erreur (HTTP ' + res.status + '):', err);
+      var err = await res.text();
+      console.warn('❌ Tentative "' + att.name + '" échouée (HTTP ' + res.status + '):', err.substring(0, 200));
+      // Si l'erreur est autre qu'une colonne manquante, on arrête de retry
+      if (!/column.*does not exist|400|404/i.test(err) && res.status >= 500) break;
+    } catch(e) {
+      console.warn('❌ Réseau:', e.message);
+      break;
     }
-    return false;
-  } catch(e) {
-    console.warn('❌ Supabase update échoué (réseau):', e.message);
-    return false;
   }
+  return false;
 }
 
 async function deleteBienFromSupabase(id) {
@@ -7281,19 +7315,47 @@ async function loadBiens() {
           if (!b.gesClasse && b.ges) b.gesClasse = b.ges;
           if (!b.gesConso && b.gesVal) b.gesConso = b.gesVal;
 
-          // Préserver les photos locales (base64) si Supabase n'a rien
+          // 🛡️ Préservation de TOUS les champs critiques en cas d'absence de colonne Supabase.
+          // Ce filet de sécurité évite que Supabase écrase des valeurs renseignées localement
+          // quand son schéma n'a pas la colonne (DPE, GES, statut, etc.)
           var localBien = localById[b.id];
           if (localBien) {
-            // Si Supabase n'a pas d'image mais local oui → garder local
+            // ----- PHOTOS -----
             if ((!b.img || b.img === '') && localBien.img) b.img = localBien.img;
             if ((!b.photos || b.photos.length === 0) && localBien.photos && localBien.photos.length > 0) {
               b.photos = localBien.photos.slice();
             }
-            // Préserver le statut local s'il n'est pas dans Supabase
+            // ----- DPE / GES (les colonnes Supabase peuvent ne pas exister) -----
+            // Classe DPE
+            if (!b.dpeClasse && localBien.dpeClasse) b.dpeClasse = localBien.dpeClasse;
+            if (!b.dpe && localBien.dpe) b.dpe = localBien.dpe;
+            // Conso DPE
+            if (!b.dpeConso && localBien.dpeConso) b.dpeConso = localBien.dpeConso;
+            if (!b.dpeVal && localBien.dpeVal) b.dpeVal = localBien.dpeVal;
+            // Classe GES
+            if (!b.gesClasse && localBien.gesClasse) b.gesClasse = localBien.gesClasse;
+            if (!b.ges && localBien.ges) b.ges = localBien.ges;
+            // Conso GES
+            if (!b.gesConso && localBien.gesConso) b.gesConso = localBien.gesConso;
+            if (!b.gesVal && localBien.gesVal) b.gesVal = localBien.gesVal;
+            // Re-normaliser après préservation
+            if (!b.dpeClasse && b.dpe) b.dpeClasse = b.dpe;
+            if (!b.dpeConso && b.dpeVal) b.dpeConso = b.dpeVal;
+            if (!b.gesClasse && b.ges) b.gesClasse = b.ges;
+            if (!b.gesConso && b.gesVal) b.gesConso = b.gesVal;
+            // ----- STATUT -----
             if (!b.statut && localBien.statut) b.statut = localBien.statut;
             if (!b.dateVente && localBien.dateVente) b.dateVente = localBien.dateVente;
-            // Préserver salleBain (peut ne pas exister sur Supabase)
+            // ----- SALLES & DIVERS -----
             if (!b.salleBain && localBien.salleBain) b.salleBain = localBien.salleBain;
+            if (!b.sdb && localBien.sdb) b.sdb = localBien.sdb;
+            if (!b.niveaux && localBien.niveaux) b.niveaux = localBien.niveaux;
+            // ----- HONORAIRES -----
+            if (!b.honoraires && localBien.honoraires) b.honoraires = localBien.honoraires;
+            if (!b.montantHonoraires && localBien.montantHonoraires) b.montantHonoraires = localBien.montantHonoraires;
+            if (!b.pctHonoraires && localBien.pctHonoraires) b.pctHonoraires = localBien.pctHonoraires;
+            if (!b.prixHH && localBien.prixHH) b.prixHH = localBien.prixHH;
+            if (!b.prixFAI && localBien.prixFAI) b.prixFAI = localBien.prixFAI;
           }
           return b;
         });
