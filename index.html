@@ -7871,13 +7871,36 @@ async function loadBiens() {
           }
           return b;
         });
+
+        // 🛡️ FILET DE SÉCURITÉ : préserver les biens qui sont en localStorage MAIS PAS dans Supabase
+        // (cas typique : un bien vient d'être ajouté mais sa sync Supabase a échoué).
+        // Sans cette préservation, le bien disparaîtrait au refresh ! On le garde et on
+        // tente de le pousser à nouveau vers Supabase en arrière-plan.
+        var supaIds = {};
+        biens.forEach(function(b){ supaIds[b.id] = true; });
+        var localOnly = Object.keys(localById)
+          .map(function(id){ return localById[id]; })
+          .filter(function(b){ return b && b.id != null && !supaIds[b.id]; });
+        if (localOnly.length > 0) {
+          console.warn('⚠️ ' + localOnly.length + ' bien(s) local(aux) absent(s) de Supabase — préservation + retry');
+          // On les ajoute en tête pour qu'ils restent visibles
+          biens = localOnly.concat(biens);
+          // Retry async (sans bloquer l'affichage)
+          localOnly.forEach(function(b){
+            addBienToSupabase(b).then(function(ok){
+              if (ok) console.log('✅ Bien #' + b.id + ' re-synchronisé sur Supabase');
+              else console.warn('❌ Bien #' + b.id + ' toujours pas synchronisé — voir SQL fix');
+            });
+          });
+        }
+
         // Protection contre Math.max sur tableau vide (-Infinity)
         var ids = biens.map(function(b){ return parseInt(b.id) || 0; }).filter(function(n){ return n > 0; });
         nextId = (ids.length > 0 ? Math.max.apply(null, ids) : 0) + 1;
         localStorage.setItem('nathalie_biens', JSON.stringify(biens));
         localStorage.setItem('nathalie_nextId', String(nextId));
         renderHomeGrid();
-        console.log('✅ ' + biens.length + ' biens chargés depuis Supabase');
+        console.log('✅ ' + biens.length + ' biens chargés (' + (data.length) + ' Supabase + ' + localOnly.length + ' local)');
       } else if (biens.length === 0) {
         // Supabase ET localStorage vides → utiliser les biens par défaut
         biens = JSON.parse(JSON.stringify(DEFAULT_BIENS));
