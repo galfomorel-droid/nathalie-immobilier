@@ -7689,6 +7689,31 @@ async function _supaUpsertBien(b, method, urlSuffix) {
         continue;
       }
 
+      // Erreur "invalid input syntax for type X: 'valeur'" : un type de colonne ne correspond
+      // pas à la valeur envoyée (ex: colonne numeric mais on envoie du texte 'acquéreur').
+      // On identifie quelle clé contient cette valeur et on la retire du payload.
+      var typeM = errTxt.match(/invalid input syntax for type (\w+):\s*\\?"([^"]+)\\?"/i);
+      if (typeM) {
+        var badType = typeM[1];
+        var badVal = typeM[2];
+        // Trouver toutes les clés qui ont cette valeur
+        var foundKey = null;
+        Object.keys(data).forEach(function(k){
+          if (data[k] != null && String(data[k]) === badVal) {
+            foundKey = k;
+          }
+        });
+        if (foundKey) {
+          console.warn('🔍 Colonne Supabase "' + foundKey + '" est de type "' + badType +
+                       '" mais reçoit la valeur "' + badVal + '" — on la retire du payload');
+          _supaMissingCols[foundKey] = true; // mémorisation pour requêtes suivantes
+          delete data[foundKey];
+          continue;
+        }
+        // Si on ne trouve pas la clé exacte, on log et on continue
+        console.warn('⚠️ Erreur de type Postgres mais clé non trouvée : type=' + badType + ', val=' + badVal);
+      }
+
       // Sinon : on log et on sort
       console.warn('❌ Supabase POST échec (HTTP ' + res.status + ') :', errTxt.substring(0, 400));
       return { ok: false, error: errTxt, status: res.status };
