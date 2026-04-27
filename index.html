@@ -839,15 +839,26 @@ section { padding: 8rem 6%; }
 .biens-page-grid .bien-card-type {
   font-size: 1.7rem;
 }
+/* Sous-titre élégant en italique : titre saisi par l'admin */
 .bien-card-title {
-  display: none;
+  display: block;
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--gris);
+  margin-bottom: 1.1rem;
+  line-height: 1.4;
+}
+.biens-page-grid .bien-card-title {
+  font-size: 1.02rem;
+  margin-bottom: 1.3rem;
 }
 .bien-card-loc {
   font-family: var(--sans);
   font-size: 1rem;
   font-weight: 400;
   color: var(--gris);
-  margin-bottom: 1.4rem;
+  margin-bottom: 0.5rem; /* réduit car le titre suit dessous */
   line-height: 1.3;
 }
 .biens-page-grid .bien-card-loc {
@@ -1726,21 +1737,36 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   min-height: 100vh;
   background: var(--blanc);
 }
+/* GALERIE FICHE BIEN — layout Barnes 1+2 :
+   1 grosse photo à gauche (62%) + 2 photos empilées à droite (38%).
+   Proportions calibrées pour que les photos paysage s'intègrent
+   naturellement (cadres ~1.6:1, comme Barnes). */
 .fiche-gallery {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  grid-template-rows: 400px;
-  gap: 0.4rem;
-  max-height: 480px;
+  grid-template-columns: 1.62fr 1fr;
+  gap: 0.5rem;
+  padding: 0 1.5%;
+  max-width: 1400px;
+  margin: 1.5rem auto 0;
   position: relative;
+  height: clamp(440px, 48vw, 680px);
 }
+/* Mode "single" : 1 seule photo → prend toute la largeur */
+.fiche-gallery.single { grid-template-columns: 1fr; }
+/* Mode "two" : 2 photos → main + 1 photo unique pleine hauteur à droite */
+.fiche-gallery.two .fiche-gallery-sub { grid-template-rows: 1fr; }
 .fiche-gallery img {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.25s ease;
+  border-radius: 0;
+  background: var(--beige);
 }
-.fiche-gallery img:hover { opacity: 0.9; }
+.fiche-gallery img:hover { opacity: 0.95; }
 .fiche-gallery-main {
   position: relative;
   height: 100%;
@@ -1749,7 +1775,90 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 .fiche-gallery-sub {
   display: grid;
   grid-template-rows: 1fr 1fr;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  height: 100%;
+  overflow: hidden;
+}
+/* TABLETTE (700–1024px) — empilage vertical en ratio naturel (pas de rognage) */
+@media (max-width: 1024px) and (min-width: 701px) {
+  .fiche-gallery {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 0.6rem;
+  }
+  .fiche-gallery-main, .fiche-gallery-sub { height: auto; }
+  .fiche-gallery-sub {
+    grid-template-rows: auto auto;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+  .fiche-gallery img {
+    height: auto;
+    object-fit: initial;
+    aspect-ratio: auto;
+    background: transparent;
+  }
+}
+/* MOBILE (< 700px) — seule la photo principale, reste via lightbox */
+@media (max-width: 700px) {
+  .fiche-gallery {
+    padding: 0;
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .fiche-gallery-main { height: auto; }
+  .fiche-gallery img {
+    height: auto;
+    object-fit: initial;
+    aspect-ratio: auto;
+  }
+  .fiche-gallery-sub { display: none; }
+}
+/* SECTION "Autres biens aux alentours" — pleine largeur, hors du bloc 2 colonnes */
+.fiche-similaires-section {
+  padding: 4rem 6% 5rem;
+  border-top: 1px solid var(--beige);
+  background: var(--blanc);
+}
+.fiche-similaires-section:empty { display: none; }
+.similaires-title {
+  font-family: var(--serif);
+  font-size: 1.8rem;
+  font-style: italic;
+  color: var(--noir);
+  margin: 0 auto 2rem;
+  text-align: center;
+  max-width: 1400px;
+}
+.similaires-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+/* Si seulement 1 ou 2 cartes : on les centre et on limite leur largeur
+   pour ne pas les étirer démesurément */
+.similaires-grid.similaires-grid-1 {
+  grid-template-columns: minmax(280px, 380px);
+  justify-content: center;
+}
+.similaires-grid.similaires-grid-2 {
+  grid-template-columns: repeat(2, minmax(280px, 380px));
+  justify-content: center;
+}
+@media (max-width: 1024px) {
+  .similaires-grid { grid-template-columns: repeat(2, 1fr); }
+  .similaires-grid.similaires-grid-1 { grid-template-columns: minmax(260px, 360px); }
+}
+@media (max-width: 700px) {
+  .similaires-grid,
+  .similaires-grid.similaires-grid-1,
+  .similaires-grid.similaires-grid-2 {
+    grid-template-columns: 1fr;
+    max-width: 380px;
+    justify-content: stretch;
+  }
 }
 /* Bouton "X Photos" en bas à gauche de la photo principale */
 .fiche-photos-btn {
@@ -2154,9 +2263,8 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 .desc-legal p:last-child { margin-bottom: 0; }
 .desc-legal a { color: inherit; text-decoration: underline; }
 .fiche-sidebar {
-  position: sticky;
-  top: 120px;
-  height: fit-content;
+  position: static;
+  height: auto;
 }
 
 /* ===== BARNES-STYLE AGENT CARD ===== */
@@ -2983,6 +3091,122 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   gap: 1rem;
 }
 
+/* ===== ÉDITION PHOTOS — Drag & drop + flèches ===== */
+.edit-photo-tile {
+  position: relative;
+  cursor: grab;
+  border: 2px solid var(--beige);
+  background: var(--beige);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+  overflow: hidden;
+}
+.edit-photo-tile:hover {
+  border-color: var(--or);
+  box-shadow: 0 6px 20px rgba(0,0,0,.15);
+}
+.edit-photo-tile:active { cursor: grabbing; }
+.edit-photo-tile.is-dragging {
+  opacity: 0.4;
+  transform: scale(0.97);
+}
+.edit-photo-tile.is-drag-over {
+  border-color: var(--or);
+  box-shadow: 0 0 0 3px rgba(199,158,87,.35);
+  transform: scale(1.02);
+}
+.edit-photo-img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+  pointer-events: none; /* ne pas intercepter le drag */
+}
+.edit-photo-principal {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: var(--or);
+  color: #fff;
+  font-size: 0.62rem;
+  padding: 4px 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 2px;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+}
+.edit-photo-num {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(0,0,0,.7);
+  color: #fff;
+  font-size: 0.7rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.edit-photo-arrows {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  display: flex;
+  gap: 4px;
+}
+.edit-photo-arrow {
+  background: rgba(0,0,0,.7);
+  color: #fff;
+  border: none;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  padding: 0;
+}
+.edit-photo-arrow:hover { background: var(--or); }
+.edit-photo-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0,0,0,.7);
+  color: #fff;
+  border: none;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border-radius: 50%;
+  transition: background 0.15s;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.edit-photo-remove:hover { background: #d32f2f; }
+.edit-photo-warning {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(220,38,38,.88);
+  color: #fff;
+  font-size: 0.62rem;
+  padding: 4px 6px;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
   .biens-grid, .biens-page-grid { grid-template-columns: repeat(2, 1fr); }
@@ -3009,8 +3233,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   .nathalie-details { grid-template-columns: 1fr 1fr; }
   .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
   .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
-  .fiche-gallery { grid-template-columns: 1fr; grid-template-rows: 260px; }
-  .fiche-gallery-sub { display: none; }
+  .fiche-gallery { padding: 0 5%; gap: 0.5rem; }
   .fiche-body { grid-template-columns: 1fr; }
   .fiche-sidebar { position: static; }
   .fiche-specs { grid-template-columns: 1fr 1fr; }
@@ -3606,7 +3829,6 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       <div id="fichePrixSection"></div>
       <div id="ficheLegal"></div>
       <div id="ficheDPE"></div>
-      <div id="ficheSimilaires" style="margin-top:3rem;padding-top:2rem;border-top:1px solid var(--beige);"></div>
     </div>
     <div class="fiche-sidebar">
       <!-- Bandeau prix avec photo du bien en fond -->
@@ -3658,6 +3880,8 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
       </form>
     </div>
   </div>
+  <!-- Section "Autres biens aux alentours" — pleine largeur, sous le bloc 2 colonnes -->
+  <div id="ficheSimilaires" class="fiche-similaires-section"></div>
 </div>
 
 <!-- ===== PAGE PROPOS ===== -->
@@ -5184,6 +5408,7 @@ function bienCardHTML(b) {
     '<div class="bien-card-body">' +
       '<div class="bien-card-type">' + _esc(b.type || '—') + '</div>' +
       '<div class="bien-card-loc">' + _esc(b.ville || '') + '</div>' +
+      (b.titre ? '<div class="bien-card-title">' + _esc(b.titre) + '</div>' : '') +
       '<div class="bien-card-specs">' +
         (chambres > 0 ? '<span class="bien-card-spec"><svg class="bien-card-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16v-5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v5"/><path d="M2 20v-4h20v4"/><path d="M6 11V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"/></svg> ' + chambres + ' chambre' + (chambres > 1 ? 's' : '') + '</span>' : '') +
         (b.surface ? '<span class="bien-card-spec"><svg class="bien-card-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h4M3 15h4M9 3v4M15 3v4M17 21v-4M21 9h-4M21 15h-4M9 21v-4"/></svg> ' + b.surface + ' m²</span>' : '') +
@@ -5413,23 +5638,38 @@ function showFiche(id) {
   const photo3 = photos[2] || null;
   var altBase = (b.type || 'Bien') + ' ' + (b.ville || 'Le Pouliguen') +
     (b.surface ? ' ' + b.surface + ' m²' : '') + ' - Nathalie Chaudet Morel';
-  let subHtml = '';
-  if (photo2) subHtml += '<img src="' + photo2 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 2" loading="lazy" decoding="async" onclick="openLightbox(1)">';
-  if (photo3) subHtml += '<img src="' + photo3 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 3" loading="lazy" decoding="async" onclick="openLightbox(2)">';
-  if (!photo2 && !photo3) subHtml = '<div style="background:var(--beige);height:100%;display:flex;align-items:center;justify-content:center;color:var(--gris);font-size:.8rem;">Aucune<br>photo</div><div style="background:var(--beige);"></div>';
-
   var nbPhotos = photos.length;
   var photoBtnHtml = '<button type="button" class="fiche-photos-btn" onclick="event.stopPropagation();openLightbox(0)">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>' +
       nbPhotos + ' Photo' + (nbPhotos > 1 ? 's' : '') +
     '</button>';
 
-  document.getElementById('ficheGallery').innerHTML =
-    '<div class="fiche-gallery-main">' +
+  // Construction de la galerie selon le nombre de photos
+  var galleryHtml = '<div class="fiche-gallery-main">' +
       '<img src="' + photo1 + '" alt="' + altBase.replace(/"/g,'&quot;') + '" loading="eager" fetchpriority="high" decoding="async" onclick="openLightbox(0)">' +
       photoBtnHtml +
-    '</div>' +
-    '<div class="fiche-gallery-sub">' + subHtml + '</div>';
+    '</div>';
+
+  var galleryMode = 'single'; // 1 seule photo
+  if (photo2 && photo3) {
+    // 3+ photos : main + 2 sub empilées à droite
+    galleryMode = 'three';
+    galleryHtml += '<div class="fiche-gallery-sub">' +
+      '<img src="' + photo2 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 2" loading="lazy" decoding="async" onclick="openLightbox(1)">' +
+      '<img src="' + photo3 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 3" loading="lazy" decoding="async" onclick="openLightbox(2)">' +
+    '</div>';
+  } else if (photo2) {
+    // 2 photos : main + 1 sub pleine hauteur à droite
+    galleryMode = 'two';
+    galleryHtml += '<div class="fiche-gallery-sub">' +
+      '<img src="' + photo2 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 2" loading="lazy" decoding="async" onclick="openLightbox(1)">' +
+    '</div>';
+  }
+
+  var ficheGalleryEl = document.getElementById('ficheGallery');
+  ficheGalleryEl.innerHTML = galleryHtml;
+  ficheGalleryEl.classList.remove('single', 'two', 'three');
+  ficheGalleryEl.classList.add(galleryMode);
 
   // ===== Sidebar Barnes-style : bandeau prix + photo agent =====
   var priceBar = document.getElementById('fichePriceBar');
@@ -5688,24 +5928,37 @@ function renderSimilaires(b) {
   const section = document.getElementById('ficheSimilaires');
   if (!section) return;
 
-  let similaires = biens.filter(function(x) { return x.id !== b.id && x.ville === b.ville; });
-  if (similaires.length < 2) {
-    const autres = biens.filter(function(x) { return x.id !== b.id && x.type === b.type && !similaires.find(function(s) { return s.id === x.id; }); });
+  // 1. Biens dans la même ville (priorité)
+  let similaires = biens.filter(function(x) {
+    return x.id !== b.id && x.ville === b.ville && x.statut !== 'vendu';
+  });
+  // 2. Compléter avec biens du même type
+  if (similaires.length < 3) {
+    const autres = biens.filter(function(x) {
+      return x.id !== b.id && x.type === b.type && x.statut !== 'vendu' &&
+             !similaires.find(function(s) { return s.id === x.id; });
+    });
+    similaires = similaires.concat(autres);
+  }
+  // 3. Compléter avec n'importe quel autre bien actif
+  if (similaires.length < 3) {
+    const autres = biens.filter(function(x) {
+      return x.id !== b.id && x.statut !== 'vendu' &&
+             !similaires.find(function(s) { return s.id === x.id; });
+    });
     similaires = similaires.concat(autres);
   }
   similaires = similaires.slice(0, 3);
 
   if (similaires.length === 0) { section.innerHTML = ''; return; }
 
-  let cards = '';
-  similaires.forEach(function(s) {
-    cards += bienCardHTML(s);
-  });
-
   var simGrid = document.createElement('div');
-  simGrid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;';
+  simGrid.className = 'similaires-grid';
+  // Si 1 ou 2 cartes, on ajuste pour qu'elles ne s'étirent pas
+  if (similaires.length === 1) simGrid.classList.add('similaires-grid-1');
+  else if (similaires.length === 2) simGrid.classList.add('similaires-grid-2');
   similaires.forEach(function(s) { simGrid.appendChild(bienCardHTML(s)); });
-  section.innerHTML = '<h3 style="font-family:var(--serif);font-size:1.8rem;font-style:italic;color:var(--noir);margin-bottom:1.5rem;">Autres biens aux alentours</h3>';
+  section.innerHTML = '<h3 class="similaires-title">Autres biens aux alentours</h3>';
   section.appendChild(simGrid);
 }
 
@@ -5943,9 +6196,14 @@ function adminEdit(id) {
   document.getElementById('editRef').value = b.ref || '';
   document.getElementById('editExclu').value = b.exclusif ? '1' : '0';
 
-  // Ville
-  refreshVilleSelects();
+  // Ville — on remplit le select PUIS on positionne la valeur
   var sv = document.getElementById('editVille');
+  if (sv) {
+    // Pré-positionner la valeur AVANT refresh pour que refreshVilleSelects()
+    // puisse repérer la valeur courante et la conserver (ou ajouter une option custom)
+    sv.value = b.ville || '';
+  }
+  refreshVilleSelects();
   if (sv) sv.value = b.ville || '';
 
   // === ONGLET 2 : DÉTAILS ===
@@ -6143,6 +6401,28 @@ function refreshVilleSelects() {
     // Si aucune valeur actuelle, on sélectionne la première ville réelle
     if (!currentVal && villes.length > 0) {
       adminSel.value = villes[0];
+    }
+  }
+  // Édition d'un bien — select Ville
+  const editSel = document.getElementById('editVille');
+  if (editSel) {
+    const currentVal = editSel.value;
+    editSel.innerHTML = '';
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = ''; defaultOpt.textContent = '— Sélectionner une ville —';
+    editSel.appendChild(defaultOpt);
+    villes.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      if (v === currentVal) opt.selected = true;
+      editSel.appendChild(opt);
+    });
+    // Si la valeur actuelle n'est pas dans la liste (ville custom), on l'ajoute aussi
+    if (currentVal && !villes.includes(currentVal)) {
+      const customOpt = document.createElement('option');
+      customOpt.value = currentVal; customOpt.textContent = currentVal;
+      customOpt.selected = true;
+      editSel.appendChild(customOpt);
     }
   }
   // Estimation
@@ -6940,7 +7220,8 @@ if (_lb) { _lb.addEventListener('click', function(e) { if (e.target === this) cl
 
     <!-- Onglet 5 : Photos -->
     <div id="edit-tab-5" style="display:none;">
-      <p style="font-size:.82rem;color:var(--gris);margin-bottom:1rem;">La première photo sera la photo principale de l'annonce.</p>
+      <p style="font-size:.82rem;color:var(--gris);margin-bottom:0.4rem;">La première photo sera la photo principale de l'annonce.</p>
+      <p style="font-size:.78rem;color:var(--gris);margin-bottom:1rem;font-style:italic;">💡 Glisse les photos pour les réorganiser, ou utilise les flèches ◀ ▶</p>
       <input type="file" id="editPhotosInput" accept="image/*" multiple onchange="editAddPhotos(this)" style="display:none;">
       <button onclick="document.getElementById('editPhotosInput').click()" style="padding:.8rem 1.5rem;background:var(--or);color:white;border:none;font-family:var(--sans);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-bottom:1rem;">+ Ajouter des photos</button>
       <div id="editPhotoGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;"></div>
@@ -7011,25 +7292,82 @@ function editAddPhotos(input) {
   input.value = '';
 }
 
+var _editPhotoDragSrc = null;
+
 function renderEditPhotoGrid() {
   var g = document.getElementById('editPhotoGrid');
   if (!g) return;
   g.innerHTML = editPhotos.map(function(src, i) {
     var isBase64 = src && src.startsWith('data:');
     var warningBadge = isBase64
-      ? '<div style="position:absolute;bottom:4px;left:4px;right:4px;background:rgba(220,38,38,.85);color:white;font-size:.62rem;padding:3px 6px;text-align:center;">Non sauvegardée</div>'
+      ? '<div class="edit-photo-warning">Non sauvegardée</div>'
       : '';
-    return '<div style="position:relative;">' +
-      '<img src="' + src + '" style="width:100%;height:120px;object-fit:cover;border:1px solid var(--beige);">' +
-      (i === 0
-        ? '<div style="position:absolute;top:4px;left:4px;background:var(--or);color:white;font-size:.6rem;padding:3px 7px;font-weight:600;letter-spacing:.05em;">PRINCIPALE</div>'
-        : '<button onclick="editSetMainPhoto(' + i + ')" type="button" title="Définir comme principale" ' +
-          'style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.65);color:white;border:none;font-size:.6rem;padding:3px 7px;cursor:pointer;letter-spacing:.05em;">⭐ Principale</button>') +
-      '<button onclick="editRemovePhoto(' + i + ')" type="button" title="Supprimer cette photo" ' +
-        'style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);color:white;border:none;width:24px;height:24px;cursor:pointer;font-size:.8rem;border-radius:50%;">✕</button>' +
+    var principalBadge = i === 0
+      ? '<div class="edit-photo-principal">★ PRINCIPALE</div>'
+      : '<div class="edit-photo-num">' + (i + 1) + '</div>';
+    var arrowLeft  = i > 0
+      ? '<button type="button" class="edit-photo-arrow" onclick="editMovePhoto(event, ' + i + ', -1)" title="Déplacer à gauche" aria-label="Déplacer à gauche">◀</button>'
+      : '';
+    var arrowRight = i < editPhotos.length - 1
+      ? '<button type="button" class="edit-photo-arrow" onclick="editMovePhoto(event, ' + i + ', 1)" title="Déplacer à droite" aria-label="Déplacer à droite">▶</button>'
+      : '';
+    return '<div class="edit-photo-tile" draggable="true" data-idx="' + i + '" ' +
+      'ondragstart="editPhotoDragStart(event, ' + i + ')" ' +
+      'ondragover="editPhotoDragOver(event)" ' +
+      'ondragleave="editPhotoDragLeave(event)" ' +
+      'ondrop="editPhotoDrop(event, ' + i + ')" ' +
+      'ondragend="editPhotoDragEnd(event)">' +
+      '<img src="' + src + '" alt="" class="edit-photo-img" draggable="false">' +
+      principalBadge +
+      '<div class="edit-photo-arrows">' + arrowLeft + arrowRight + '</div>' +
+      '<button onclick="editRemovePhoto(' + i + ')" type="button" class="edit-photo-remove" title="Supprimer cette photo" aria-label="Supprimer">✕</button>' +
       warningBadge +
-      '</div>';
+    '</div>';
   }).join('');
+}
+
+function editPhotoDragStart(e, i) {
+  _editPhotoDragSrc = i;
+  e.dataTransfer.effectAllowed = 'move';
+  // Firefox a besoin de setData pour que le drag démarre
+  try { e.dataTransfer.setData('text/plain', String(i)); } catch(err) {}
+  e.currentTarget.classList.add('is-dragging');
+}
+function editPhotoDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('is-drag-over');
+}
+function editPhotoDragLeave(e) {
+  e.currentTarget.classList.remove('is-drag-over');
+}
+function editPhotoDrop(e, i) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.remove('is-drag-over');
+  var src = _editPhotoDragSrc;
+  if (src === null || src === undefined || src === i) return;
+  var photo = editPhotos.splice(src, 1)[0];
+  // Si on glisse une photo plus loin, l'index cible se décale d'un cran
+  var target = (src < i) ? i - 1 : i;
+  editPhotos.splice(target, 0, photo);
+  _editPhotoDragSrc = null;
+  renderEditPhotoGrid();
+}
+function editPhotoDragEnd(e) {
+  document.querySelectorAll('.edit-photo-tile').forEach(function(el) {
+    el.classList.remove('is-dragging', 'is-drag-over');
+  });
+  _editPhotoDragSrc = null;
+}
+// Déplacer une photo d'un cran à gauche (-1) ou à droite (+1)
+function editMovePhoto(e, i, dir) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  var newIdx = i + dir;
+  if (newIdx < 0 || newIdx >= editPhotos.length) return;
+  var photo = editPhotos.splice(i, 1)[0];
+  editPhotos.splice(newIdx, 0, photo);
+  renderEditPhotoGrid();
 }
 
 function editRemovePhoto(i) {
@@ -7038,6 +7376,7 @@ function editRemovePhoto(i) {
 }
 
 // Définir une photo comme photo principale (la déplace en position 0)
+// Conservé pour rétro-compatibilité — plus utilisé dans l'UI
 function editSetMainPhoto(i) {
   if (i <= 0 || i >= editPhotos.length) return;
   var photo = editPhotos.splice(i, 1)[0];
