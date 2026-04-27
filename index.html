@@ -6356,9 +6356,15 @@ async function saveEdit() {
 
   // Sauvegarde Supabase (asynchrone)
   var supabaseOk = true;
+  var verifMissing = null;
   try {
     if (typeof updateBienInSupabase === 'function') {
-      await updateBienInSupabase(b);
+      supabaseOk = await updateBienInSupabase(b);
+      // VÉRIFICATION : on relit depuis Supabase pour confirmer la persistance des champs critiques
+      if (supabaseOk && typeof verifyBienSaved === 'function') {
+        var verif = await verifyBienSaved(b);
+        if (!verif.ok) verifMissing = verif.missing;
+      }
     }
   } catch (e) {
     supabaseOk = false;
@@ -6373,6 +6379,8 @@ async function saveEdit() {
     showToast('Bien modifié — ⚠️ certaines photos n\'ont pas pu être uploadées (visibles localement seulement).', 'warning', 7000);
   } else if (!supabaseOk) {
     showToast('Bien modifié localement — ⚠️ sync serveur en échec (voir console).', 'warning', 6000);
+  } else if (verifMissing && verifMissing.length > 0) {
+    showToast('⚠️ Bien modifié, mais certains champs n\'ont pas été sauvés sur le serveur (' + verifMissing.join(', ') + '). Exécute supabase-schema-fix.sql.', 'warning', 8000);
   } else {
     showToast('✅ Bien modifié avec succès !', 'success');
   }
@@ -6741,15 +6749,34 @@ async function adminAddBien() {
   saveBiens();
   renderHomeGrid();
   try {
-    await addBienToSupabase(b);
+    var saveOk = await addBienToSupabase(b);
+    // VÉRIFICATION : on relit le bien depuis Supabase et on contrôle que les champs critiques sont là
+    if (saveOk) {
+      var verifResult = await verifyBienSaved(b);
+      if (!verifResult.ok) {
+        showToast('⚠️ Bien sauvé partiellement : ' + verifResult.message, 'error', 6000);
+        console.warn('Champs manquants dans Supabase :', verifResult.missing);
+      } else {
+        showToast('✓ Bien ajouté avec toutes ses données', 'success');
+      }
+    } else {
+      showToast('⚠️ Sauvegarde Supabase échouée. Le bien est en local. Vérifie ta connexion.', 'error', 6000);
+    }
   } catch (e) {
     console.warn('addBienToSupabase failed:', e);
+    showToast('⚠️ Erreur de synchronisation. Bien sauvé localement uniquement.', 'error', 6000);
   }
 
-  // Reset tous les champs
-  ['aTitre','aPrix','aRef','aSurface','aTerrain','aPieces','aChambres','aSDB','aSalleBain','aNiveaux','aAnnee','aMontantHonoraires','aDesc','aPrixFAI','aPrixHH','aPctHonoraires','aDPEconso','aGESconso'].forEach(id => {
+  // Reset tous les champs (inputs + selects)
+  ['aTitre','aPrix','aRef','aSurface','aTerrain','aPieces','aChambres','aSDB','aSalleBain','aNiveaux','aAnnee','aMontantHonoraires','aDesc','aPrixFAI','aPrixHH','aPctHonoraires','aDPEconso','aGESconso','aDPEclasse','aGESclasse','aType','aVille','aHonoraires','aExclu'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.value = '';
+    if (el) {
+      if (el.tagName === 'SELECT') {
+        el.selectedIndex = 0;
+      } else {
+        el.value = '';
+      }
+    }
   });
   document.getElementById('aImgFiles').value = '';
   document.getElementById('photoPreviews').innerHTML = '';
@@ -7576,42 +7603,155 @@ function bienToSupabaseMinimal(b) {
 }
 
 
-async function addBienToSupabase(b, _retry) {
+// Mémoire des colonnes Supabase qui n'existent pas dans le schéma de l'utilisateur.
+// On l'apprend en cours d'exécution et on évite de les renvoyer à chaque tentative.
+var _supaMissingCols = {};
+
+// Parse un message d'erreur Postgres pour identifier la/les colonne(s) qui pose(nt) problème.
+function _supaParseMissingColumn(errMsg) {
+  if (!errMsg) return null;
+  var patterns = [
+    /column "([^"]+)" of relation/i,
+    /column "([^"]+)" does not exist/i,
+    /column biens\.([a-zA-Z_]+) does not exist/i,
+    /Could not find the '([^']+)' column/i,
+    /'([a-zA-Z_]+)' column of 'biens'/i
+  ];
+  for (var i = 0; i < patterns.length; i++) {
+    var m = errMsg.match(patterns[i]);
+    if (m && m[1]) return m[1];
+  }
+  return null;
+}
+
+// Strippe les colonnes connues comme manquantes et appliques aux deux conventions
+// (camelCase + snake_case) pour gérer les deux nommages possibles.
+function _supaStripMissing(data) {
+  Object.keys(_supaMissingCols).forEach(function(col){
+    delete data[col];
+    // Aussi virer la version snake_case si camelCase manque (et inversement)
+    var alt = col.replace(/([A-Z])/g, '_$1').toLowerCase();
+    if (alt !== col) delete data[alt];
+    var alt2 = col.replace(/_([a-z])/g, function(_, c){ return c.toUpperCase(); });
+    if (alt2 !== col) delete data[alt2];
+  });
+  return data;
+}
+
+// Sauvegarde robuste : retire SEULEMENT la colonne qui échoue à chaque retry.
+// Préserve les autres champs (DPE/GES restent persistés tant que leur colonne existe).
+async function _supaUpsertBien(b, method, urlSuffix) {
+  method = method || 'POST';
+  urlSuffix = urlSuffix || '';
+  var url = SUPA_URL + '/rest/v1/biens' + urlSuffix;
+  var headers = supaHeaders();
+  if (method === 'POST') headers['Prefer'] = 'resolution=merge-duplicates,return=representation';
+
+  var data = bienToSupabase(b);
+  _supaStripMissing(data);
+
+  var maxRetries = 25; // garde-fou anti-boucle infinie
+  for (var attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      var res = await fetch(url, {
+        method: method,
+        headers: headers,
+        body: JSON.stringify(data)
+      });
+      if (res.ok) {
+        if (attempt > 0) console.log('✅ Bien sauvé après ' + attempt + ' retry(s) — colonnes manquantes : ' + Object.keys(_supaMissingCols).join(', '));
+        else console.log('✅ Bien sauvé dans Supabase (tous champs)');
+        return { ok: true, data: data };
+      }
+      var errTxt = await res.text();
+      var missingCol = _supaParseMissingColumn(errTxt);
+
+      // Détecter aussi les erreurs de cache/schéma : "Could not find the X column"
+      if (missingCol && !_supaMissingCols[missingCol]) {
+        console.warn('🔍 Colonne Supabase manquante : "' + missingCol + '" — on la retire et on retry');
+        _supaMissingCols[missingCol] = true;
+        delete data[missingCol];
+        // Aussi essayer le pendant snake/camel
+        var alt = missingCol.replace(/([A-Z])/g, '_$1').toLowerCase();
+        if (alt !== missingCol) delete data[alt];
+        var alt2 = missingCol.replace(/_([a-z])/g, function(_, c){ return c.toUpperCase(); });
+        if (alt2 !== missingCol) delete data[alt2];
+        continue;
+      }
+
+      // Erreur "syntaxe invalide pour numeric : ''" — chercher quel champ et le supprimer
+      var emptyM = errTxt.match(/invalid input syntax for type (\w+): ""/i);
+      if (emptyM) {
+        console.warn('🔍 Champ avec valeur "" rejeté par Postgres (' + emptyM[1] + ') — nettoyage');
+        Object.keys(data).forEach(function(k){
+          if (data[k] === '' || data[k] === undefined) data[k] = null;
+        });
+        continue;
+      }
+
+      // Sinon : on log et on sort
+      console.warn('❌ Supabase POST échec (HTTP ' + res.status + ') :', errTxt.substring(0, 400));
+      return { ok: false, error: errTxt, status: res.status };
+    } catch(e) {
+      console.warn('❌ Réseau Supabase :', e.message);
+      return { ok: false, error: e.message, network: true };
+    }
+  }
+  console.error('⚠️ Trop de retries — abandon');
+  return { ok: false, error: 'too_many_retries' };
+}
+
+async function addBienToSupabase(b) {
+  var r = await _supaUpsertBien(b, 'POST', '');
+  if (r.ok) return true;
+  // Si POST échoue, fallback PATCH (au cas où l'id existe déjà)
+  var r2 = await _supaUpsertBien(b, 'PATCH', '?id=eq.' + b.id);
+  if (r2.ok) {
+    console.log('✅ Bien mis à jour via PATCH dans Supabase');
+    return true;
+  }
+  return false;
+}
+
+// Vérifie qu'un bien sauvé contient bien tous ses champs critiques dans Supabase.
+// Retourne { ok: true } si tout est là, sinon { ok: false, missing: [...], message }
+async function verifyBienSaved(b) {
   try {
-    var data = _retry ? bienToSupabaseSafe(b) : bienToSupabase(b);
-    // Utiliser upsert pour éviter les conflits d'id
-    var headers = supaHeaders();
-    headers['Prefer'] = 'resolution=merge-duplicates,return=representation';
-    var res = await fetch(SUPA_URL + '/rest/v1/biens', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(data)
+    var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
-    if (res.ok) {
-      console.log('✅ Bien sauvegardé dans Supabase');
-      return true;
+    if (!res.ok) return { ok: false, missing: ['?'], message: 'lecture impossible' };
+    var data = await res.json();
+    if (!data || data.length === 0) {
+      return { ok: false, missing: ['*'], message: 'bien non retrouvé sur le serveur' };
     }
-    var err = await res.text();
-    // Retry avec safe payload si statut/dateVente posent problème
-    if (!_retry && (/column.*does not exist/i.test(err) || res.status === 400)) {
-      console.warn('⚠️ Schéma Supabase incomplet — retry sans statut/dateVente');
-      return addBienToSupabase(b, true);
-    }
-    console.warn('Supabase erreur:', err);
-    // Essayer avec PATCH (update si existant)
-    var res2 = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
-      method: 'PATCH',
-      headers: supaHeaders(),
-      body: JSON.stringify(data)
+    var saved = data[0];
+    // Liste des champs à vérifier : seulement ceux que l'admin a effectivement renseignés
+    var checks = [
+      { local: b.dpeClasse,         supaKeys: ['dpe', 'dpeClasse', 'dpe_classe'],         label: 'classe DPE' },
+      { local: b.dpeConso,          supaKeys: ['dpeVal', 'dpeConso', 'dpe_val', 'dpe_conso'], label: 'conso DPE' },
+      { local: b.gesClasse,         supaKeys: ['ges', 'gesClasse', 'ges_classe'],         label: 'classe GES' },
+      { local: b.gesConso,          supaKeys: ['gesVal', 'gesConso', 'ges_val', 'ges_conso'], label: 'conso GES' },
+      { local: b.prixHH,            supaKeys: ['prixHH', 'prix_hh'],                       label: 'prix hors honoraires' },
+      { local: b.montantHonoraires, supaKeys: ['montantHonoraires', 'montant_honoraires'], label: 'montant honoraires' },
+      { local: b.salleBain,         supaKeys: ['salleBain', 'salle_bain'],                 label: 'salle de bain' },
+      { local: b.statut,            supaKeys: ['statut'],                                   label: 'statut' }
+    ];
+    var missing = [];
+    checks.forEach(function(c) {
+      if (c.local && c.local !== '' && c.local !== 0) {
+        var ok = c.supaKeys.some(function(k){ return saved[k] !== null && saved[k] !== undefined && saved[k] !== '' && saved[k] !== 0; });
+        if (!ok) missing.push(c.label);
+      }
     });
-    if (res2.ok) {
-      console.log('✅ Bien mis à jour dans Supabase');
-      return true;
-    }
-    return false;
+    if (missing.length === 0) return { ok: true };
+    return {
+      ok: false,
+      missing: missing,
+      message: 'champs manquants dans la base : ' + missing.join(', ')
+    };
   } catch(e) {
-    console.warn('Supabase indisponible:', e.message);
-    return false;
+    return { ok: false, missing: ['?'], message: 'erreur de vérification : ' + e.message };
   }
 }
 
@@ -7620,47 +7760,13 @@ async function addBienToSupabase(b, _retry) {
 var _supaWorkingMode = null; // 'full' | 'safe' | 'minimal'
 
 async function updateBienInSupabase(b) {
-  // On commence directement au niveau qui a marché la dernière fois
-  var modes = ['full', 'safe', 'minimal'];
-  var startIdx = _supaWorkingMode ? modes.indexOf(_supaWorkingMode) : 0;
-  var attemptsConfig = [
-    { name: 'full',    fn: bienToSupabase },
-    { name: 'safe',    fn: bienToSupabaseSafe },
-    { name: 'minimal', fn: bienToSupabaseMinimal }
-  ];
-  for (var i = startIdx; i < attemptsConfig.length; i++) {
-    var att = attemptsConfig[i];
-    var data = att.fn(b);
-    try {
-      console.log('📤 Update Supabase bien #' + b.id + ' (' + att.name + ')');
-      console.log('  Payload :', data);
-      var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
-        method: 'PATCH',
-        headers: supaHeaders(),
-        body: JSON.stringify(data)
-      });
-      if (res.ok) {
-        _supaWorkingMode = att.name;
-        if (i > 0) console.warn('⚠️ Sauvegardé en mode "' + att.name + '" — certaines colonnes manquent dans Supabase');
-        else console.log('✅ Bien #' + b.id + ' modifié avec succès dans Supabase');
-        return true;
-      }
-      var err = await res.text();
-      console.warn('❌ Tentative "' + att.name + '" échouée (HTTP ' + res.status + '):', err.substring(0, 300));
-      // Si l'erreur identifie un champ vide problématique, on le révèle
-      var emptyMatch = /invalid input syntax for type \w+: ""/.exec(err);
-      if (emptyMatch) {
-        console.warn('  → 🔍 Une colonne reçoit "". Champs envoyés (vérifie les "" et chaînes vides) :');
-        Object.keys(data).forEach(function(k){
-          if (data[k] === '' || data[k] === null) console.warn('     ', k, '=', JSON.stringify(data[k]));
-        });
-      }
-      if (res.status >= 500) break;
-    } catch(e) {
-      console.warn('❌ Réseau:', e.message);
-      break;
-    }
+  console.log('📤 Update Supabase bien #' + b.id);
+  var r = await _supaUpsertBien(b, 'PATCH', '?id=eq.' + b.id);
+  if (r.ok) {
+    console.log('✅ Bien #' + b.id + ' modifié avec succès');
+    return true;
   }
+  console.warn('❌ Update Supabase bien #' + b.id + ' échec :', r.error);
   return false;
 }
 
