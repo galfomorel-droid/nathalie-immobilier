@@ -4904,6 +4904,21 @@ function formatPrix(p) {
   return p.toLocaleString('fr-FR') + ' € FAI';
 }
 
+// Affichage public du prix : on masque le prix et on affiche le statut à la place
+// dès qu'un bien est sous compromis, offre en cours ou vendu.
+function formatPrixPublic(b) {
+  if (!b) return '';
+  if (b.statut === 'vendu')           return 'Vendu';
+  if (b.statut === 'sous_compromis')  return 'Sous compromis';
+  if (b.statut === 'offre_en_cours')  return 'Offre en cours';
+  return formatPrix(b.prix);
+}
+
+// Indique si on doit MASQUER tout ce qui touche au prix (table, "à propos du prix", etc.)
+function isPrixMasque(b) {
+  return b && (b.statut === 'vendu' || b.statut === 'sous_compromis' || b.statut === 'offre_en_cours');
+}
+
 function genRef(id) {
   return 'REF. NCM-' + String(id).padStart(4, '0');
 }
@@ -5419,7 +5434,7 @@ function bienCardHTML(b) {
       '</div>' +
       '<div class="bien-card-footer">' +
         '<span class="bien-card-ref">' + _esc(ref) + '</span>' +
-        '<div class="bien-card-price">' + _esc(formatPrix(b.prix)) + '</div>' +
+        '<div class="bien-card-price">' + _esc(formatPrixPublic(b)) + '</div>' +
       '</div>' +
     '</div>';
   div.addEventListener('click', function() { showFiche(parseInt(b.id)); });
@@ -5542,7 +5557,7 @@ function showFiche(id) {
   document.getElementById('ficheTitre').textContent = b.titre ? b.titre : h1Parts.join(' ');
   document.getElementById('ficheTitre').setAttribute('data-seo-h1', h1Parts.join(' '));
   document.getElementById('ficheLoc').textContent = b.ville || '';
-  document.getElementById('fichePrix').textContent = formatPrix(b.prix);
+  document.getElementById('fichePrix').textContent = formatPrixPublic(b);
   
   const refDisplay = b.ref || genRef(b.id).replace('REF. ','');
   document.getElementById('ficheBadge').innerHTML = 
@@ -5558,19 +5573,22 @@ function showFiche(id) {
   tableRows += buildRow('Surface', b.surface ? b.surface + ' m²' : '—', '', '');
   if (b.terrain) tableRows += buildRow('Terrain', b.terrain + ' m²', '', '');
   if (b.annee) tableRows += buildRow('Année de construction', b.annee, '', '');
-  tableRows += buildRow('Prix', formatPrix(b.prix), '', '');
-  // On affiche toujours « Honoraires acquéreur » avec le montant si renseigné
-  if (b.montantHonoraires) tableRows += buildRow('Honoraires acquéreur', b.montantHonoraires.toLocaleString('fr-FR') + ' €', '', '');
+  // Prix masqué si bien sous compromis / offre / vendu
+  if (!isPrixMasque(b)) {
+    tableRows += buildRow('Prix', formatPrix(b.prix), '', '');
+    // On affiche toujours « Honoraires acquéreur » avec le montant si renseigné
+    if (b.montantHonoraires) tableRows += buildRow('Honoraires acquéreur', b.montantHonoraires.toLocaleString('fr-FR') + ' €', '', '');
+  }
 
   document.getElementById('ficheSpecs').innerHTML = 
     '<table style="width:100%;border-collapse:collapse;font-size:.88rem;"><tbody>' + tableRows + '</tbody></table>';
 
   document.getElementById('ficheDesc').innerHTML = formatDescription(b.description || b.desc || '', b);
 
-  // Section prix détaillée
+  // Section prix détaillée — masquée si bien sous compromis / offre / vendu
   const prixSection = document.getElementById('fichePrixSection');
   let prixHtml = '';
-  if (prixSection && (b.prixFAI || b.prixHH || b.pctHonoraires)) {
+  if (prixSection && !isPrixMasque(b) && (b.prixFAI || b.prixHH || b.pctHonoraires)) {
     prixHtml = '<div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--beige);">';
     prixHtml += '<h3 style="font-family:var(--sans);font-size:1rem;font-weight:500;margin-bottom:1rem;color:var(--noir);">À propos du prix</h3>';
 
@@ -5695,7 +5713,7 @@ function showFiche(id) {
     priceBarTitle.textContent = titleTxt || 'BIEN';
   }
   var priceBarPrice = document.getElementById('fichePriceBarPrice');
-  if (priceBarPrice) priceBarPrice.textContent = formatPrix(b.prix);
+  if (priceBarPrice) priceBarPrice.textContent = formatPrixPublic(b);
 
   // Photo Nathalie : récupérer depuis la page À propos
   var agentPhoto = document.getElementById('ficheAgentPhoto');
@@ -5833,9 +5851,13 @@ function updateSeoForBien(b) {
         "offers": {
           "@type": "Offer",
           "url": window.location.href,
-          "price": prixNum || undefined,
+          // Prix masqué pour vendu / sous compromis / offre en cours
+          "price": isPrixMasque(b) ? undefined : (prixNum || undefined),
           "priceCurrency": "EUR",
-          "availability": "https://schema.org/InStock",
+          // Statut Schema.org cohérent avec l'affichage
+          "availability": b.statut === 'vendu' ? 'https://schema.org/SoldOut'
+            : (b.statut === 'sous_compromis' || b.statut === 'offre_en_cours' ? 'https://schema.org/LimitedAvailability'
+            : 'https://schema.org/InStock'),
           "seller": {
             "@id": "https://www.immobilierdelapresquileguerandaise.fr/#agence"
           }
@@ -7679,8 +7701,16 @@ async function _supaUpsertBien(b, method, urlSuffix) {
         continue;
       }
 
+      // Tenter d'abord de parser l'erreur en JSON (Supabase renvoie un objet JSON)
+      // pour récupérer le message proprement décodé (sans les \" échappés).
+      var cleanMsg = errTxt;
+      try {
+        var errObj = JSON.parse(errTxt);
+        if (errObj && errObj.message) cleanMsg = errObj.message;
+      } catch(e) { /* errTxt pas du JSON, on garde tel quel */ }
+
       // Erreur "syntaxe invalide pour numeric : ''" — chercher quel champ et le supprimer
-      var emptyM = errTxt.match(/invalid input syntax for type (\w+): ""/i);
+      var emptyM = cleanMsg.match(/invalid input syntax for type (\w+): ""/i);
       if (emptyM) {
         console.warn('🔍 Champ avec valeur "" rejeté par Postgres (' + emptyM[1] + ') — nettoyage');
         Object.keys(data).forEach(function(k){
@@ -7692,7 +7722,8 @@ async function _supaUpsertBien(b, method, urlSuffix) {
       // Erreur "invalid input syntax for type X: 'valeur'" : un type de colonne ne correspond
       // pas à la valeur envoyée (ex: colonne numeric mais on envoie du texte 'acquéreur').
       // On identifie quelle clé contient cette valeur et on la retire du payload.
-      var typeM = errTxt.match(/invalid input syntax for type (\w+):\s*\\?"([^"]+)\\?"/i);
+      // On utilise [^"]+ sur le message déjà décodé (plus de \" à gérer).
+      var typeM = cleanMsg.match(/invalid input syntax for type (\w+):\s*"([^"]+)"/i);
       if (typeM) {
         var badType = typeM[1];
         var badVal = typeM[2];
@@ -7710,8 +7741,24 @@ async function _supaUpsertBien(b, method, urlSuffix) {
           delete data[foundKey];
           continue;
         }
-        // Si on ne trouve pas la clé exacte, on log et on continue
-        console.warn('⚠️ Erreur de type Postgres mais clé non trouvée : type=' + badType + ', val=' + badVal);
+        // Fallback : si on ne trouve pas une clé qui matche exactement, on retire les
+        // candidats les plus probables selon le type d'erreur (ex: numeric → champs texte
+        // qu'on envoie peut-être à une colonne mal typée).
+        console.warn('⚠️ Erreur de type Postgres ' + badType + ' avec valeur "' + badVal + '" — fallback : on retire les champs suspects');
+        if (badType === 'numeric' || badType === 'integer' || badType === 'bigint' || badType === 'real' || badType === 'double') {
+          // On retire tous les champs texte du payload qui pourraient atterrir dans une colonne numérique
+          // Champs typiquement texte qu'on envoie : honoraires, statut, type, ville, ref, dpe, ges...
+          ['honoraires', 'statut', 'type', 'ville', 'ref', 'dpe', 'ges', 'titre', 'description'].forEach(function(k){
+            if (data[k] != null && typeof data[k] === 'string' && isNaN(Number(data[k]))) {
+              if (!_supaMissingCols[k]) {
+                console.warn('  → retrait par sécurité du champ texte "' + k + '"');
+                _supaMissingCols[k] = true;
+                delete data[k];
+              }
+            }
+          });
+          continue;
+        }
       }
 
       // Sinon : on log et on sort
