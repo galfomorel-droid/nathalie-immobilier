@@ -1,0 +1,30 @@
+name: Synchronisation annonces 3G
+
+# Récupère les annonces 3G et les met à jour dans Supabase.
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # toutes les 30 min (comme le cache 3G)
+  workflow_dispatch:           # bouton « Run workflow » pour lancer à la main
+
+# Évite que deux synchros tournent en même temps.
+concurrency:
+  group: sync-3g
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Synchroniser les annonces
+        run: node scripts/sync-3g.mjs
+        env:
+          # Le script lit THREEG_TOKEN ; on y branche votre secret API_TOKEN_3GIMMO.
+          THREEG_TOKEN: ${{ secrets.API_TOKEN_3GIMMO }}
+          # Optionnel : ne définir que si vous changez de clé Supabase.
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
