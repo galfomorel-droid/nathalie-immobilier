@@ -6656,7 +6656,7 @@ async function saveEdit() {
 }
 
 
-var villes = ['Le Pouliguen', 'La Baule', 'Guérande', 'Batz-sur-Mer', 'La Turballe', 'Piriac-sur-Mer', 'Pornichet', 'Saint-Nazaire'];
+var villes = ['Le Pouliguen', 'La Baule', 'Guérande', 'Le Croisic', 'Batz-sur-Mer', 'La Turballe', 'Piriac-sur-Mer', 'Pornichet', 'Saint-Nazaire', 'Saint-André-des-Eaux', 'Herbignac', 'Mesquer', 'Saint-Molf', 'Assérac', 'La Roche Bernard'];
 
 function refreshVilleSelects() {
   // Filtre biens
@@ -8212,6 +8212,13 @@ async function loadBiens() {
             });
           });
         }
+
+        // Inclure dans le filtre toute ville réellement présente dans les annonces
+        // (ainsi une nouvelle commune apparaît automatiquement sans modifier le code)
+        biens.forEach(function(b){
+          var v = b && b.ville ? String(b.ville).trim() : '';
+          if (v && villes.indexOf(v) === -1) villes.push(v);
+        });
 
         // Protection contre Math.max sur tableau vide (-Infinity)
         var ids = biens.map(function(b){ return parseInt(b.id) || 0; }).filter(function(n){ return n > 0; });

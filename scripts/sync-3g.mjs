@@ -51,10 +51,32 @@ function corrigerSurface(raw) {
   if (n === null) return 0;
   return n > 500 ? Math.round(n / 100) : n;
 }
+// Quartiers / anciennes communes rattachés à une commune principale.
+const ALIAS_VILLES = {
+  escoublac: 'La Baule',
+  'la baule-escoublac': 'La Baule',
+};
+
+// minuscule + sans accents → comparaison robuste
+function normaliser(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+// Déduit la ville à partir du texte. Tolère l'article contracté ("du Croisic",
+// "au Pouliguen") en ne cherchant que le NOM de la commune sans son article,
+// comme un mot entier, et reconnaît les alias de quartiers (Escoublac → La Baule).
 function villeDepuisDescription(desc) {
   if (!desc) return '';
+  const texte = normaliser(desc);
+  // 1. Alias explicites (quartiers, anciennes communes)
+  for (const [motif, ville] of Object.entries(ALIAS_VILLES)) {
+    if (new RegExp('\\b' + motif.replace(/[-\s]+/g, '[-\\s]+') + '\\b').test(texte)) return ville;
+  }
+  // 2. Communes connues : nom sans article (le/la/les), match en mot entier
   for (const v of VILLES_CONNUES) {
-    if (new RegExp(v.replace(/-/g, '[- ]'), 'i').test(String(desc))) return v;
+    const noyau = normaliser(v).replace(/^(le|la|les)\s+/, '');
+    const motif = '\\b' + noyau.replace(/[-\s]+/g, '[-\\s]+') + '\\b';
+    if (new RegExp(motif).test(texte)) return v;
   }
   return '';
 }
