@@ -5690,8 +5690,9 @@ function renderHomeGrid() {
   const grid = document.getElementById('homeGrid');
   if (!grid) return;
   // On exclut les biens vendus de la page d'accueil (ils apparaissent dans "Nos dernières ventes")
-  const actifs = biens.filter(function(b){ return b.statut !== 'vendu'; });
-  const featured = actifs.slice(0, 3);
+  const actifs = biens.filter(function(b){ return b.statut !== 'vendu'; })
+    .sort(function(a, b){ return (parseInt(b.id) || 0) - (parseInt(a.id) || 0); }); // plus récents d'abord (ordre d'ajout)
+  const featured = actifs.slice(0, 3); // les 3 nouveautés à la une
   grid.innerHTML = '';
   featured.forEach(function(b) { grid.appendChild(bienCardHTML(b)); });
   observeFadeIns();
@@ -5705,6 +5706,7 @@ function renderBiensGrid() {
   let filtered = biens.filter(function(b){ return b.statut !== 'vendu'; });
   if (filterType !== 'all') filtered = filtered.filter(b => b.type === filterType);
   if (filterVille) filtered = filtered.filter(b => b.ville === filterVille);
+  filtered.sort(function(a, b){ return (parseInt(b.id) || 0) - (parseInt(a.id) || 0); }); // plus récents en premier (ordre d'ajout)
   grid.innerHTML = '';
   if (filtered.length) {
     filtered.forEach(function(b) { grid.appendChild(bienCardHTML(b)); });
