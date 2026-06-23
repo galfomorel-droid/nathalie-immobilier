@@ -118,7 +118,11 @@ function annonceVersBien(a, ref) {
     description: a.description_annonce || (ref && ref.description) || '',
     img: photos[0] || '', photos,
     dpe: (ref && ref.dpe) ? ref.dpe : (a.dpe_note_energie || ''),
-    statut: 'en_vente', prixFAI: toInt(a.prix) || 0,
+    // On PRÉSERVE le statut déjà en base (ex. « vendu » mis à la main dans l'admin) ;
+    // sans ça, chaque synchro remettait tout en « en_vente » et effaçait les ventes.
+    statut: (ref && ref.statut) ? ref.statut : 'en_vente',
+    dateVente: (ref && ref.dateVente) ? ref.dateVente : null,
+    prixFAI: toInt(a.prix) || 0,
   };
 }
 
@@ -183,7 +187,11 @@ async function main() {
   const existants = await lireBiens3GExistants();
   const biens = annonces.map((a) => annonceVersBien(a, existants.get(Number(a.i))));
   const idsActifs = new Set(biens.map((b) => b.id));
-  const aSupprimer = [...existants.keys()].filter((id) => !idsActifs.has(id));
+  // On ne supprime PAS les biens marqués « vendu » : ils restent affichés dans
+  // « Nos dernières ventes » même après leur retrait des annonces actives sur 3G.
+  const aSupprimer = [...existants.keys()].filter(
+    (id) => !idsActifs.has(id) && existants.get(id) && existants.get(id).statut !== 'vendu',
+  );
 
   console.log('\n   Aperçu :');
   for (const b of biens.slice(0, 5)) {
