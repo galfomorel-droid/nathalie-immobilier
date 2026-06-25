@@ -6692,20 +6692,46 @@ function adminToggleStatut(id, nouveauStatut) {
 }
 
 // Marquer comme vendu — déplace dans la section "Nos dernières ventes"
-function adminMarkVendu(id) {
+async function adminMarkVendu(id) {
   var b = biens.find(function(x){ return x.id === id || parseInt(x.id) === parseInt(id); });
   if (!b) return;
-  var msg = b.statut === 'vendu'
-    ? 'Ce bien est déjà marqué comme vendu. Voulez-vous le remettre en vente ?'
-    : 'Marquer ce bien comme VENDU ?\n\nIl sera retiré des annonces actives et apparaîtra dans « Nos dernières ventes » sur la page d\'accueil.';
+  var estVendu = b.statut === 'vendu';
+  var msg = estVendu
+    ? 'Ce bien est marqué comme vendu. Le remettre en vente ?'
+    : 'Marquer ce bien comme VENDU ?\n\nIl quittera les annonces actives et apparaîtra dans « Nos dernières ventes » (page d\'accueil), visible par tous les visiteurs.';
   if (!confirm(msg)) return;
-  b.statut = (b.statut === 'vendu') ? 'en_vente' : 'vendu';
-  b.dateVente = (b.statut === 'vendu') ? new Date().toISOString() : null;
+
+  // Charger l'overlay des ventes depuis le dépôt (nécessite le jeton GitHub)
+  var ventes = await _ghLoadVentes();
+  if (ventes === null) return; // jeton manquant/refusé : on n'écrit rien
+
+  // Construire le nouvel overlay (sans modifier l'état local pour l'instant)
+  var dateVente = new Date().toISOString();
+  ventes = ventes.filter(function(v){ return parseInt(v.id) !== parseInt(id); });
+  if (!estVendu) {
+    ventes.unshift({
+      id: parseInt(b.id), titre: b.titre || '', type: b.type || 'Bien',
+      ville: b.ville || '', img: b.img || '', prix: b.prix || 0,
+      statut: 'vendu', dateVente: dateVente
+    });
+  }
+
+  // On n'applique l'état local QUE si la publication GitHub a réussi
+  // (sinon : incohérence entre le navigateur et ce que voient les visiteurs).
+  var ok = await _ghSaveVentes(ventes);
+  if (!ok) {
+    if (typeof showToast === 'function') showToast('⚠️ Publication de la vente impossible (jeton/connexion). Rien n\'a été modifié — réessaie.', 'error', 7000);
+    return;
+  }
+  if (estVendu) { b.statut = 'en_vente'; b.dateVente = null; }
+  else { b.statut = 'vendu'; b.dateVente = dateVente; }
   saveBiens();
   renderAdmin();
   renderHomeGrid();
   renderVendusCarousel();
-  if (typeof updateBienInSupabase === 'function') updateBienInSupabase(b);
+  if (typeof showToast === 'function') {
+    showToast(estVendu ? 'Bien remis en vente ✓ (publié)' : 'Bien marqué vendu ✓ (publié sur le site)', 'success', 6000);
+  }
 }
 
 function adminEdit(id) {
@@ -7010,6 +7036,7 @@ function addNewVille() {
 let uploadedPhotos = [];
 
 async function uploadPhotoToSupabase(file) {
+  return ''; /* Supabase retiré (modèle JSON/3G) — l'upload manuel de photos est désactivé. */
   // Sécurité : limite taille (5 Mo) pour éviter localStorage explosion en cas de fallback base64
   if (file.size > 5 * 1024 * 1024) {
     if (typeof showToast === 'function') {
@@ -8267,6 +8294,7 @@ async function _supaUpsertBien(b, method, urlSuffix) {
 }
 
 async function addBienToSupabase(b) {
+  return true; /* Supabase retiré (modèle JSON/3G) — no-op. */
   var r = await _supaUpsertBien(b, 'POST', '');
   if (r.ok) return true;
   // Si POST échoue, fallback PATCH (au cas où l'id existe déjà)
@@ -8281,6 +8309,7 @@ async function addBienToSupabase(b) {
 // Vérifie qu'un bien sauvé contient bien tous ses champs critiques dans Supabase.
 // Retourne { ok: true } si tout est là, sinon { ok: false, missing: [...], message }
 async function verifyBienSaved(b) {
+  return { ok: true }; /* Supabase retiré (modèle JSON/3G) — no-op. */
   try {
     var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + b.id, {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
@@ -8325,6 +8354,7 @@ async function verifyBienSaved(b) {
 var _supaWorkingMode = null; // 'full' | 'safe' | 'minimal'
 
 async function updateBienInSupabase(b) {
+  return true; /* Supabase retiré (modèle JSON/3G) — no-op. */
   console.log('📤 Update Supabase bien #' + b.id);
   var r = await _supaUpsertBien(b, 'PATCH', '?id=eq.' + b.id);
   if (r.ok) {
@@ -8336,6 +8366,7 @@ async function updateBienInSupabase(b) {
 }
 
 async function deleteBienFromSupabase(id) {
+  return true; /* Supabase retiré (modèle JSON/3G) — no-op. */
   try {
     var res = await fetch(SUPA_URL + '/rest/v1/biens?id=eq.' + id, {
       method: 'DELETE',
@@ -8346,165 +8377,152 @@ async function deleteBienFromSupabase(id) {
 }
 
 async function loadBiens() {
-  // 1. Charger localStorage immédiatement
+  // ===== Modèle « Saben » : annonces depuis data/biens.json (synchro 3G committée),
+  // ventes manuelles depuis data/ventes.json. Plus de Supabase. =====
+
+  // 1. Cache localStorage immédiat (affichage instantané)
   try {
     var saved = localStorage.getItem('nathalie_biens');
     if (saved) {
       var parsed = JSON.parse(saved);
       if (parsed && parsed.length > 0) {
-        biens = parsed.map(function(b) {
-          b.id = parseInt(b.id);
-          if (!b.ville || !String(b.ville).trim()) b.ville = 'Le Pouliguen';
-          // Unifier les champs DPE/GES pour l'affichage
-          if (!b.dpeClasse && b.dpe) b.dpeClasse = b.dpe;
-          if (!b.dpeConso && b.dpeVal) b.dpeConso = b.dpeVal;
-          if (!b.gesClasse && b.ges) b.gesClasse = b.ges;
-          if (!b.gesConso && b.gesVal) b.gesConso = b.gesVal;
-          return b;
-        });
-        nextId = parseInt(localStorage.getItem('nathalie_nextId') || String(biens.length + 1));
+        biens = parsed.map(_normalizeBien);
         renderHomeGrid();
-        console.log('✅ ' + biens.length + ' biens chargés localement');
       }
     }
   } catch(e) {}
 
-  // 2. Charger depuis Supabase (source de vérité partagée)
+  // 2. Charger les annonces actives + l'overlay des ventes
   try {
-    var res = await fetch(SUPA_URL + '/rest/v1/biens?order=id.asc', {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-    });
-    if (res.ok) {
-      var data = await res.json();
-      if (data && data.length > 0) {
-        // Index par id des biens locaux pour pouvoir préserver les photos base64
-        // (qui ne sont jamais envoyées sur Supabase pour gagner de la place)
-        var localById = {};
-        (biens || []).forEach(function(b){ if (b && b.id != null) localById[b.id] = b; });
+    var results = await Promise.all([
+      fetch('data/biens.json?t=' + Date.now(), { cache: 'no-cache' }),
+      fetch('data/ventes.json?t=' + Date.now(), { cache: 'no-cache' }).catch(function(){ return null; })
+    ]);
+    var bRes = results[0], vRes = results[1];
 
-        // Supabase a des données → c'est la source de vérité PARTIELLE (les champs persistants)
-        biens = data.map(function(b) {
-          b.id = parseInt(b.id);
-          if (b.description && !b.desc) b.desc = b.description;
-          if (!b.ville || !String(b.ville).trim()) b.ville = 'Le Pouliguen';
-          if (!b.dpeClasse && b.dpe) b.dpeClasse = b.dpe;
-          if (!b.dpeConso && b.dpeVal) b.dpeConso = b.dpeVal;
-          if (!b.gesClasse && b.ges) b.gesClasse = b.ges;
-          if (!b.gesConso && b.gesVal) b.gesConso = b.gesVal;
+    var actifs = [];
+    if (bRes && bRes.ok) {
+      var bj = await bRes.json();
+      actifs = (Array.isArray(bj) ? bj : (bj.properties || [])).map(_normalizeBien);
+    }
 
-          // 🛡️ Préservation de TOUS les champs critiques en cas d'absence de colonne Supabase.
-          // Ce filet de sécurité évite que Supabase écrase des valeurs renseignées localement
-          // quand son schéma n'a pas la colonne (DPE, GES, statut, etc.)
-          var localBien = localById[b.id];
-          if (localBien) {
-            // ----- PHOTOS -----
-            if ((!b.img || b.img === '') && localBien.img) b.img = localBien.img;
-            if ((!b.photos || b.photos.length === 0) && localBien.photos && localBien.photos.length > 0) {
-              b.photos = localBien.photos.slice();
-            }
-            // ----- DPE / GES (les colonnes Supabase peuvent ne pas exister) -----
-            // Classe DPE
-            if (!b.dpeClasse && localBien.dpeClasse) b.dpeClasse = localBien.dpeClasse;
-            if (!b.dpe && localBien.dpe) b.dpe = localBien.dpe;
-            // Conso DPE
-            if (!b.dpeConso && localBien.dpeConso) b.dpeConso = localBien.dpeConso;
-            if (!b.dpeVal && localBien.dpeVal) b.dpeVal = localBien.dpeVal;
-            // Classe GES
-            if (!b.gesClasse && localBien.gesClasse) b.gesClasse = localBien.gesClasse;
-            if (!b.ges && localBien.ges) b.ges = localBien.ges;
-            // Conso GES
-            if (!b.gesConso && localBien.gesConso) b.gesConso = localBien.gesConso;
-            if (!b.gesVal && localBien.gesVal) b.gesVal = localBien.gesVal;
-            // Re-normaliser après préservation
-            if (!b.dpeClasse && b.dpe) b.dpeClasse = b.dpe;
-            if (!b.dpeConso && b.dpeVal) b.dpeConso = b.dpeVal;
-            if (!b.gesClasse && b.ges) b.gesClasse = b.ges;
-            if (!b.gesConso && b.gesVal) b.gesConso = b.gesVal;
-            // ----- STATUT -----
-            if (!b.statut && localBien.statut) b.statut = localBien.statut;
-            if (!b.dateVente && localBien.dateVente) b.dateVente = localBien.dateVente;
-            // ----- SALLES & DIVERS -----
-            if (!b.salleBain && localBien.salleBain) b.salleBain = localBien.salleBain;
-            if (!b.sdb && localBien.sdb) b.sdb = localBien.sdb;
-            if (!b.niveaux && localBien.niveaux) b.niveaux = localBien.niveaux;
-            // ----- HONORAIRES -----
-            if (!b.honoraires && localBien.honoraires) b.honoraires = localBien.honoraires;
-            if (!b.montantHonoraires && localBien.montantHonoraires) b.montantHonoraires = localBien.montantHonoraires;
-            if (!b.pctHonoraires && localBien.pctHonoraires) b.pctHonoraires = localBien.pctHonoraires;
-            if (!b.prixHH && localBien.prixHH) b.prixHH = localBien.prixHH;
-            if (!b.prixFAI && localBien.prixFAI) b.prixFAI = localBien.prixFAI;
-          }
-          return b;
-        });
+    var ventes = [];
+    if (vRes && vRes.ok) {
+      try {
+        var vj = await vRes.json();
+        ventes = (vj.ventes || []).map(_normalizeBien);
+      } catch(e) {}
+    }
 
-        // 🛡️ FILET DE SÉCURITÉ : préserver les biens qui sont en localStorage MAIS PAS dans Supabase
-        // (cas typique : un bien vient d'être ajouté mais sa sync Supabase a échoué).
-        // Sans cette préservation, le bien disparaîtrait au refresh ! On le garde et on
-        // tente de le pousser à nouveau vers Supabase en arrière-plan.
-        var supaIds = {};
-        biens.forEach(function(b){ supaIds[b.id] = true; });
-        var localOnly = Object.keys(localById)
-          .map(function(id){ return localById[id]; })
-          .filter(function(b){ return b && b.id != null && !supaIds[b.id]; });
-        if (localOnly.length > 0) {
-          console.warn('⚠️ ' + localOnly.length + ' bien(s) local(aux) absent(s) de Supabase — préservation + retry');
-          // On les ajoute en tête pour qu'ils restent visibles
-          biens = localOnly.concat(biens);
-          // Retry async (sans bloquer l'affichage)
-          localOnly.forEach(function(b){
-            addBienToSupabase(b).then(function(ok){
-              if (ok) console.log('✅ Bien #' + b.id + ' re-synchronisé sur Supabase');
-              else console.warn('❌ Bien #' + b.id + ' toujours pas synchronisé — voir SQL fix');
-            });
-          });
-        }
+    if (actifs.length > 0 || ventes.length > 0) {
+      // Les biens vendus (overlay) priment : on retire l'éventuel doublon actif
+      var soldIds = {};
+      ventes.forEach(function(v){ v.statut = 'vendu'; soldIds[v.id] = true; });
+      var actifsVisibles = actifs.filter(function(b){ return !soldIds[b.id]; });
+      actifsVisibles.forEach(function(b){ if (b.statut === 'vendu') b.statut = 'en_vente'; });
 
-        // Inclure dans le filtre toute ville réellement présente dans les annonces
-        // (ainsi une nouvelle commune apparaît automatiquement sans modifier le code)
-        biens.forEach(function(b){
-          var v = b && b.ville ? String(b.ville).trim() : '';
-          if (v && villes.indexOf(v) === -1) villes.push(v);
-        });
+      biens = ventes.concat(actifsVisibles);
 
-        // Protection contre Math.max sur tableau vide (-Infinity)
-        var ids = biens.map(function(b){ return parseInt(b.id) || 0; }).filter(function(n){ return n > 0; });
-        nextId = (ids.length > 0 ? Math.max.apply(null, ids) : 0) + 1;
+      // Filtre villes dynamique
+      biens.forEach(function(b){
+        var v = b && b.ville ? String(b.ville).trim() : '';
+        if (v && villes.indexOf(v) === -1) villes.push(v);
+      });
+
+      var ids = biens.map(function(b){ return parseInt(b.id) || 0; }).filter(function(n){ return n > 0; });
+      nextId = (ids.length > 0 ? Math.max.apply(null, ids) : 0) + 1;
+      try {
         localStorage.setItem('nathalie_biens', JSON.stringify(biens));
         localStorage.setItem('nathalie_nextId', String(nextId));
-        renderHomeGrid();
-        console.log('✅ ' + biens.length + ' biens chargés (' + (data.length) + ' Supabase + ' + localOnly.length + ' local)');
-      } else if (biens.length === 0) {
-        // Supabase ET localStorage vides → utiliser les biens par défaut
-        biens = JSON.parse(JSON.stringify(DEFAULT_BIENS));
-        nextId = 7;
-        renderHomeGrid();
-        // Envoyer les biens par défaut vers Supabase
-        console.log('Initialisation Supabase avec les biens par défaut...');
-        for (var i = 0; i < biens.length; i++) {
-          await addBienToSupabase(biens[i]);
-        }
-        localStorage.setItem('nathalie_biens', JSON.stringify(biens));
-        console.log('✅ Supabase initialisé');
-      }
-      // Si biens.length > 0 mais Supabase vide = localStorage a les données
-      // → on les envoie vers Supabase
-      else if (data.length === 0 && biens.length > 0) {
-        console.log('Sync localStorage → Supabase...');
-        for (var j = 0; j < biens.length; j++) {
-          await addBienToSupabase(biens[j]);
-        }
-        console.log('✅ Sync terminée');
-      }
+      } catch(e) {}
+      renderHomeGrid();
+      console.log('✅ ' + biens.length + ' biens (' + actifsVisibles.length + ' en vente + ' + ventes.length + ' vendus)');
+    } else if (biens.length === 0) {
+      biens = JSON.parse(JSON.stringify(DEFAULT_BIENS));
+      nextId = 7;
+      renderHomeGrid();
     }
   } catch(e) {
-    // Supabase indisponible - utiliser localStorage ou défauts
     if (biens.length === 0) {
       biens = JSON.parse(JSON.stringify(DEFAULT_BIENS));
       nextId = 7;
       renderHomeGrid();
     }
-    console.warn('Supabase indisponible, données locales utilisées');
+    console.warn('Chargement data/biens.json indisponible — cache local utilisé.', e);
   }
+}
+
+// Normalise un bien pour l'affichage (ville par défaut, unification DPE/GES).
+function _normalizeBien(b) {
+  b.id = parseInt(b.id);
+  if (b.description && !b.desc) b.desc = b.description;
+  if (!b.ville || !String(b.ville).trim()) b.ville = 'Le Pouliguen';
+  if (!b.dpeClasse && b.dpe) b.dpeClasse = b.dpe;
+  if (!b.dpeConso && b.dpeVal) b.dpeConso = b.dpeVal;
+  if (!b.gesClasse && b.ges) b.gesClasse = b.ges;
+  if (!b.gesConso && b.gesVal) b.gesConso = b.gesVal;
+  return b;
+}
+
+// ===== ÉCRITURE DES VENTES SUR GITHUB (statut « vendu » marqué à la main) =====
+// Pas de serveur : l'admin commit data/ventes.json via l'API GitHub avec un jeton
+// fine-grained (Contents: write) stocké uniquement dans le navigateur de l'agent.
+var GH_REPO = 'galfomorel-droid/nathalie-immobilier';
+var GH_BRANCH = 'main';
+var GH_VENTES_PATH = 'data/ventes.json';
+var _ghVentesSha = null;
+
+function _ghToken() {
+  var t = localStorage.getItem('gh_token');
+  if (!t) {
+    t = prompt('Collez votre jeton GitHub (fine-grained, autorisation « Contents : write » sur le dépôt nathalie-immobilier).\n\nIl est stocké uniquement dans ce navigateur, jamais dans le site.');
+    if (t) { t = t.trim(); if (t) localStorage.setItem('gh_token', t); }
+  }
+  return t || null;
+}
+
+async function _ghLoadVentes() {
+  var token = _ghToken();
+  if (!token) return null;
+  try {
+    var res = await fetch('https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_VENTES_PATH + '?ref=' + GH_BRANCH, {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    });
+    if (res.status === 401 || res.status === 403) { localStorage.removeItem('gh_token'); alert('Jeton GitHub invalide ou sans autorisation. Réessayez avec un jeton « Contents: write ».'); return null; }
+    if (res.status === 404) { _ghVentesSha = null; return []; }
+    if (!res.ok) { alert('Erreur GitHub (' + res.status + ').'); return null; }
+    var j = await res.json();
+    _ghVentesSha = j.sha;
+    var content = JSON.parse(decodeURIComponent(escape(atob(j.content))));
+    return content.ventes || [];
+  } catch(e) { alert('Connexion à GitHub impossible.'); return null; }
+}
+
+async function _ghSaveVentes(ventes) {
+  var token = _ghToken();
+  if (!token) return false;
+  try {
+    var json = JSON.stringify({ ventes: ventes }, null, 2);
+    var body = {
+      message: 'Ventes : mise à jour depuis l\'admin (' + ventes.length + ' vendu(s))',
+      content: btoa(unescape(encodeURIComponent(json))),
+      branch: GH_BRANCH
+    };
+    if (_ghVentesSha) body.sha = _ghVentesSha;
+    var url = 'https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_VENTES_PATH;
+    var hdrs = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
+    var res = await fetch(url, { method: 'PUT', headers: hdrs, body: JSON.stringify(body) });
+    // Conflit de sha (fichier modifié entre-temps) → on relit le sha frais et on réessaie une fois
+    if (res.status === 409) {
+      await _ghLoadVentes();
+      if (_ghVentesSha) body.sha = _ghVentesSha; else delete body.sha;
+      res = await fetch(url, { method: 'PUT', headers: hdrs, body: JSON.stringify(body) });
+    }
+    if (!res.ok) { console.error('GH save ventes:', res.status, await res.text()); return false; }
+    var j = await res.json();
+    _ghVentesSha = (j.content && j.content.sha) || null;
+    return true;
+  } catch(e) { console.error('GH save ventes exception:', e); return false; }
 }
 
 // Cookies

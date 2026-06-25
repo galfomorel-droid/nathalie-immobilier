@@ -1,0 +1,44 @@
+name: Synchronisation annonces 3G → data/biens.json
+
+# Récupère les annonces 3G et les écrit dans data/biens.json (committé).
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # toutes les 30 min
+  workflow_dispatch:           # bouton « Run workflow » pour lancer à la main
+
+permissions:
+  contents: write              # pour committer data/biens.json
+
+concurrency:
+  group: sync-biens
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Récupérer les annonces 3G
+        env:
+          THREEG_TOKEN: ${{ secrets.API_TOKEN_3GIMMO }}
+        run: node scripts/fetch-biens.mjs
+
+      - name: Commit & push si changement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/biens.json
+          if git diff --cached --quiet; then
+            echo "Aucun changement."
+          else
+            COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('data/biens.json')).count)")
+            git commit -m "Sync 3G — ${COUNT} biens ($(date -u '+%Y-%m-%d %H:%M UTC'))"
+            git push
+            echo "Mise à jour committée."
+          fi
