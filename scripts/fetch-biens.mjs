@@ -96,6 +96,15 @@ function annonceVersBien(a, ref) {
   const surface = (ref && toInt(ref.surface)) ? toInt(ref.surface) : corrigerSurface(a.surface_bien);
   const titre = (ref && ref.titre) ? ref.titre : construireTitre(typeLabel, pieces, ville);
 
+  // Badges issus de 3G :
+  // - exclusivité : détectée dans le texte de la description ("(en) exclusivité")
+  // - statut : etat_pre_archivage 2 = sous compromis, 3 = offre en cours, sinon en vente
+  //   (le « vendu » n'est PAS ici : une fois vendue, l'annonce quitte le flux 3G ; il vient de data/ventes.json)
+  const desc3g = a.description_annonce || '';
+  const exclusif = /(en\s+)?exclusivit[ée]/i.test(desc3g);
+  const etat = toInt(a.etat_pre_archivage);
+  const statut = etat === 2 ? 'sous_compromis' : (etat === 3 ? 'offre_en_cours' : 'en_vente');
+
   return {
     id: Number(a.i), titre, type: typeLabel, ville,
     prix: toInt(a.prix) || 0, surface, pieces,
@@ -104,13 +113,12 @@ function annonceVersBien(a, ref) {
     salleBain: toInt(a.nb_salle_bain) || (ref && ref.salleBain) || 0,
     terrain: toInt(a.surface_terrain) || (ref && ref.terrain) || 0,
     annee: toInt(a.annee_construction) || (ref && ref.annee) || null,
-    exclusif: ref ? !!ref.exclusif : false,
+    exclusif: exclusif,
     ref: a.num_mandat ? String(a.num_mandat) : '',
     description: a.description_annonce || (ref && ref.description) || '',
     img: photos[0] || '', photos,
     dpe: (ref && ref.dpe) ? ref.dpe : (a.dpe_note_energie || ''),
-    // Statut « actif » par défaut ; le « vendu » manuel vit dans data/ventes.json.
-    statut: 'en_vente', dateVente: null,
+    statut: statut, dateVente: null,
     prixFAI: toInt(a.prix) || 0,
   };
 }

@@ -822,12 +822,12 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
 .bien-card-img {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 4/5;
+  aspect-ratio: 3/2;
   background: var(--beige);
 }
-/* Ratio portrait 4/5 unifié partout (home + page Biens) */
+/* Ratio paysage 3/2 unifié partout (home + page Biens) */
 .biens-page-grid .bien-card-img {
-  aspect-ratio: 4/5;
+  aspect-ratio: 3/2;
 }
 .bien-card-img img {
   width: 100%; height: 100%;
@@ -5143,12 +5143,12 @@ const defaultImgs = [
 // Visuel de secours NEUTRE (aux couleurs du site) affiché si une photo manque ou
 // ne se charge pas — évite d'afficher une fausse villa à la place du vrai bien.
 var PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">' +
-  '<rect width="800" height="1000" fill="#E5DACB"/>' +
-  '<g fill="none" stroke="#7C8A6E" stroke-width="13" stroke-linejoin="round" stroke-linecap="round">' +
-  '<path d="M286 474 L400 376 L514 474"/><rect x="320" y="474" width="160" height="150"/>' +
-  '<path d="M386 624 L386 548 L432 548 L432 624"/></g>' +
-  '<text x="400" y="712" font-family="Georgia, serif" font-size="33" font-style="italic" fill="#8C8270" text-anchor="middle">Photo à venir</text>' +
+  '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">' +
+  '<rect width="1200" height="800" fill="#E5DACB"/>' +
+  '<g fill="none" stroke="#7C8A6E" stroke-width="11" stroke-linejoin="round" stroke-linecap="round">' +
+  '<path d="M540 360 L600 308 L660 360"/><rect x="556" y="360" width="88" height="84"/>' +
+  '<path d="M588 444 L588 402 L612 402 L612 444"/></g>' +
+  '<text x="600" y="520" font-family="Georgia, serif" font-size="30" font-style="italic" fill="#8C8270" text-anchor="middle">Photo à venir</text>' +
   '</svg>'
 );
 const galImgs = [
