@@ -22,6 +22,8 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_PATH = path.join(__dirname, '..', 'data', 'biens.json');
+const OUT_VENTES = path.join(__dirname, '..', 'data', 'ventes.json');
+const MAX_VENTES = 12; // nb de ventes récentes conservées dans « Nos dernières ventes »
 
 const THREEG_TOKEN = process.env.THREEG_TOKEN;
 const THREEG_URL = 'https://admin.3gimmobilier.fr/api/v1/site-perso/annonces';
@@ -148,6 +150,15 @@ function lireBiensExistants() {
   }
 }
 
+function lireVentes() {
+  try {
+    const j = JSON.parse(fs.readFileSync(OUT_VENTES, 'utf8'));
+    return Array.isArray(j.ventes) ? j.ventes : [];
+  } catch {
+    return [];
+  }
+}
+
 // ===================== PROGRAMME PRINCIPAL =====================
 
 async function main() {
@@ -164,6 +175,31 @@ async function main() {
     return r !== 0 ? r : (b.prix || 0) - (a.prix || 0);
   });
 
+  // ===== DÉTECTION AUTOMATIQUE DES VENTES (sans aucune intervention) =====
+  // Un bien qui était « sous compromis » / « offre en cours » au passage précédent
+  // et qui a DISPARU du flux 3G actif → il a été vendu : on le bascule dans
+  // « Nos dernières ventes » (data/ventes.json). Si une vente est annulée et que le
+  // bien réapparaît actif sur 3G, on le retire automatiquement des ventes.
+  const idsActifs = new Set(properties.map((p) => p.id));
+  let ventes = lireVentes().filter((v) => !idsActifs.has(Number(v.id)));
+  const dejaVendu = new Set(ventes.map((v) => Number(v.id)));
+  const maintenant = new Date().toISOString();
+  let nouvellesVentes = 0;
+  for (const [id, prev] of existants) {
+    if (idsActifs.has(id) || dejaVendu.has(id)) continue;
+    const st = prev && prev.statut;
+    if (st === 'sous_compromis' || st === 'offre_en_cours' || st === 'vendu') {
+      ventes.unshift({
+        id: Number(id), titre: prev.titre || '', type: prev.type || 'Bien',
+        ville: prev.ville || '', img: prev.img || '', prix: prev.prix || 0,
+        statut: 'vendu', dateVente: prev.dateVente || maintenant,
+      });
+      nouvellesVentes++;
+    }
+  }
+  ventes.sort((a, b) => new Date(b.dateVente || 0) - new Date(a.dateVente || 0));
+  ventes = ventes.slice(0, MAX_VENTES);
+
   const payload = {
     source: '3G IMMO API v1',
     fetched_at: new Date().toISOString(),
@@ -179,11 +215,15 @@ async function main() {
   const sansVille = properties.filter((p) => !p.ville);
   if (sansVille.length) console.warn(`   ⚠️ ${sansVille.length} bien(s) sans ville détectée : ${sansVille.map((p) => p.id).join(', ')}`);
 
+  if (nouvellesVentes) console.log(`   🏷️ ${nouvellesVentes} bien(s) passé(s) en « vendu » (disparu(s) du flux après compromis/offre).`);
+  console.log(`   📁 ${ventes.length} vente(s) dans « Nos dernières ventes ».`);
+
   if (DRY_RUN) { console.log('\n✅ Mode test terminé : aucune écriture.\n'); return; }
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, JSON.stringify(payload, null, 2));
-  console.log(`\n✅ Terminé : ${properties.length} bien(s) écrits dans data/biens.json\n`);
+  fs.writeFileSync(OUT_VENTES, JSON.stringify({ ventes }, null, 2));
+  console.log(`\n✅ Terminé : ${properties.length} bien(s) actifs + ${ventes.length} vente(s) écrits.\n`);
 }
 
 main().catch((e) => { console.error('\n❌ Échec :', e.message, '\n'); process.exit(1); });

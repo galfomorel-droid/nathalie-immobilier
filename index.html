@@ -3022,6 +3022,13 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   gap: 0.45rem;
   justify-content: flex-end;
 }
+.admin-statut-note {
+  font-size: 0.72rem;
+  color: var(--gris);
+  font-style: italic;
+  padding: 0.4rem 0.2rem;
+  white-space: nowrap;
+}
 .btn-edit, .btn-delete, .btn-statut {
   padding: 0.4rem 0.9rem;
   font-size: 0.68rem;
@@ -6691,9 +6698,7 @@ function renderAdmin() {
       </div>
       <div class="admin-bien-actions">
         <button class="btn-edit" onclick="adminEdit(${b.id})">Modifier</button>
-        <button class="btn-statut btn-compromis ${statut === 'sous_compromis' ? 'active' : ''}" onclick="adminToggleStatut(${b.id}, 'sous_compromis')" title="Passer sous compromis de vente">Compromis</button>
-        <button class="btn-statut btn-offre ${statut === 'offre_en_cours' ? 'active' : ''}" onclick="adminToggleStatut(${b.id}, 'offre_en_cours')" title="Offre d'achat en cours">Offre</button>
-        <button class="btn-statut btn-vendu" onclick="adminMarkVendu(${b.id})" title="Marquer comme vendu (déplace dans Nos dernières ventes)">Vendu</button>
+        <span class="admin-statut-note" title="Exclusivité, sous compromis, offre en cours et vendu se gèrent dans 3G Immo : le site se met à jour automatiquement (toutes les 30 min).">Statut géré via 3G ⟳</span>
         <button class="btn-delete" onclick="adminDelete(${b.id})">Supprimer</button>
       </div>
     </div>
@@ -6714,59 +6719,9 @@ function adminDelete(id) {
 
 // Basculer un statut (sous compromis / offre en cours) ET le PUBLIER sur le site
 // (overlay data/ventes.json via GitHub). Si déjà ce statut → repasse en vente.
-async function adminToggleStatut(id, nouveauStatut) {
-  var b = biens.find(function(x){ return x.id === id || parseInt(x.id) === parseInt(id); });
-  if (!b) return;
-  var libelle = nouveauStatut === 'sous_compromis' ? 'Sous compromis' : 'Offre en cours';
-  var cible = (b.statut === nouveauStatut) ? 'en_vente' : nouveauStatut;
-  var msg = (cible === 'en_vente')
-    ? 'Retirer le statut « ' + libelle + ' » et remettre ce bien en vente ?\n\nLa modification sera publiée sur le site (visible par tous).'
-    : 'Marquer ce bien « ' + libelle + ' » ?\n\nLe statut sera publié sur le site, sur la page de vos biens (visible par tous).';
-  if (!confirm(msg)) return;
-
-  var res = await _setStatutOverlay(b, cible);
-  if (!res) {
-    if (typeof showToast === 'function') showToast('⚠️ Publication impossible (jeton GitHub manquant/refusé). Rien n\'a été modifié.', 'error', 7000);
-    return;
-  }
-  b.statut = cible; b.dateVente = res.dateVente || null;
-  saveBiens();
-  renderAdmin();
-  renderHomeGrid();
-  if (typeof renderBiensGrid === 'function') renderBiensGrid();
-  renderVendusCarousel();
-  if (typeof showToast === 'function') {
-    showToast(cible === 'en_vente' ? 'Bien remis en vente ✓ (publié)' : libelle + ' ✓ (publié sur le site)', 'success', 6000);
-  }
-}
-
-// Marquer comme vendu — déplace dans la section "Nos dernières ventes"
-async function adminMarkVendu(id) {
-  var b = biens.find(function(x){ return x.id === id || parseInt(x.id) === parseInt(id); });
-  if (!b) return;
-  var estVendu = b.statut === 'vendu';
-  var msg = estVendu
-    ? 'Ce bien est marqué comme vendu. Le remettre en vente ?'
-    : 'Marquer ce bien comme VENDU ?\n\nIl quittera les annonces actives et apparaîtra dans « Nos dernières ventes » (page d\'accueil), visible par tous les visiteurs.';
-  if (!confirm(msg)) return;
-
-  // On n'applique l'état local QUE si la publication GitHub a réussi.
-  var res = await _setStatutOverlay(b, estVendu ? 'en_vente' : 'vendu');
-  if (!res) {
-    if (typeof showToast === 'function') showToast('⚠️ Publication de la vente impossible (jeton/connexion). Rien n\'a été modifié — réessaie.', 'error', 7000);
-    return;
-  }
-  b.statut = estVendu ? 'en_vente' : 'vendu';
-  b.dateVente = res.dateVente || null;
-  saveBiens();
-  renderAdmin();
-  renderHomeGrid();
-  if (typeof renderBiensGrid === 'function') renderBiensGrid();
-  renderVendusCarousel();
-  if (typeof showToast === 'function') {
-    showToast(estVendu ? 'Bien remis en vente ✓ (publié)' : 'Bien marqué vendu ✓ (publié sur le site)', 'success', 6000);
-  }
-}
+// Les statuts (exclusivité, sous compromis, offre en cours, vendu) sont gérés
+// dans 3G Immo et synchronisés automatiquement (scripts/fetch-biens.mjs +
+// detection des ventes). Plus de bouton ni de jeton côté admin.
 
 function adminEdit(id) {
   var b = biens.find(function(x){ return x.id == id || parseInt(x.id) === parseInt(id); });
