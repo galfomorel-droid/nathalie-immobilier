@@ -5140,6 +5140,17 @@ const defaultImgs = [
   'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80',
   'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&q=80',
 ];
+// Visuel de secours NEUTRE (aux couleurs du site) affiché si une photo manque ou
+// ne se charge pas — évite d'afficher une fausse villa à la place du vrai bien.
+var PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">' +
+  '<rect width="800" height="1000" fill="#E5DACB"/>' +
+  '<g fill="none" stroke="#7C8A6E" stroke-width="13" stroke-linejoin="round" stroke-linecap="round">' +
+  '<path d="M286 474 L400 376 L514 474"/><rect x="320" y="474" width="160" height="150"/>' +
+  '<path d="M386 624 L386 548 L432 548 L432 624"/></g>' +
+  '<text x="400" y="712" font-family="Georgia, serif" font-size="33" font-style="italic" fill="#8C8270" text-anchor="middle">Photo à venir</text>' +
+  '</svg>'
+);
 const galImgs = [
   'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=80',
   'https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=400&q=80',
@@ -5907,7 +5918,7 @@ function bienCardHTML(b) {
     ' - Nathalie Chaudet Morel';
   div.innerHTML =
     '<div class="bien-card-img">' +
-      '<img src="' + _esc(b.img||'') + '" alt="' + _esc(altTxt) + '" loading="lazy" decoding="async" onerror="this.src=defaultImgs[0]">' +
+      '<img src="' + _esc(b.img || PLACEHOLDER_IMG) + '" alt="' + _esc(altTxt) + '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=PLACEHOLDER_IMG">' +
       '<span class="bien-card-badge">' + _esc(b.type||'') + '</span>' +
       exclu +
       statutOverlay +
@@ -6002,7 +6013,7 @@ function renderVendusCarousel() {
     var altText = (v.type || 'Bien vendu') + ' ' + (v.ville || '');
     return '<div class="vendus-card"' + (ariaHidden ? ' aria-hidden="true"' : '') + '>' +
       '<div class="vendus-img-wrap">' +
-        '<img src="' + (v.img || '') + '" alt="' + altText.replace(/"/g,'&quot;') + '" loading="lazy">' +
+        '<img src="' + (v.img || PLACEHOLDER_IMG) + '" alt="' + altText.replace(/"/g,'&quot;') + '" loading="lazy" onerror="this.onerror=null;this.src=PLACEHOLDER_IMG">' +
         '<span class="vendus-badge">Vendu</span>' +
       '</div>' +
       '<div class="vendus-info">' +
@@ -6168,7 +6179,7 @@ function showFiche(id) {
 
   // Construction de la galerie selon le nombre de photos
   var galleryHtml = '<div class="fiche-gallery-main">' +
-      '<img src="' + photo1 + '" alt="' + altBase.replace(/"/g,'&quot;') + '" loading="eager" fetchpriority="high" decoding="async" onclick="openLightbox(0)">' +
+      '<img src="' + (photo1 || PLACEHOLDER_IMG) + '" alt="' + altBase.replace(/"/g,'&quot;') + '" loading="eager" fetchpriority="high" decoding="async" onclick="openLightbox(0)" onerror="this.onerror=null;this.src=PLACEHOLDER_IMG">' +
       photoBtnHtml +
     '</div>';
 
