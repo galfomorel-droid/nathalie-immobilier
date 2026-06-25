@@ -6712,20 +6712,32 @@ function adminDelete(id) {
   }
 }
 
-// Basculer un statut (toggle) : si déjà ce statut, repasser en vente normale
-function adminToggleStatut(id, nouveauStatut) {
+// Basculer un statut (sous compromis / offre en cours) ET le PUBLIER sur le site
+// (overlay data/ventes.json via GitHub). Si déjà ce statut → repasse en vente.
+async function adminToggleStatut(id, nouveauStatut) {
   var b = biens.find(function(x){ return x.id === id || parseInt(x.id) === parseInt(id); });
   if (!b) return;
-  if (b.statut === nouveauStatut) {
-    b.statut = 'en_vente';
-  } else {
-    b.statut = nouveauStatut;
+  var libelle = nouveauStatut === 'sous_compromis' ? 'Sous compromis' : 'Offre en cours';
+  var cible = (b.statut === nouveauStatut) ? 'en_vente' : nouveauStatut;
+  var msg = (cible === 'en_vente')
+    ? 'Retirer le statut « ' + libelle + ' » et remettre ce bien en vente ?\n\nLa modification sera publiée sur le site (visible par tous).'
+    : 'Marquer ce bien « ' + libelle + ' » ?\n\nLe statut sera publié sur le site, sur la page de vos biens (visible par tous).';
+  if (!confirm(msg)) return;
+
+  var res = await _setStatutOverlay(b, cible);
+  if (!res) {
+    if (typeof showToast === 'function') showToast('⚠️ Publication impossible (jeton GitHub manquant/refusé). Rien n\'a été modifié.', 'error', 7000);
+    return;
   }
+  b.statut = cible; b.dateVente = res.dateVente || null;
   saveBiens();
   renderAdmin();
   renderHomeGrid();
+  if (typeof renderBiensGrid === 'function') renderBiensGrid();
   renderVendusCarousel();
-  if (typeof updateBienInSupabase === 'function') updateBienInSupabase(b);
+  if (typeof showToast === 'function') {
+    showToast(cible === 'en_vente' ? 'Bien remis en vente ✓ (publié)' : libelle + ' ✓ (publié sur le site)', 'success', 6000);
+  }
 }
 
 // Marquer comme vendu — déplace dans la section "Nos dernières ventes"
@@ -6738,33 +6750,18 @@ async function adminMarkVendu(id) {
     : 'Marquer ce bien comme VENDU ?\n\nIl quittera les annonces actives et apparaîtra dans « Nos dernières ventes » (page d\'accueil), visible par tous les visiteurs.';
   if (!confirm(msg)) return;
 
-  // Charger l'overlay des ventes depuis le dépôt (nécessite le jeton GitHub)
-  var ventes = await _ghLoadVentes();
-  if (ventes === null) return; // jeton manquant/refusé : on n'écrit rien
-
-  // Construire le nouvel overlay (sans modifier l'état local pour l'instant)
-  var dateVente = new Date().toISOString();
-  ventes = ventes.filter(function(v){ return parseInt(v.id) !== parseInt(id); });
-  if (!estVendu) {
-    ventes.unshift({
-      id: parseInt(b.id), titre: b.titre || '', type: b.type || 'Bien',
-      ville: b.ville || '', img: b.img || '', prix: b.prix || 0,
-      statut: 'vendu', dateVente: dateVente
-    });
-  }
-
-  // On n'applique l'état local QUE si la publication GitHub a réussi
-  // (sinon : incohérence entre le navigateur et ce que voient les visiteurs).
-  var ok = await _ghSaveVentes(ventes);
-  if (!ok) {
+  // On n'applique l'état local QUE si la publication GitHub a réussi.
+  var res = await _setStatutOverlay(b, estVendu ? 'en_vente' : 'vendu');
+  if (!res) {
     if (typeof showToast === 'function') showToast('⚠️ Publication de la vente impossible (jeton/connexion). Rien n\'a été modifié — réessaie.', 'error', 7000);
     return;
   }
-  if (estVendu) { b.statut = 'en_vente'; b.dateVente = null; }
-  else { b.statut = 'vendu'; b.dateVente = dateVente; }
+  b.statut = estVendu ? 'en_vente' : 'vendu';
+  b.dateVente = res.dateVente || null;
   saveBiens();
   renderAdmin();
   renderHomeGrid();
+  if (typeof renderBiensGrid === 'function') renderBiensGrid();
   renderVendusCarousel();
   if (typeof showToast === 'function') {
     showToast(estVendu ? 'Bien remis en vente ✓ (publié)' : 'Bien marqué vendu ✓ (publié sur le site)', 'success', 6000);
@@ -8453,12 +8450,22 @@ async function loadBiens() {
 
     if (actifs.length > 0 || ventes.length > 0) {
       // Les biens vendus (overlay) priment : on retire l'éventuel doublon actif
-      var soldIds = {};
-      ventes.forEach(function(v){ v.statut = 'vendu'; soldIds[v.id] = true; });
-      var actifsVisibles = actifs.filter(function(b){ return !soldIds[b.id]; });
-      actifsVisibles.forEach(function(b){ if (b.statut === 'vendu') b.statut = 'en_vente'; });
+      // Overlay manuel (data/ventes.json) — PRIORITAIRE sur le statut 3G :
+      //  • 'vendu' → retiré des annonces actives, ajouté aux ventes (snapshot)
+      //  • 'sous_compromis' / 'offre_en_cours' → appliqué au bien actif (badge), reste en grille
+      var soldMap = {}, statusMap = {};
+      ventes.forEach(function(v){
+        if (v.statut === 'vendu') soldMap[v.id] = v;
+        else if (v.statut && v.statut !== 'en_vente') statusMap[v.id] = v.statut;
+      });
+      var vendus = Object.keys(soldMap).map(function(k){ var v = soldMap[k]; v.statut = 'vendu'; return v; });
+      var actifsVisibles = actifs.filter(function(b){ return !soldMap[b.id]; });
+      actifsVisibles.forEach(function(b){
+        if (statusMap[b.id]) b.statut = statusMap[b.id];        // override manuel prioritaire
+        else if (b.statut === 'vendu') b.statut = 'en_vente';   // sécurité
+      });
 
-      biens = ventes.concat(actifsVisibles);
+      biens = vendus.concat(actifsVisibles);
 
       // Filtre villes dynamique
       biens.forEach(function(b){
@@ -8473,7 +8480,7 @@ async function loadBiens() {
         localStorage.setItem('nathalie_nextId', String(nextId));
       } catch(e) {}
       renderHomeGrid();
-      console.log('✅ ' + biens.length + ' biens (' + actifsVisibles.length + ' en vente + ' + ventes.length + ' vendus)');
+      console.log('✅ ' + biens.length + ' biens (' + actifsVisibles.length + ' en vente + ' + vendus.length + ' vendus)');
     } else if (biens.length === 0) {
       biens = JSON.parse(JSON.stringify(DEFAULT_BIENS));
       nextId = 7;
@@ -8560,6 +8567,25 @@ async function _ghSaveVentes(ventes) {
     _ghVentesSha = (j.content && j.content.sha) || null;
     return true;
   } catch(e) { console.error('GH save ventes exception:', e); return false; }
+}
+
+// Écrit le statut MANUEL d'un bien dans l'overlay data/ventes.json (commit GitHub).
+// newStatut : 'vendu' | 'sous_compromis' | 'offre_en_cours' | 'en_vente' (= retire l'entrée).
+// Retourne {dateVente} si publié, ou null si jeton refusé / échec (rien n'est modifié).
+async function _setStatutOverlay(b, newStatut) {
+  var ventes = await _ghLoadVentes();
+  if (ventes === null) return null;
+  ventes = ventes.filter(function(v){ return parseInt(v.id) !== parseInt(b.id); });
+  var dateVente = (newStatut === 'vendu') ? new Date().toISOString() : null;
+  if (newStatut && newStatut !== 'en_vente') {
+    ventes.unshift({
+      id: parseInt(b.id), titre: b.titre || '', type: b.type || 'Bien',
+      ville: b.ville || '', img: b.img || '', prix: b.prix || 0,
+      statut: newStatut, dateVente: dateVente
+    });
+  }
+  var ok = await _ghSaveVentes(ventes);
+  return ok ? { dateVente: dateVente } : null;
 }
 
 // Cookies
