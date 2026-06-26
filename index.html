@@ -5182,22 +5182,7 @@ button:focus-visible,
   } catch(e) {}
 })();
 
-function saveBiens() {
-  // 1. Sauvegarde locale SYNCHRONE - toujours en premier
-  try {
-    var data = JSON.stringify(biens);
-    localStorage.setItem('nathalie_biens', data);
-    localStorage.setItem('nathalie_nextId', String(nextId));
-    console.log('✅ Sauvegarde OK: ' + biens.length + ' biens dans localStorage');
-    // Vérification immédiate
-    var check = localStorage.getItem('nathalie_biens');
-    if (!check) console.error('❌ ERREUR: localStorage vide après sauvegarde!');
-  } catch(e) {
-    console.error('❌ Erreur localStorage:', e.message);
-    alert('Erreur de sauvegarde: ' + e.message);
-  }
-
-}
+// (saveBiens() défini plus bas, version unique avec gestion du quota — doublon mort retiré le 26/06)
 
 
 // ===== DONNÉES BIENS =====
@@ -7643,21 +7628,8 @@ function observeFadeIns() {
 }
 
 // ===== INIT =====
-async function loadBiens() {
-  try {
-    var saved = localStorage.getItem('nathalie_biens');
-    if (saved) {
-      var parsed = JSON.parse(saved);
-      if (parsed && parsed.length > 0) {
-        biens = parsed.map(function(b) { b.id = parseInt(b.id); return b; });
-        nextId = parseInt(localStorage.getItem('nathalie_nextId') || String(biens.length + 1));
-        console.log('✅ ' + biens.length + ' biens chargés');
-      }
-    }
-  } catch(e) {
-    console.warn('Erreur chargement:', e.message);
-  }
-}
+// (loadBiens() — version unique « modèle Saben » définie plus bas : cache local immédiat
+//  puis fetch data/biens.json + overlay data/ventes.json. Ancien doublon mort retiré le 26/06.)
 
 // On initialise dès que le DOM est prêt (pas besoin d'attendre toutes les images)
 document.addEventListener('DOMContentLoaded', () => {
@@ -8486,6 +8458,18 @@ async function loadBiens() {
         localStorage.setItem('nathalie_nextId', String(nextId));
       } catch(e) {}
       renderHomeGrid();
+      // Rafraîchir TOUTES les vues avec les données fraîches (pas seulement l'accueil),
+      // sinon une liste « Biens » ou une fiche déjà affichée garderait l'ancien statut du cache.
+      if (typeof renderBiensGrid === 'function') renderBiensGrid();
+      if (typeof renderVendusCarousel === 'function') renderVendusCarousel();
+      try {
+        var _pageActive = document.querySelector('.page.active');
+        if (_pageActive && _pageActive.id === 'page-fiche' && window._bienAffiche) {
+          var _frais = biens.find(function(x){ return parseInt(x.id) === parseInt(window._bienAffiche.id); });
+          if (_frais) showFiche(_frais.id);
+        }
+        if (typeof renderAdmin === 'function' && _pageActive && _pageActive.id === 'page-admin') renderAdmin();
+      } catch(e) {}
       console.log('✅ ' + biens.length + ' biens (' + actifsVisibles.length + ' en vente + ' + vendus.length + ' vendus)');
     } else if (biens.length === 0) {
       biens = JSON.parse(JSON.stringify(DEFAULT_BIENS));
