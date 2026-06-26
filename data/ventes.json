@@ -1,6 +1,17 @@
 {
   "ventes": [
     {
+      "id": 2000013317,
+      "statut": "en_vente",
+      "exclusif": false,
+      "alaune": true,
+      "titre": "Maison 5 pièces à La Baule",
+      "type": "Maison",
+      "ville": "La Baule-Escoublac",
+      "img": "https://admin.3gimmobilier.fr/get_file_id/1051951/1782464636",
+      "prix": 780000
+    },
+    {
       "id": 2000016743,
       "statut": "offre_en_cours",
       "exclusif": false,
