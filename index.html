@@ -6077,6 +6077,27 @@ function renderHomeGrid() {
   featured.forEach(function(b) { grid.appendChild(bienCardHTML(b)); });
   observeFadeIns();
   renderVendusCarousel();
+  renderReseauxThumbs();
+}
+
+// Remplit les 3 vignettes « feed » de chaque carte réseau avec de VRAIES photos
+// des annonces du site (chaque carte reçoit des photos différentes). Si aucune
+// photo n'est dispo, on garde les visuels par défaut du HTML.
+function renderReseauxThumbs() {
+  var cards = document.querySelectorAll('#reseaux .reseau-card');
+  if (!cards.length || typeof biens === 'undefined') return;
+  var photos = biens
+    .filter(function(b){ return b.statut !== 'vendu'; })
+    .map(function(b){ return b.img; })
+    .filter(function(u){ return u && /^https?:/.test(u) && !/unsplash/.test(u); });
+  if (photos.length < 3) return; // pas assez de vraies photos → on laisse les visuels par défaut
+  var k = 0;
+  cards.forEach(function(card){
+    card.querySelectorAll('.reseau-feed span').forEach(function(sp){
+      sp.style.backgroundImage = "url('" + photos[k % photos.length] + "')";
+      k++;
+    });
+  });
 }
 
 function renderBiensGrid() {
