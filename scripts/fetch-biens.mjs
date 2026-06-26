@@ -98,9 +98,9 @@ function annonceVersBien(a, ref) {
   const surface = (ref && toInt(ref.surface)) ? toInt(ref.surface) : corrigerSurface(a.surface_bien);
   const titre = (ref && ref.titre) ? ref.titre : construireTitre(typeLabel, pieces, ville);
 
-  // Badges issus de 3G :
-  // - exclusivité : détectée dans le texte de la description ("(en) exclusivité")
-  // - statut : etat_pre_archivage 2 = sous compromis, 3 = offre en cours, sinon en vente
+  // Badges issus des champs 3G structurés :
+  // - exclusivité : type_mandat = 3 (mandat exclusif)
+  // - statut : etat = 2 (sous compromis) / 3 (offre en cours) / sinon en vente
   //   (le « vendu » n'est PAS ici : une fois vendue, l'annonce quitte le flux 3G ; il vient de data/ventes.json)
   const desc3g = a.description_annonce || '';
   // Exclusivité : mandat exclusif 3G (type_mandat = 3) OU mention dans la description (filet).
