@@ -1,17 +1,6 @@
 {
   "ventes": [
     {
-      "id": 2000013185,
-      "statut": "en_vente",
-      "exclusif": false,
-      "alaune": true,
-      "titre": "Maison 6 pièces",
-      "type": "Maison",
-      "ville": "Le Pouliguen",
-      "img": "https://admin.3gimmobilier.fr/get_file_id/1177364/1782470372",
-      "prix": 595125
-    },
-    {
       "id": 2000016743,
       "statut": "offre_en_cours",
       "exclusif": false,
