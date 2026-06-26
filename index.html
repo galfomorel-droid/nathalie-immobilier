@@ -8505,6 +8505,16 @@ async function loadBiens() {
         ventes = (vj.ventes || []).map(_normalizeBien);
       } catch(e) {}
     }
+    // Si l'admin vient de publier, GitHub Pages peut encore servir l'ancien ventes.json
+    // (~1 min de délai). On fait alors foi de l'overlay publié, gardé en local 5 min.
+    try {
+      var _pend = JSON.parse(localStorage.getItem('nathalie_overlay_pending') || 'null');
+      if (_pend && _pend.ts && Array.isArray(_pend.ventes) && (Date.now() - _pend.ts) < 300000) {
+        ventes = _pend.ventes.map(_normalizeBien);
+      } else if (_pend) {
+        localStorage.removeItem('nathalie_overlay_pending');
+      }
+    } catch(e) {}
 
     if (actifs.length > 0 || ventes.length > 0) {
       // Les biens vendus (overlay) priment : on retire l'éventuel doublon actif
@@ -8636,6 +8646,10 @@ async function _adminMajBadge(id, changes) {
 
   var ok = await _publierStatuts(overlay);
   if (!ok) return;
+  // GitHub Pages peut mettre ~1 min à servir le ventes.json fraîchement committé par le
+  // worker. On garde l'overlay publié en local et PRIORITAIRE pendant 5 min, pour qu'un
+  // rafraîchissement immédiat ne réaffiche pas l'ancienne version (ni n'écrase le cache).
+  try { localStorage.setItem('nathalie_overlay_pending', JSON.stringify({ ts: Date.now(), ventes: overlay })); } catch(e) {}
   if (changes.statut !== undefined) { b.statut = changes.statut; b.dateVente = e.dateVente || null; }
   if (changes.exclusif !== undefined) b.exclusif = !!changes.exclusif;
   if (changes.alaune !== undefined) b.alaune = !!changes.alaune;
