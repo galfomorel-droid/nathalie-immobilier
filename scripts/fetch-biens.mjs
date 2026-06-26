@@ -223,6 +223,25 @@ async function main() {
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, JSON.stringify(payload, null, 2));
   fs.writeFileSync(OUT_VENTES, JSON.stringify({ ventes }, null, 2));
+
+  // ===== SONDE TEMPORAIRE (diagnostic statuts/exclusivité) — À RETIRER après =====
+  // Révèle les champs 3G réels (noms + valeurs des champs liés au statut/exclusivité),
+  // sans données sensibles, pour mapper correctement exclusivité et sous compromis.
+  try {
+    const champsUnion = [...new Set(annonces.flatMap((a) => Object.keys(a)))].sort();
+    const champsStatut = champsUnion.filter((k) => /exclu|mandat|statut|etat|compromis|offre|vendu|archiv|dispo|negoc|reserv/i.test(k));
+    const echantillon = annonces.slice(0, 10).map((a) => {
+      const o = { i: a.i, type: a.type, ville: a.ville || a.commune || null, desc40: String(a.description_annonce || '').replace(/\s+/g, ' ').slice(0, 40) };
+      for (const k of champsStatut) o[k] = a[k];
+      return o;
+    });
+    fs.writeFileSync(
+      path.join(__dirname, '..', 'data', '_3g-debug.json'),
+      JSON.stringify({ generatedAt: new Date().toISOString(), totalChamps: champsUnion.length, champsUnion, champsStatut, echantillon }, null, 2),
+    );
+    console.log(`   🔎 SONDE : ${champsStatut.length} champ(s) statut/exclusivité → data/_3g-debug.json`);
+  } catch (e) { console.warn('   ⚠️ sonde debug échouée :', e.message); }
+
   console.log(`\n✅ Terminé : ${properties.length} bien(s) actifs + ${ventes.length} vente(s) écrits.\n`);
 }
 
