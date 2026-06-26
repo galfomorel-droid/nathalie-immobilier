@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-06-26T09:03:56.627Z",
+  "total": 22,
+  "parStatut": {
+    "sous_compromis": 3,
+    "en_vente": 19
+  },
+  "exclusifs": 2,
+  "ventes": 0,
+  "nouvellesVentes": 0,
+  "sansVille": 0,
+  "sansPhoto": 0,
+  "prixZero": 0,
+  "alertesSchema": []
+}
