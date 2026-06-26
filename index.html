@@ -3088,6 +3088,9 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 
 .btn-vendu { background: #E6F4EA; color: #1B7A3E; border: 1px solid #A8D5B8; }
 .btn-vendu:hover { background: #C9E8D4; }
+.btn-une { background: #EEF1E9; color: #5C6A4E; border: 1px solid #C7D0BA; }
+.btn-une:hover { background: #E3E9D9; }
+.btn-une.active { background: #7C8A6E; color: #fff; border-color: #7C8A6E; }
 
 /* Badges statut dans le titre admin */
 .admin-statut-badge {
@@ -6013,7 +6016,9 @@ function renderHomeGrid() {
   // On exclut les biens vendus de la page d'accueil (ils apparaissent dans "Nos dernières ventes")
   const actifs = biens.filter(function(b){ return b.statut !== 'vendu'; })
     .sort(function(a, b){ return (parseInt(b.id) || 0) - (parseInt(a.id) || 0); }); // plus récents d'abord (ordre d'ajout)
-  const featured = actifs.slice(0, 3); // les 3 nouveautés à la une
+  // Sélection « à la une » choisie depuis l'admin ; repli sur les 3 plus récents si aucune.
+  const choisis = actifs.filter(function(b){ return b.alaune; });
+  const featured = choisis.length ? choisis : actifs.slice(0, 3);
   grid.innerHTML = '';
   featured.forEach(function(b) { grid.appendChild(bienCardHTML(b)); });
   observeFadeIns();
@@ -6732,6 +6737,7 @@ function renderAdmin() {
       </div>
       <div class="admin-bien-actions">
         <button class="btn-edit" onclick="adminEdit(${b.id})">Modifier</button>
+        <button class="btn-statut btn-une ${b.alaune ? 'active' : ''}" onclick="adminSetUne(${b.id})" title="Afficher / retirer des « Biens à la une » (page d'accueil)">★ À la une</button>
         <button class="btn-statut btn-exclu ${b.exclusif ? 'active' : ''}" onclick="adminSetExclusif(${b.id})" title="Marquer / retirer l'exclusivité">Exclusivité</button>
         <button class="btn-statut btn-compromis ${statut === 'sous_compromis' ? 'active' : ''}" onclick="adminSetStatut(${b.id}, 'sous_compromis')" title="Sous compromis de vente">Compromis</button>
         <button class="btn-statut btn-offre ${statut === 'offre_en_cours' ? 'active' : ''}" onclick="adminSetStatut(${b.id}, 'offre_en_cours')" title="Offre en cours">Offre</button>
@@ -8460,6 +8466,7 @@ async function loadBiens() {
         if (ov) {
           if (ov.statut) b.statut = ov.statut;
           if (ov.exclusif !== undefined) b.exclusif = !!ov.exclusif;
+          if (ov.alaune !== undefined) b.alaune = !!ov.alaune;
         }
         if (b.statut === 'vendu') b.statut = 'en_vente';  // sécurité (le vendu vient de soldMap)
       });
@@ -8549,15 +8556,17 @@ async function _adminMajBadge(id, changes) {
   var e = (i >= 0) ? overlay[i] : { id: parseInt(id), statut: 'en_vente', exclusif: !!b.exclusif };
   if (changes.statut !== undefined) { e.statut = changes.statut; e.dateVente = (changes.statut === 'vendu') ? new Date().toISOString() : null; }
   if (changes.exclusif !== undefined) e.exclusif = !!changes.exclusif;
+  if (changes.alaune !== undefined) e.alaune = !!changes.alaune;
   e.titre = b.titre || ''; e.type = b.type || 'Bien'; e.ville = b.ville || ''; e.img = b.img || ''; e.prix = b.prix || 0;
   if (i >= 0) overlay[i] = e; else overlay.unshift(e);
-  // On retire l'entrée si plus aucun badge (en vente + non exclusif) → fichier propre.
-  overlay = overlay.filter(function(v){ return v.statut !== 'en_vente' || v.exclusif; });
+  // On retire l'entrée si plus aucun marqueur (en vente, non exclusif, pas à la une) → fichier propre.
+  overlay = overlay.filter(function(v){ return v.statut !== 'en_vente' || v.exclusif || v.alaune; });
 
   var ok = await _publierStatuts(overlay);
   if (!ok) return;
   if (changes.statut !== undefined) { b.statut = changes.statut; b.dateVente = e.dateVente || null; }
   if (changes.exclusif !== undefined) b.exclusif = !!changes.exclusif;
+  if (changes.alaune !== undefined) b.alaune = !!changes.alaune;
   saveBiens();
   renderAdmin();
   renderHomeGrid();
@@ -8577,6 +8586,9 @@ async function adminSetStatut(id, statut) {
 }
 async function adminSetExclusif(id) {
   await _adminMajBadge(id, { exclusif: !(biens.find(function(x){ return parseInt(x.id) === parseInt(id); }) || {}).exclusif });
+}
+async function adminSetUne(id) {
+  await _adminMajBadge(id, { alaune: !(biens.find(function(x){ return parseInt(x.id) === parseInt(id); }) || {}).alaune });
 }
 
 // Cookies
