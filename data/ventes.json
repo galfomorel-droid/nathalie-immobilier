@@ -1,15 +1,15 @@
 {
   "ventes": [
     {
-      "id": 2000013317,
+      "id": 2000015890,
       "statut": "en_vente",
       "exclusif": false,
       "alaune": true,
-      "titre": "Maison 5 pièces à La Baule",
+      "titre": "Maison 3 pièces à Batz-sur-Mer",
       "type": "Maison",
-      "ville": "La Baule-Escoublac",
-      "img": "https://admin.3gimmobilier.fr/get_file_id/1051951/1782470372",
-      "prix": 780000
+      "ville": "Batz-sur-Mer",
+      "img": "https://admin.3gimmobilier.fr/get_file_id/1094913/1782470372",
+      "prix": 412965
     },
     {
       "id": 2000016743,
