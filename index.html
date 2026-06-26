@@ -7742,6 +7742,49 @@ document.addEventListener('DOMContentLoaded', () => {
   }).catch(function(){});
 });
 
+// ===== MISE À JOUR AUTOMATIQUE (sans recharger la page) =====
+// Un visiteur qui garde la page ouverte (ou revient sur l'onglet) doit voir les
+// changements faits depuis l'admin (vendu, sous compromis, à la une…) SANS avoir à
+// rafraîchir — sinon il pourrait appeler pour un bien déjà vendu. On revérifie les
+// données régulièrement et on ne ré-affiche QUE si quelque chose de visible a changé.
+var _lastDataSig = null;
+function _signatureDonnees(tb, tv) {
+  try {
+    var bj = JSON.parse(tb);
+    var props = Array.isArray(bj) ? bj : (bj.properties || []);
+    var vj = tv ? JSON.parse(tv) : { ventes: [] };
+    return JSON.stringify({
+      b: props.map(function(p){ return [p.id, p.statut, p.exclusif, p.prix, p.titre, p.img]; }),
+      v: (vj.ventes || []).map(function(x){ return [x.id, x.statut, x.exclusif, x.alaune]; })
+    });
+  } catch(e) { return null; }
+}
+async function autoRefreshData() {
+  if (document.hidden) return;
+  try {
+    var rb = await fetch('data/biens.json?t=' + Date.now(), { cache: 'no-cache' });
+    var rv = await fetch('data/ventes.json?t=' + Date.now(), { cache: 'no-cache' }).catch(function(){ return null; });
+    var tb = (rb && rb.ok) ? await rb.text() : '';
+    var tv = (rv && rv.ok) ? await rv.text() : '';
+    if (!tb) return; // fetch raté → on ne touche à rien (on garde l'affichage actuel)
+    var sig = _signatureDonnees(tb, tv);
+    if (sig === null) return;
+    if (_lastDataSig === null) { _lastDataSig = sig; return; } // 1er passage : on mémorise
+    if (sig !== _lastDataSig) {
+      _lastDataSig = sig;
+      loadBiens(); // changement détecté → re-fetch + fusion + ré-affichage de toutes les vues
+    }
+  } catch(e) {}
+}
+setInterval(autoRefreshData, 180000); // toutes les 3 min
+var _lastVisRefresh = 0;
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'visible' && (Date.now() - _lastVisRefresh) > 60000) {
+    _lastVisRefresh = Date.now();
+    autoRefreshData();
+  }
+});
+
 // Gérer les boutons back/forward du navigateur
 window.addEventListener('popstate', function(){ _routeFromHash(); });
 window.addEventListener('hashchange', function(){ _routeFromHash(); });
