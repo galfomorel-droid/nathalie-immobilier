@@ -1,9 +1,3 @@
 {
-  "ventes": [
-    {
-      "id": "2000013185",
-      "statut": "sous_compromis",
-      "exclusif": false
-    }
-  ]
+  "ventes": []
 }
