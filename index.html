@@ -625,64 +625,106 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
 }
+/* ===== Cartes RÉSEAUX en « aperçu de profil » ===== */
 .reseau-card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 2.6rem 1.5rem 2.2rem;
+  padding: 0 0 1.8rem;
   background: var(--white);
   border: 1px solid var(--beige);
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
-}
-.reseau-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 4px;
-  background: var(--brand);
 }
 .reseau-card:hover {
   transform: translateY(-6px);
   box-shadow: var(--shadow);
   border-color: transparent;
 }
-.reseau-icon {
-  width: 64px; height: 64px;
+/* Bandeau de couverture aux couleurs du réseau */
+.reseau-cover {
+  width: 100%; height: 70px;
+  background: var(--brand);
+}
+/* Avatar (initiales) chevauchant la couverture + badge réseau */
+.reseau-avatar {
+  position: relative;
+  width: 78px; height: 78px;
+  margin: -39px 0 0;
   border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
+  border: 4px solid var(--white);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+.reseau-avatar-inner {
+  position: absolute; inset: 0;
+  border-radius: 50%;
   background: var(--brand);
   color: #fff;
-  margin-bottom: 1.3rem;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.35rem; letter-spacing: 0.02em;
   transition: transform var(--transition);
 }
-.reseau-card:hover .reseau-icon { transform: scale(1.08); }
-.reseau-icon svg { width: 30px; height: 30px; fill: currentColor; }
+.reseau-card:hover .reseau-avatar-inner { transform: scale(1.05); }
+.reseau-badge {
+  position: absolute; right: -3px; bottom: -3px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--brand);
+  border: 2px solid var(--white);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+}
+.reseau-badge svg { width: 15px; height: 15px; fill: currentColor; }
 .reseau-name {
   font-family: var(--serif);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-style: italic;
   color: var(--noir);
   line-height: 1.1;
+  margin-top: 0.7rem;
+  padding: 0 1rem;
 }
 .reseau-handle {
   font-size: 0.8rem;
   color: var(--or);
   letter-spacing: 0.03em;
-  margin: 0.2rem 0 0.9rem;
+  margin: 0.2rem 0 0.7rem;
 }
 .reseau-desc {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--gris);
-  line-height: 1.6;
-  margin-bottom: 1.6rem;
+  line-height: 1.55;
+  margin: 0 0 1.1rem;
+  padding: 0 1.3rem;
   flex-grow: 1;
 }
+/* Aperçu du « feed » : 3 vignettes */
+.reseau-feed {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  width: 100%;
+  padding: 0 1.1rem;
+  margin-bottom: 1.3rem;
+}
+.reseau-feed span {
+  aspect-ratio: 1 / 1;
+  border-radius: 7px;
+  background-color: color-mix(in srgb, var(--brand) 12%, #fff);
+  background-size: cover;
+  background-position: center;
+  transition: transform var(--transition);
+}
+.reseau-card:hover .reseau-feed span { transform: scale(1.03); }
 .reseau-btn {
   display: inline-block;
-  padding: 0.6rem 1.7rem;
+  padding: 0.55rem 1.9rem;
   border-radius: 40px;
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -691,16 +733,19 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
   background: var(--brand);
   transition: opacity var(--transition);
 }
-.reseau-card:hover .reseau-btn { opacity: 0.88; }
+.reseau-card:hover .reseau-btn { opacity: 0.9; }
 /* Couleurs de marque */
 .reseau-facebook  { --brand: #1877F2; }
 .reseau-instagram { --brand: #E1306C; }
-.reseau-tiktok    { --brand: #010101; }
+.reseau-tiktok    { --brand: #111111; }
 .reseau-linkedin  { --brand: #0A66C2; }
-.reseau-instagram .reseau-icon { background: linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5); }
-.reseau-instagram .reseau-btn  { background: linear-gradient(45deg,#fa7e1e,#d62976,#4f5bd5); }
-.reseau-instagram::before      { background: linear-gradient(90deg,#feda75,#d62976,#4f5bd5); }
-.reseau-tiktok::before         { background: linear-gradient(90deg,#25F4EE,#FE2C55); }
+/* Instagram : dégradé de marque sur la couverture, l'avatar, le badge et le bouton */
+.reseau-instagram .reseau-cover,
+.reseau-instagram .reseau-avatar-inner,
+.reseau-instagram .reseau-badge { background: linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5); }
+.reseau-instagram .reseau-btn   { background: linear-gradient(45deg,#fa7e1e,#d62976,#4f5bd5); }
+/* TikTok : accent cyan/magenta sur la couverture */
+.reseau-tiktok .reseau-cover    { background: linear-gradient(120deg,#25F4EE 0%,#111 45%,#111 55%,#FE2C55 100%); }
 @media (max-width: 900px) { .reseaux-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .reseaux-grid { grid-template-columns: 1fr; } }
 @media (max-width: 360px) {
@@ -3714,32 +3759,56 @@ button:focus-visible,
       </div>
       <div class="reseaux-grid">
         <a class="reseau-card reseau-facebook" href="https://www.facebook.com/share/191WVzgRB5/" target="_blank" rel="noopener noreferrer" aria-label="Suivre Nathalie Chaudet Morel sur Facebook">
-          <div class="reseau-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></div>
+          <div class="reseau-cover"></div>
+          <div class="reseau-avatar"><span class="reseau-avatar-inner">NCM</span><span class="reseau-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span></div>
           <div class="reseau-name">Facebook</div>
           <div class="reseau-handle">Nathalie Chaudet Morel</div>
           <div class="reseau-desc">Actualités, nouveaux biens et événements locaux.</div>
+          <div class="reseau-feed">
+            <span style="background-image:url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+            <span style="background-image:url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+            <span style="background-image:url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+          </div>
           <span class="reseau-btn">Suivre</span>
         </a>
         <a class="reseau-card reseau-instagram" href="https://www.instagram.com/nathaliechaudetmorel/" target="_blank" rel="noopener noreferrer" aria-label="Suivre Nathalie Chaudet Morel sur Instagram">
-          <div class="reseau-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg></div>
+          <div class="reseau-cover"></div>
+          <div class="reseau-avatar"><span class="reseau-avatar-inner">NCM</span><span class="reseau-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg></span></div>
           <div class="reseau-name">Instagram</div>
           <div class="reseau-handle">@nathaliechaudetmorel</div>
           <div class="reseau-desc">Photos, visites en images et biens d'exception.</div>
+          <div class="reseau-feed">
+            <span style="background-image:url('https://images.unsplash.com/photo-1571055107559-3e67626fa8be?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+            <span style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+            <span style="background-image:url('https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+          </div>
           <span class="reseau-btn">Suivre</span>
         </a>
         <a class="reseau-card reseau-tiktok" href="https://www.tiktok.com/@nathalieimmolepouliguen" target="_blank" rel="noopener noreferrer" aria-label="Suivre Nathalie Chaudet Morel sur TikTok">
-          <div class="reseau-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></div>
+          <div class="reseau-cover"></div>
+          <div class="reseau-avatar"><span class="reseau-avatar-inner">NCM</span><span class="reseau-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></span></div>
           <div class="reseau-name">TikTok</div>
           <div class="reseau-handle">@nathalieimmolepouliguen</div>
           <div class="reseau-desc">Visites et coulisses du métier en vidéo.</div>
+          <div class="reseau-feed">
+            <span style="background-image:url('https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+            <span style="background-image:url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+            <span style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+          </div>
           <span class="reseau-btn">Suivre</span>
         </a>
-        <a class="reseau-card reseau-linkedin" href="https://www.linkedin.com/in/nathalie-chaudet/" target="_blank" rel="noopener noreferrer" aria-label="Voir le profil LinkedIn de Nathalie Chaudet">
-          <div class="reseau-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg></div>
+        <a class="reseau-card reseau-linkedin" href="https://www.linkedin.com/in/nathalie-chaudet/" target="_blank" rel="noopener noreferrer" aria-label="Suivre Nathalie Chaudet Morel sur LinkedIn">
+          <div class="reseau-cover"></div>
+          <div class="reseau-avatar"><span class="reseau-avatar-inner">NCM</span><span class="reseau-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg></span></div>
           <div class="reseau-name">LinkedIn</div>
           <div class="reseau-handle">Nathalie Chaudet</div>
           <div class="reseau-desc">Mon parcours et mon réseau professionnel.</div>
-          <span class="reseau-btn">Se connecter</span>
+          <div class="reseau-feed">
+            <span style="background-image:url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+            <span style="background-image:url('https://images.unsplash.com/photo-1571055107559-3e67626fa8be?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+            <span style="background-image:url('https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=240&amp;q=70&amp;auto=format&amp;fit=crop')"></span>
+          </div>
+          <span class="reseau-btn">Suivre</span>
         </a>
       </div>
     </div>
