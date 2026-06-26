@@ -1,15 +1,3 @@
 {
-  "ventes": [
-    {
-      "id": 2000016743,
-      "statut": "offre_en_cours",
-      "exclusif": false,
-      "dateVente": null,
-      "titre": "Maison 5 pièces à La Turballe",
-      "type": "Maison",
-      "ville": "La Turballe",
-      "img": "https://admin.3gimmobilier.fr/get_file_id/1109018/1782464636",
-      "prix": 260000
-    }
-  ]
+  "ventes": []
 }
