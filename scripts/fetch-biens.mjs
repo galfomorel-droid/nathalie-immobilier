@@ -225,6 +225,22 @@ async function main() {
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, JSON.stringify(payload, null, 2));
   fs.writeFileSync(OUT_VENTES, JSON.stringify({ ventes }, null, 2));
+
+  // ===== SONDE 2 (corrélation statut) — À RETIRER après =====
+  try {
+    const champs = ['etat', 'type_mandat', 'transaction', 'procedure_alerte', 'sous_type', 'c', 'e', 'u', 'r_p', 'cle', 'num_mandat'];
+    const tous = annonces.map((a) => {
+      const o = { i: a.i, ville: a.adresse_bien_ville || null };
+      for (const k of champs) o[k] = a[k];
+      return o;
+    });
+    fs.writeFileSync(
+      path.join(__dirname, '..', 'data', '_3g-debug2.json'),
+      JSON.stringify({ generatedAt: new Date().toISOString(), tous }, null, 2),
+    );
+    console.log(`   🔎 SONDE2 : ${tous.length} biens → data/_3g-debug2.json`);
+  } catch (e) { console.warn('   ⚠️ sonde2 échouée :', e.message); }
+
   console.log(`\n✅ Terminé : ${properties.length} bien(s) actifs + ${ventes.length} vente(s) écrits.\n`);
 }
 
