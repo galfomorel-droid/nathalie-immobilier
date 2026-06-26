@@ -1,17 +1,6 @@
 {
   "ventes": [
     {
-      "id": 2000015637,
-      "statut": "en_vente",
-      "exclusif": false,
-      "alaune": true,
-      "titre": "Maison 7 pièces à Guérande",
-      "type": "Maison",
-      "ville": "Guérande",
-      "img": "https://admin.3gimmobilier.fr/get_file_id/1090173/1782470372",
-      "prix": 786600
-    },
-    {
       "id": 2000013185,
       "statut": "en_vente",
       "exclusif": false,
