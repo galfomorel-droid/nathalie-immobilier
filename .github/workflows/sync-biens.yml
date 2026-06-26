@@ -39,6 +39,9 @@ jobs:
           else
             COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('data/biens.json')).count)")
             git commit -m "Sync 3G — ${COUNT} biens ($(date -u '+%Y-%m-%d %H:%M UTC'))"
+            # Rebase au cas où le worker (admin) aurait committé ventes.json entre-temps,
+            # pour éviter un échec de push non-fast-forward.
+            git pull --rebase --autostash origin main
             git push
             echo "Mise à jour committée."
           fi

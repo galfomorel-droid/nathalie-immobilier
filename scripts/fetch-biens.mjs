@@ -286,9 +286,12 @@ async function main() {
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, JSON.stringify(payload, null, 2));
-  fs.writeFileSync(OUT_VENTES, JSON.stringify({ ventes }, null, 2));
+  // ⛔ NE PLUS écrire data/ventes.json ici : c'est l'OVERLAY géré 100 % depuis l'admin
+  //    (statut, exclusivité, à la une, vendu), publié par le worker serverless. Si la synchro
+  //    le réécrivait, elle effacerait les choix de la cliente à chaque passage (toutes les 30 min).
+  //    L'admin est désormais le SEUL auteur de ce fichier. (Détection auto des ventes désactivée.)
   fs.writeFileSync(path.join(__dirname, '..', 'data', '_audit.json'), JSON.stringify(audit, null, 2));
-  console.log(`\n✅ Terminé : ${properties.length} bien(s) actifs + ${ventes.length} vente(s) écrits.\n`);
+  console.log(`\n✅ Terminé : ${properties.length} bien(s) actifs écrits (ventes.json laissé intact, géré depuis l'admin).\n`);
 }
 
 main().catch((e) => { console.error('\n❌ Échec :', e.message, '\n'); process.exit(1); });
