@@ -3045,6 +3045,9 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 .btn-edit:hover { background: var(--beige-dark); }
 
 /* Boutons de statut */
+.btn-exclu { background: #F6EFDD; color: #8F6E1E; border: 1px solid #E2CF9B; }
+.btn-exclu:hover { background: #EFE3C5; }
+.btn-exclu.active { background: #C9A24B; color: #fff; border-color: #C9A24B; }
 .btn-compromis { background: #FFF4E0; color: #B8731E; border: 1px solid #F3CE8A; }
 .btn-compromis:hover { background: #F8DFB3; }
 .btn-compromis.active { background: #B8731E; color: #fff; border-color: #B8731E; }
@@ -6651,6 +6654,7 @@ async function checkAdmin() {
 
   if (ok) {
     _adminAttempts = 0;
+    _adminPwd = pwd;  // gardé en mémoire (session) pour publier les statuts via le proxy
     if (window.PasswordCredential && navigator.credentials && navigator.credentials.store) {
       try {
         const cred = new PasswordCredential({
@@ -6698,7 +6702,10 @@ function renderAdmin() {
       </div>
       <div class="admin-bien-actions">
         <button class="btn-edit" onclick="adminEdit(${b.id})">Modifier</button>
-        <span class="admin-statut-note" title="Exclusivité, sous compromis, offre en cours et vendu se gèrent dans 3G Immo : le site se met à jour automatiquement (toutes les 30 min).">Statut géré via 3G ⟳</span>
+        <button class="btn-statut btn-exclu ${b.exclusif ? 'active' : ''}" onclick="adminSetExclusif(${b.id})" title="Marquer / retirer l'exclusivité">Exclusivité</button>
+        <button class="btn-statut btn-compromis ${statut === 'sous_compromis' ? 'active' : ''}" onclick="adminSetStatut(${b.id}, 'sous_compromis')" title="Sous compromis de vente">Compromis</button>
+        <button class="btn-statut btn-offre ${statut === 'offre_en_cours' ? 'active' : ''}" onclick="adminSetStatut(${b.id}, 'offre_en_cours')" title="Offre en cours">Offre</button>
+        <button class="btn-statut btn-vendu ${statut === 'vendu' ? 'active' : ''}" onclick="adminSetStatut(${b.id}, 'vendu')" title="Vendu → Nos dernières ventes">Vendu</button>
         <button class="btn-delete" onclick="adminDelete(${b.id})">Supprimer</button>
       </div>
     </div>
@@ -8408,16 +8415,23 @@ async function loadBiens() {
       // Overlay manuel (data/ventes.json) — PRIORITAIRE sur le statut 3G :
       //  • 'vendu' → retiré des annonces actives, ajouté aux ventes (snapshot)
       //  • 'sous_compromis' / 'offre_en_cours' → appliqué au bien actif (badge), reste en grille
-      var soldMap = {}, statusMap = {};
+      // Overlay manuel (data/ventes.json) — source des BADGES (statut + exclusivité) :
+      //  • 'vendu' → retiré des actifs, ajouté aux ventes (snapshot)
+      //  • autre → applique statut ET/OU exclusif au bien actif (prioritaire sur 3G)
+      var soldMap = {}, overrideMap = {};
       ventes.forEach(function(v){
         if (v.statut === 'vendu') soldMap[v.id] = v;
-        else if (v.statut && v.statut !== 'en_vente') statusMap[v.id] = v.statut;
+        else overrideMap[v.id] = v;
       });
       var vendus = Object.keys(soldMap).map(function(k){ var v = soldMap[k]; v.statut = 'vendu'; return v; });
       var actifsVisibles = actifs.filter(function(b){ return !soldMap[b.id]; });
       actifsVisibles.forEach(function(b){
-        if (statusMap[b.id]) b.statut = statusMap[b.id];        // override manuel prioritaire
-        else if (b.statut === 'vendu') b.statut = 'en_vente';   // sécurité
+        var ov = overrideMap[b.id];
+        if (ov) {
+          if (ov.statut) b.statut = ov.statut;
+          if (ov.exclusif !== undefined) b.exclusif = !!ov.exclusif;
+        }
+        if (b.statut === 'vendu') b.statut = 'en_vente';  // sécurité (le vendu vient de soldMap)
       });
 
       biens = vendus.concat(actifsVisibles);
@@ -8463,84 +8477,76 @@ function _normalizeBien(b) {
   return b;
 }
 
-// ===== ÉCRITURE DES VENTES SUR GITHUB (statut « vendu » marqué à la main) =====
-// Pas de serveur : l'admin commit data/ventes.json via l'API GitHub avec un jeton
-// fine-grained (Contents: write) stocké uniquement dans le navigateur de l'agent.
-var GH_REPO = 'galfomorel-droid/nathalie-immobilier';
-var GH_BRANCH = 'main';
-var GH_VENTES_PATH = 'data/ventes.json';
-var _ghVentesSha = null;
+// ===== STATUTS via PROXY SERVERLESS (admin, AUCUN jeton côté cliente) =====
+// L'admin clique → on appelle une petite fonction serverless (Cloudflare Worker,
+// voir serverless/statut-proxy.js) qui garde le jeton GitHub CÔTÉ SERVEUR et committe
+// data/ventes.json. La cliente ne saisit jamais de jeton.
+// ⚠️ À RENSEIGNER une fois le worker déployé : l'URL du worker.
+var STATUT_PROXY_URL = '';
+var _adminPwd = '';  // mot de passe admin en mémoire (session) — jamais stocké ni loggé
 
-function _ghToken() {
-  var t = localStorage.getItem('gh_token');
-  if (!t) {
-    t = prompt('Collez votre jeton GitHub (fine-grained, autorisation « Contents : write » sur le dépôt nathalie-immobilier).\n\nIl est stocké uniquement dans ce navigateur, jamais dans le site.');
-    if (t) { t = t.trim(); if (t) localStorage.setItem('gh_token', t); }
-  }
-  return t || null;
+// Lecture publique de l'overlay actuel (fichier committé).
+async function _chargerOverlay() {
+  try {
+    var r = await fetch('data/ventes.json?t=' + Date.now(), { cache: 'no-cache' });
+    if (r.ok) { var j = await r.json(); return Array.isArray(j.ventes) ? j.ventes : []; }
+  } catch(e) {}
+  return [];
 }
 
-async function _ghLoadVentes() {
-  var token = _ghToken();
-  if (!token) return null;
+// Publie l'overlay complet via le proxy. Retourne true si publié.
+async function _publierStatuts(ventes) {
+  if (!STATUT_PROXY_URL) { if (typeof showToast==='function') showToast('⚠️ Serveur de statuts non configuré (URL manquante) — voir le créateur du site.', 'error', 8000); return false; }
+  if (!_adminPwd) { if (typeof showToast==='function') showToast('⚠️ Reconnecte-toi à l\'espace admin.', 'error', 6000); return false; }
   try {
-    var res = await fetch('https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_VENTES_PATH + '?ref=' + GH_BRANCH, {
-      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    var res = await fetch(STATUT_PROXY_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: _adminPwd, ventes: ventes })
     });
-    if (res.status === 401 || res.status === 403) { localStorage.removeItem('gh_token'); alert('Jeton GitHub invalide ou sans autorisation. Réessayez avec un jeton « Contents: write ».'); return null; }
-    if (res.status === 404) { _ghVentesSha = null; return []; }
-    if (!res.ok) { alert('Erreur GitHub (' + res.status + ').'); return null; }
-    var j = await res.json();
-    _ghVentesSha = j.sha;
-    var content = JSON.parse(decodeURIComponent(escape(atob(j.content))));
-    return content.ventes || [];
-  } catch(e) { alert('Connexion à GitHub impossible.'); return null; }
-}
-
-async function _ghSaveVentes(ventes) {
-  var token = _ghToken();
-  if (!token) return false;
-  try {
-    var json = JSON.stringify({ ventes: ventes }, null, 2);
-    var body = {
-      message: 'Ventes : mise à jour depuis l\'admin (' + ventes.length + ' vendu(s))',
-      content: btoa(unescape(encodeURIComponent(json))),
-      branch: GH_BRANCH
-    };
-    if (_ghVentesSha) body.sha = _ghVentesSha;
-    var url = 'https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_VENTES_PATH;
-    var hdrs = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
-    var res = await fetch(url, { method: 'PUT', headers: hdrs, body: JSON.stringify(body) });
-    // Conflit de sha (fichier modifié entre-temps) → on relit le sha frais et on réessaie une fois
-    if (res.status === 409) {
-      await _ghLoadVentes();
-      if (_ghVentesSha) body.sha = _ghVentesSha; else delete body.sha;
-      res = await fetch(url, { method: 'PUT', headers: hdrs, body: JSON.stringify(body) });
-    }
-    if (!res.ok) { console.error('GH save ventes:', res.status, await res.text()); return false; }
-    var j = await res.json();
-    _ghVentesSha = (j.content && j.content.sha) || null;
+    if (res.status === 401) { if (typeof showToast==='function') showToast('Mot de passe refusé par le serveur.', 'error', 6000); return false; }
+    if (!res.ok) { if (typeof showToast==='function') showToast('Échec de publication (' + res.status + ').', 'error', 6000); return false; }
     return true;
-  } catch(e) { console.error('GH save ventes exception:', e); return false; }
+  } catch(e) { if (typeof showToast==='function') showToast('Connexion au serveur impossible.', 'error', 6000); return false; }
 }
 
-// Écrit le statut MANUEL d'un bien dans l'overlay data/ventes.json (commit GitHub).
-// newStatut : 'vendu' | 'sous_compromis' | 'offre_en_cours' | 'en_vente' (= retire l'entrée).
-// Retourne {dateVente} si publié, ou null si jeton refusé / échec (rien n'est modifié).
-async function _setStatutOverlay(b, newStatut) {
-  var ventes = await _ghLoadVentes();
-  if (ventes === null) return null;
-  ventes = ventes.filter(function(v){ return parseInt(v.id) !== parseInt(b.id); });
-  var dateVente = (newStatut === 'vendu') ? new Date().toISOString() : null;
-  if (newStatut && newStatut !== 'en_vente') {
-    ventes.unshift({
-      id: parseInt(b.id), titre: b.titre || '', type: b.type || 'Bien',
-      ville: b.ville || '', img: b.img || '', prix: b.prix || 0,
-      statut: newStatut, dateVente: dateVente
-    });
-  }
-  var ok = await _ghSaveVentes(ventes);
-  return ok ? { dateVente: dateVente } : null;
+// Applique un changement de badge (statut et/ou exclusivité) : met à jour l'overlay,
+// le publie, puis applique localement uniquement si la publication a réussi.
+async function _adminMajBadge(id, changes) {
+  var b = biens.find(function(x){ return parseInt(x.id) === parseInt(id); });
+  if (!b) return;
+  var overlay = await _chargerOverlay();
+  var i = overlay.findIndex(function(v){ return parseInt(v.id) === parseInt(id); });
+  var e = (i >= 0) ? overlay[i] : { id: parseInt(id), statut: 'en_vente', exclusif: !!b.exclusif };
+  if (changes.statut !== undefined) { e.statut = changes.statut; e.dateVente = (changes.statut === 'vendu') ? new Date().toISOString() : null; }
+  if (changes.exclusif !== undefined) e.exclusif = !!changes.exclusif;
+  e.titre = b.titre || ''; e.type = b.type || 'Bien'; e.ville = b.ville || ''; e.img = b.img || ''; e.prix = b.prix || 0;
+  if (i >= 0) overlay[i] = e; else overlay.unshift(e);
+  // On retire l'entrée si plus aucun badge (en vente + non exclusif) → fichier propre.
+  overlay = overlay.filter(function(v){ return v.statut !== 'en_vente' || v.exclusif; });
+
+  var ok = await _publierStatuts(overlay);
+  if (!ok) return;
+  if (changes.statut !== undefined) { b.statut = changes.statut; b.dateVente = e.dateVente || null; }
+  if (changes.exclusif !== undefined) b.exclusif = !!changes.exclusif;
+  saveBiens();
+  renderAdmin();
+  renderHomeGrid();
+  if (typeof renderBiensGrid === 'function') renderBiensGrid();
+  renderVendusCarousel();
+  if (typeof showToast === 'function') showToast('✓ Publié sur le site', 'success', 5000);
+}
+
+async function adminSetStatut(id, statut) {
+  var b = biens.find(function(x){ return parseInt(x.id) === parseInt(id); });
+  if (!b) return;
+  var cible = (b.statut === statut) ? 'en_vente' : statut;
+  var labels = { sous_compromis: 'Sous compromis', offre_en_cours: 'Offre en cours', vendu: 'Vendu' };
+  var msg = (cible === 'en_vente') ? 'Retirer ce statut et remettre « en vente » ? (publié sur le site)' : 'Marquer « ' + (labels[statut] || statut) + ' » ? (publié sur le site)';
+  if (!confirm(msg)) return;
+  await _adminMajBadge(id, { statut: cible });
+}
+async function adminSetExclusif(id) {
+  await _adminMajBadge(id, { exclusif: !(biens.find(function(x){ return parseInt(x.id) === parseInt(id); }) || {}).exclusif });
 }
 
 // Cookies

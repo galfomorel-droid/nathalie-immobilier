@@ -116,12 +116,9 @@ function annonceVersBien(a, ref) {
   const surface = (ref && toInt(ref.surface)) ? toInt(ref.surface) : corrigerSurface(a.surface_bien);
   const titre = (ref && ref.titre) ? ref.titre : construireTitre(typeLabel, pieces, ville);
 
-  // Exclusivité : mandat exclusif 3G (type_mandat = 3) — FIABLE. Filet : mention dans la description.
-  const desc3g = a.description_annonce || '';
-  const exclusif = toInt(a.type_mandat) === 3 || /(en\s+)?exclusivit[ée]/i.test(desc3g);
-  // Statut : le champ 3G `etat` s'est révélé NON FIABLE (etat=2 = compromis pour certains
-  // biens seulement). On NE déduit PLUS le statut de 3G : tout est « en vente » par défaut ;
-  // sous compromis / offre en cours / vendu sont gérés à la MAIN depuis l'admin (data/ventes.json).
+  // BADGES (exclusivité + statut) : gérés à la MAIN depuis l'admin (overlay data/ventes.json),
+  // car les champs 3G se sont révélés non fiables. 3G ne fournit que les données du bien.
+  const exclusif = false;
   const statut = 'en_vente';
 
   return {
