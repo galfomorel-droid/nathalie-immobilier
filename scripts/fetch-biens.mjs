@@ -94,7 +94,11 @@ function annonceVersBien(a, ref) {
   const photosRef = (ref && Array.isArray(ref.photos)) ? ref.photos : [];
   const photos = photosRef.length > photos3g.length ? photosRef : photos3g;
 
-  const ville = (ref && ref.ville) ? ref.ville : villeDepuisDescription(a.description_annonce);
+  // Ville : champ 3G structuré `adresse_bien_ville` PRIORITAIRE (autoritatif),
+  // puis valeur déjà connue, puis détection dans la description (filet de secours).
+  const villeStruct = a.adresse_bien_ville && String(a.adresse_bien_ville).trim();
+  const ville = villeStruct ? String(a.adresse_bien_ville).trim()
+    : ((ref && ref.ville) ? ref.ville : villeDepuisDescription(a.description_annonce));
   const surface = (ref && toInt(ref.surface)) ? toInt(ref.surface) : corrigerSurface(a.surface_bien);
   const titre = (ref && ref.titre) ? ref.titre : construireTitre(typeLabel, pieces, ville);
 
@@ -161,12 +165,44 @@ function lireVentes() {
   }
 }
 
+// Champs 3G attendus (anti-dérive). Si l'un disparaît du flux → alerte forte :
+// c'est exactement ce qui s'est produit avec « etat_pre_archivage » (jamais présent).
+const CHAMPS_ATTENDUS = ['i', 'type', 'prix', 'surface_bien', 'description_annonce', 'etat', 'type_mandat', 'adresse_bien_ville', 'num_mandat'];
+const ETATS_CONNUS = new Set([1, 2, 3, 4, 5]);
+const MANDATS_CONNUS = new Set([1, 2, 3]);
+
+// Vérifie la présence des champs clés et signale toute valeur inattendue.
+// Retourne la liste des alertes (vide = OK). Ne bloque pas, mais loggue fort.
+function verifierSchema3G(annonces) {
+  const alertes = [];
+  if (!annonces.length) { alertes.push('Aucune annonce reçue de 3G.'); return alertes; }
+  const clesPresentes = new Set(annonces.flatMap((a) => Object.keys(a)));
+  for (const champ of CHAMPS_ATTENDUS) {
+    if (!clesPresentes.has(champ)) alertes.push(`Champ 3G ATTENDU ABSENT du flux : « ${champ} » (dérive de schéma ?).`);
+  }
+  const etatsVus = new Set(annonces.map((a) => toInt(a.etat)).filter((v) => v !== null));
+  for (const v of etatsVus) if (!ETATS_CONNUS.has(v)) alertes.push(`Valeur d'etat INCONNUE : ${v} (à mapper).`);
+  const mandatsVus = new Set(annonces.map((a) => toInt(a.type_mandat)).filter((v) => v !== null));
+  for (const v of mandatsVus) if (!MANDATS_CONNUS.has(v)) alertes.push(`Valeur de type_mandat INCONNUE : ${v} (à mapper).`);
+  return alertes;
+}
+
 // ===================== PROGRAMME PRINCIPAL =====================
 
 async function main() {
   console.log(`\n🏠 Synchronisation 3G → data/biens.json ${DRY_RUN ? '(MODE TEST — aucune écriture)' : ''}`);
   const annonces = await recupererAnnonces3G();
   console.log(`   ${annonces.length} annonce(s) active(s) récupérée(s) depuis 3G.`);
+
+  // Garde-fou anti-dérive : alerte si un champ 3G attendu disparaît ou si une valeur est inconnue.
+  const alertesSchema = verifierSchema3G(annonces);
+  if (alertesSchema.length) {
+    console.error('\n🚨 ALERTES SCHÉMA 3G :');
+    for (const a of alertesSchema) console.error('   • ' + a);
+    console.error('');
+  } else {
+    console.log('   ✅ Schéma 3G conforme (champs clés présents, valeurs connues).');
+  }
 
   const existants = lireBiensExistants();
   const properties = annonces.map((a) => annonceVersBien(a, existants.get(Number(a.i))));
@@ -202,6 +238,21 @@ async function main() {
   ventes.sort((a, b) => new Date(b.dateVente || 0) - new Date(a.dateVente || 0));
   ventes = ventes.slice(0, MAX_VENTES);
 
+  // Rapport de synthèse (anti-dérive) : visible à chaque run + committé dans data/_audit.json.
+  const audit = {
+    generatedAt: new Date().toISOString(),
+    total: properties.length,
+    parStatut: properties.reduce((acc, p) => { acc[p.statut] = (acc[p.statut] || 0) + 1; return acc; }, {}),
+    exclusifs: properties.filter((p) => p.exclusif).length,
+    ventes: ventes.length,
+    nouvellesVentes,
+    sansVille: properties.filter((p) => !p.ville).length,
+    sansPhoto: properties.filter((p) => !p.photos || p.photos.length === 0).length,
+    prixZero: properties.filter((p) => !p.prix).length,
+    alertesSchema,
+  };
+  console.log(`   📊 Synthèse : ${audit.total} biens — ${JSON.stringify(audit.parStatut)} — ${audit.exclusifs} exclusif(s) — ${audit.ventes} vente(s) — ${audit.sansVille} sans ville — ${audit.sansPhoto} sans photo — ${audit.prixZero} prix=0.`);
+
   const payload = {
     source: '3G IMMO API v1',
     fetched_at: new Date().toISOString(),
@@ -225,6 +276,7 @@ async function main() {
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, JSON.stringify(payload, null, 2));
   fs.writeFileSync(OUT_VENTES, JSON.stringify({ ventes }, null, 2));
+  fs.writeFileSync(path.join(__dirname, '..', 'data', '_audit.json'), JSON.stringify(audit, null, 2));
 
   // ===== SONDE 2 (corrélation statut) — À RETIRER après =====
   try {
