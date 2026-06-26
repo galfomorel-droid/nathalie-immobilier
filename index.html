@@ -476,9 +476,12 @@ nav.scrolled .hamburger span { background: var(--noir); }
 /* ===== HERO ===== */
 #hero {
   position: relative;
-  height: 100vh;
-  height: 100dvh; /* dynamic viewport — corrige le bug barre URL iOS Safari */
-  min-height: 600px;
+  min-height: 100vh;
+  min-height: 100dvh; /* dynamic viewport — corrige le bug barre URL iOS Safari */
+  /* Dégagement sous la nav fixe : le hero GRANDIT si le contenu est plus haut que
+     la fenêtre (au lieu de déborder vers le haut), donc l'eyebrow ne télescope
+     jamais le logo — quel que soit le format (ordinateur / tablette / téléphone). */
+  padding-top: 128px;
   display: flex; align-items: flex-end;
   overflow: hidden;
 }
