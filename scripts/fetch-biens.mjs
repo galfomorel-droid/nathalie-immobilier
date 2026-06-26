@@ -80,6 +80,20 @@ function construireTitre(typeLabel, pieces, ville) {
   return t;
 }
 
+// Normalise la casse des villes (3G renvoie parfois en MAJUSCULES) : « GUÉRANDE » → « Guérande »,
+// « LA BAULE-ESCOUBLAC » → « La Baule-Escoublac », en gardant les particules en minuscule (sur, de…).
+const PARTICULES_VILLE = new Set(['sur', 'de', 'du', 'des', 'la', 'le', 'les', 'et', 'en', 'aux', 'sous', "d'", "l'"]);
+function titreVille(v) {
+  return String(v || '').trim().toLowerCase()
+    .split(/([\s\-])/)
+    .map((part, i) => {
+      if (/^[\s\-]$/.test(part) || part === '') return part;
+      if (i > 0 && PARTICULES_VILLE.has(part)) return part;
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    })
+    .join('');
+}
+
 // Convertit une annonce 3G en bien, en préservant la qualité de `ref` (la version
 // déjà présente dans data/biens.json) si elle existe.
 function annonceVersBien(a, ref) {
@@ -97,7 +111,7 @@ function annonceVersBien(a, ref) {
   // Ville : champ 3G structuré `adresse_bien_ville` PRIORITAIRE (autoritatif),
   // puis valeur déjà connue, puis détection dans la description (filet de secours).
   const villeStruct = a.adresse_bien_ville && String(a.adresse_bien_ville).trim();
-  const ville = villeStruct ? String(a.adresse_bien_ville).trim()
+  const ville = villeStruct ? titreVille(a.adresse_bien_ville)
     : ((ref && ref.ville) ? ref.ville : villeDepuisDescription(a.description_annonce));
   const surface = (ref && toInt(ref.surface)) ? toInt(ref.surface) : corrigerSurface(a.surface_bien);
   const titre = (ref && ref.titre) ? ref.titre : construireTitre(typeLabel, pieces, ville);
@@ -184,6 +198,9 @@ function verifierSchema3G(annonces) {
   for (const v of etatsVus) if (!ETATS_CONNUS.has(v)) alertes.push(`Valeur d'etat INCONNUE : ${v} (à mapper).`);
   const mandatsVus = new Set(annonces.map((a) => toInt(a.type_mandat)).filter((v) => v !== null));
   for (const v of mandatsVus) if (!MANDATS_CONNUS.has(v)) alertes.push(`Valeur de type_mandat INCONNUE : ${v} (à mapper).`);
+  // Le site ne gère que les VENTES (transaction = 1). Alerte si une location apparaît.
+  const nonVentes = annonces.filter((a) => toInt(a.transaction) !== 1).length;
+  if (nonVentes) alertes.push(`${nonVentes} annonce(s) avec transaction ≠ 1 (location ?) — à filtrer/gérer.`);
   return alertes;
 }
 
@@ -277,22 +294,6 @@ async function main() {
   fs.writeFileSync(OUT_PATH, JSON.stringify(payload, null, 2));
   fs.writeFileSync(OUT_VENTES, JSON.stringify({ ventes }, null, 2));
   fs.writeFileSync(path.join(__dirname, '..', 'data', '_audit.json'), JSON.stringify(audit, null, 2));
-
-  // ===== SONDE 2 (corrélation statut) — À RETIRER après =====
-  try {
-    const champs = ['etat', 'type_mandat', 'transaction', 'procedure_alerte', 'sous_type', 'c', 'e', 'u', 'r_p', 'cle', 'num_mandat'];
-    const tous = annonces.map((a) => {
-      const o = { i: a.i, ville: a.adresse_bien_ville || null };
-      for (const k of champs) o[k] = a[k];
-      return o;
-    });
-    fs.writeFileSync(
-      path.join(__dirname, '..', 'data', '_3g-debug2.json'),
-      JSON.stringify({ generatedAt: new Date().toISOString(), tous }, null, 2),
-    );
-    console.log(`   🔎 SONDE2 : ${tous.length} biens → data/_3g-debug2.json`);
-  } catch (e) { console.warn('   ⚠️ sonde2 échouée :', e.message); }
-
   console.log(`\n✅ Terminé : ${properties.length} bien(s) actifs + ${ventes.length} vente(s) écrits.\n`);
 }
 
