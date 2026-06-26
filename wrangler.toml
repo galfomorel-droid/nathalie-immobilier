@@ -1,6 +1,6 @@
 # Config Cloudflare Worker — proxy d'écriture des statuts de l'admin.
 # Déployé automatiquement par Cloudflare Workers (commande : npx wrangler deploy).
 # Secrets à définir dans le dashboard du worker : ADMIN_PASSWORD et GH_TOKEN.
-name = "statut-proxy"
+name = "nathalie-immobilier"
 main = "serverless/statut-proxy.js"
 compatibility_date = "2024-11-11"
