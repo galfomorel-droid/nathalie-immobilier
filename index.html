@@ -291,12 +291,13 @@
   --sans: 'Inter', system-ui, sans-serif;
   /* Mouvement — courbe unique */
   --transition: 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  /* Ombres normalisées (teintées ardoise) */
-  --shadow-sm: 0 4px 24px rgba(43,42,38,0.06);
-  --shadow: 0 12px 36px rgba(43,42,38,0.10);
-  --shadow-md: 0 12px 36px rgba(43,42,38,0.10);
-  --shadow-lg: 0 18px 50px rgba(43,42,38,0.16);
-  --shadow-hover: 0 18px 50px rgba(43,42,38,0.16);
+  /* Ombres en double couche, teintées ardoise (lumière clé rapprochée + diffusion ambiante).
+     Donne une profondeur feutrée et réaliste plutôt qu'un halo unique. */
+  --shadow-sm: 0 1px 2px rgba(43,42,38,0.04), 0 5px 18px rgba(43,42,38,0.05);
+  --shadow: 0 2px 4px rgba(43,42,38,0.05), 0 14px 34px rgba(43,42,38,0.09);
+  --shadow-md: 0 2px 4px rgba(43,42,38,0.05), 0 14px 34px rgba(43,42,38,0.09);
+  --shadow-lg: 0 3px 8px rgba(43,42,38,0.07), 0 26px 56px rgba(43,42,38,0.15);
+  --shadow-hover: 0 3px 8px rgba(43,42,38,0.07), 0 26px 56px rgba(43,42,38,0.15);
   /* Échelle d'espacement stricte base 8px */
   --space-1: 0.5rem; --space-2: 1rem; --space-3: 1.5rem; --space-4: 2rem;
   --space-5: 2.5rem; --space-6: 3rem; --space-8: 4rem; --space-10: 6rem; --space-12: 10rem;
@@ -315,15 +316,26 @@ body {
   font-weight: 400;
   line-height: 1.75;
   overflow-x: hidden;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* ===== TYPOGRAPHY ===== */
-h1, h2, h3, h4 { font-family: var(--serif); font-weight: 400; line-height: 1.12; letter-spacing: -0.01em; }
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  font-optical-sizing: auto;
+  text-wrap: balance; /* évite les lignes orphelines dans les titres */
+}
 h1 { font-size: clamp(2.8rem, 6vw, 5rem); }
 h2 { font-size: clamp(2rem, 4vw, 3.25rem); }
 h3 { font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 500; }
 
-p { font-size: 1rem; line-height: 1.75; color: var(--gris); }
+p { font-size: 1rem; line-height: 1.75; color: var(--gris); text-wrap: pretty; }
 
 a { text-decoration: none; color: inherit; }
 
@@ -334,6 +346,20 @@ a { text-decoration: none; color: inherit; }
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: var(--blanc); }
 ::-webkit-scrollbar-thumb { background: var(--or); }
+
+/* ===== GRAIN « LIN » — texture papier très discrète sur tout le site ===== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2147483640;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+@media (prefers-reduced-motion: reduce) { body::before { display: none; } }
 
 
 
@@ -571,8 +597,9 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
 .section-tag::before {
   content: '';
   display: inline-block;
-  width: 42px; height: 1px;
-  background: var(--or);
+  width: 46px; height: 1px;
+  /* Ligne d'horizon : filet doré qui s'estompe vers le titre */
+  background: linear-gradient(to right, var(--or) 0%, var(--or) 55%, rgba(201,162,75,0) 100%);
 }
 .section-title {
   color: var(--noir);
