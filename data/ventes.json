@@ -1,15 +1,15 @@
 {
   "ventes": [
     {
-      "id": 2000012962,
-      "statut": "sous_compromis",
+      "id": 2000016246,
+      "statut": "vendu",
       "exclusif": false,
-      "dateVente": null,
-      "titre": "Maison 2 pièces à Guérande",
-      "type": "Maison",
-      "ville": "Guerande",
-      "img": "https://admin.3gimmobilier.fr/get_file_id/1055257/1782882412",
-      "prix": 313500
+      "dateVente": "2026-07-01T08:18:16.100Z",
+      "titre": "Appartement 1 pièces à Pornichet",
+      "type": "Appartement",
+      "ville": "Pornichet",
+      "img": "https://admin.3gimmobilier.fr/get_file_id/1100807/1782882412",
+      "prix": 153470
     },
     {
       "id": 2000015637,
