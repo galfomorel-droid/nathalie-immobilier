@@ -1,6 +1,17 @@
 {
   "ventes": [
     {
+      "id": 2000021034,
+      "statut": "en_vente",
+      "exclusif": false,
+      "alaune": true,
+      "titre": "Appartement 3 pièces à Le Croisic",
+      "type": "Appartement",
+      "ville": "Le Croisic",
+      "img": "https://admin.3gimmobilier.fr/get_file_id/1181622/1784721525",
+      "prix": 285012
+    },
+    {
       "id": 2000016246,
       "statut": "vendu",
       "exclusif": false,
@@ -10,6 +21,17 @@
       "ville": "Pornichet",
       "img": "https://admin.3gimmobilier.fr/get_file_id/1100807/1782882412",
       "prix": 153470
+    },
+    {
+      "id": 2000015637,
+      "statut": "en_vente",
+      "exclusif": false,
+      "alaune": true,
+      "titre": "Maison 7 pièces à Guérande",
+      "type": "Maison",
+      "ville": "Guérande",
+      "img": "https://admin.3gimmobilier.fr/get_file_id/1090173/1782473092",
+      "prix": 786600
     },
     {
       "id": 2000013185,
