@@ -1,17 +1,6 @@
 {
   "ventes": [
     {
-      "id": 2000018773,
-      "statut": "en_vente",
-      "exclusif": false,
-      "alaune": true,
-      "titre": "Maison 6 pièces à Saint-Nazaire",
-      "type": "Maison",
-      "ville": "Saint-Nazaire",
-      "img": "https://admin.3gimmobilier.fr/get_file_id/1142787/1784721525",
-      "prix": 395200
-    },
-    {
       "id": 2000016246,
       "statut": "vendu",
       "exclusif": false,
