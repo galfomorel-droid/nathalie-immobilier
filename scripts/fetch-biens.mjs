@@ -137,7 +137,16 @@ function annonceVersBien(a, ref) {
     ref: a.num_mandat ? String(a.num_mandat) : '',
     description: a.description_annonce || (ref && ref.description) || '',
     img: photos[0] || '', photos,
-    dpe: (ref && ref.dpe) ? ref.dpe : (a.dpe_note_energie || ''),
+    // DPE complet depuis 3G (énergie + GES + conso + émissions + coûts annuels + date).
+    // Priorité à 3G ; repli sur la valeur déjà connue si 3G est vide.
+    dpe: (a.dpe_note_energie || (ref && (ref.dpeClasse || ref.dpe)) || ''),
+    dpeClasse: (a.dpe_note_energie || (ref && (ref.dpeClasse || ref.dpe)) || ''),
+    dpeConso: toInt(a.consommation_energetique) || (ref && (ref.dpeConso || ref.dpeVal)) || null,
+    gesClasse: (a.dpe_note_co2 || (ref && (ref.gesClasse || ref.ges)) || ''),
+    gesConso: toInt(a.emission_gaz) || (ref && (ref.gesConso || ref.gesVal)) || null,
+    dpeCoutMin: toInt(a.cout_min) || (ref && ref.dpeCoutMin) || null,
+    dpeCoutMax: toInt(a.cout_max) || (ref && ref.dpeCoutMax) || null,
+    dateDpe: a.date_realisation_dpe || (ref && ref.dateDpe) || '',
     statut: statut, dateVente: null,
     prixFAI: toInt(a.prix) || 0,
   };
@@ -310,8 +319,14 @@ async function main() {
     const keys = [...new Set(annonces.flatMap((a) => Object.keys(a)))].sort();
     const echantillon = {};
     for (const k of keys) echantillon[k] = annonces.slice(0, 3).map((a) => a[k]);
+    // Table statut par bien : pour voir comment 3G marque chacun (notamment les « sous offre »).
+    const parBien = annonces.map((a) => ({
+      id: a.i, mandat: a.num_mandat, ville: a.adresse_bien_ville, type: a.type,
+      pieces: a.nb_pieces, surface: a.surface_bien,
+      etat: a.etat, type_mandat: a.type_mandat, sous_type: a.sous_type, procedure_alerte: a.procedure_alerte,
+    }));
     fs.writeFileSync(path.join(__dirname, '..', 'data', '_3g-debug.json'),
-      JSON.stringify({ nbAnnonces: annonces.length, keys, echantillon }, null, 2));
+      JSON.stringify({ nbAnnonces: annonces.length, keys, echantillon, parBien }, null, 2));
   } catch (e) { console.warn('sonde 3G:', e.message); }
   // Ventes détectées auto → fichier DISTINCT. On ne touche JAMAIS à data/ventes.json,
   // qui est l'overlay géré depuis l'admin (corrections manuelles + à la une). Les deux
