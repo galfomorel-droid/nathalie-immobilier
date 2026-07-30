@@ -6661,60 +6661,80 @@ function buildRow(l1, v1, l2, v2) {
     '</tr>';
 }
 
+// DPE officiel : deux réglettes en flèches (énergie + émissions GES) avec la classe
+// active AGRANDIE et bordée de noir, + estimation des coûts annuels. Reproduit le
+// format réglementaire (comme le diagnostic papier).
 function buildDPEHtml(b) {
-  const dpeColors = {A:'#319834',B:'#52b153',C:'#9bc83c',D:'#f8cc05',E:'#f09c29',F:'#e8671c',G:'#d7281c'};
-  const gesColors = {A:'#c8e8f5',B:'#9dcde8',C:'#7ab0d4',D:'#6090bb',E:'#4f6fa0',F:'#3a4f80',G:'#1e2d5a'};
-  const gesRanges = {A:'< 6',B:'6 à 11',C:'11 à 30',D:'30 à 50',E:'50 à 70',F:'70 à 100',G:'> 100'};
-  const dpeLabel = {A:'Logement très performant',B:'Logement très performant',C:'Logement performant',D:'Logement assez performant',E:'Logement peu performant',F:'Logement très peu performant',G:"Logement extrêmement consommateur d'énergie"};
-  const gesLabel = {A:"Peu d'émission CO₂",B:"Peu d'émission CO₂",C:'Émissions faibles',D:'Émissions modérées',E:'Émissions importantes',F:'Émissions très importantes',G:'Émissions CO₂ très importantes'};
-  const classes = ['A','B','C','D','E','F','G'];
+  var dpeColors = {A:'#319834',B:'#52b153',C:'#9bc83c',D:'#f8cc05',E:'#f09c29',F:'#e8671c',G:'#d7281c'};
+  var gesColors = {A:'#c8e8f5',B:'#9dcde8',C:'#7ab0d4',D:'#6090bb',E:'#4f6fa0',F:'#3a4f80',G:'#1e2d5a'};
+  var classes = ['A','B','C','D','E','F','G'];
 
-  let dpeBar = '';
-  classes.forEach(function(c, i) {
-    const w = 40 + i * 18;
-    const active = c === b.dpeClasse;
-    dpeBar += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:3px;">' +
-      '<div style="width:' + w + 'px;height:26px;background:' + dpeColors[c] + ';clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);display:flex;align-items:center;padding-left:8px;">' +
-      '<span style="color:white;font-weight:700;font-size:.85rem;">' + c + '</span></div>' +
-      (active && b.dpeConso ? '<span style="font-size:.8rem;font-weight:600;color:' + dpeColors[c] + ';">' + b.dpeConso + ' kWh/m².an</span>' : '') +
-      '</div>';
-  });
-
-  let gesBar = '';
-  if (b.gesClasse) {
+  // Construit une réglette SVG (7 flèches). `rounded` = style GES (bouts arrondis).
+  function reglette(active, colors, rounded) {
+    var GAP = 6, H = 26, HA = 46, W0 = 66, STEP = 20, PT = 15;
+    var y = 0, body = '';
     classes.forEach(function(c, i) {
-      const w = 40 + i * 18;
-      const active = c === b.gesClasse;
-      const textColor = (c === 'A' || c === 'B') ? '#333' : 'white';
-      gesBar += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:3px;">' +
-        '<div style="width:' + w + 'px;height:26px;background:' + gesColors[c] + ';border-radius:0 13px 13px 0;display:flex;align-items:center;justify-content:center;">' +
-        '<span style="color:' + textColor + ';font-weight:700;font-size:.85rem;">' + c + '</span>' +
-        '</div>' +
-        (active && b.gesConso ? '<span style="font-size:.8rem;font-weight:600;color:#3a4f80;">' + b.gesConso + ' kg CO₂/m².an</span>' : '') +
-        '</div>';
+      var isA = (c === active);
+      var h = isA ? HA : H;
+      var w = W0 + i * STEP;
+      var stroke = isA ? ' stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"' : '';
+      if (rounded) {
+        var r = (h - 4) / 2;
+        body += '<rect x="2" y="' + (y + 2) + '" width="' + (w - 4) + '" height="' + (h - 4) + '" rx="' + r + '" ry="' + r + '" fill="' + colors[c] + '"' + stroke + '/>';
+      } else {
+        var ex = isA ? 5 : 0; // pointe un peu plus longue quand actif
+        var pts = ['2,' + (y + 2), (w - PT) + ',' + (y + 2), (w + ex) + ',' + (y + h / 2), (w - PT) + ',' + (y + h - 2), '2,' + (y + h - 2)].join(' ');
+        body += '<polygon points="' + pts + '" fill="' + colors[c] + '"' + stroke + '/>';
+      }
+      var light = rounded && (c === 'A' || c === 'B' || c === 'C');
+      var tCol = light ? '#2b2a26' : '#fff';
+      var fs = isA ? 22 : 13;
+      var tx = rounded ? (w / 2) : 13;
+      var anchor = rounded ? 'middle' : 'start';
+      body += '<text x="' + tx + '" y="' + (y + h / 2 + 1) + '" fill="' + tCol + '" font-family="Inter,system-ui,sans-serif" font-weight="800" font-size="' + fs + '" text-anchor="' + anchor + '" dominant-baseline="central">' + c + '</text>';
+      y += h + GAP;
     });
+    var width = W0 + 6 * STEP + 12;
+    return '<svg viewBox="-2 -2 ' + (width + 4) + ' ' + (y + 4) + '" width="100%" style="max-width:' + width + 'px;overflow:visible;display:block;">' + body + '</svg>';
   }
 
-  let html = '<div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--beige);">';
-  html += '<h3 style="font-family:var(--sans);font-size:1rem;font-weight:500;margin-bottom:1.5rem;color:var(--noir);">Diagnostic de performance énergétique</h3>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;">';
+  var lab = 'font-size:.72rem;font-weight:600;line-height:1.3;';
+  var html = '<div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--beige);">';
+  html += '<h3 style="font-family:var(--sans);font-size:1rem;font-weight:600;margin-bottom:1.4rem;color:var(--noir);">Diagnostic de performance énergétique (DPE)</h3>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2.2rem 2.6rem;align-items:start;">';
+
+  // ---- Colonne ÉNERGIE ----
   html += '<div>';
-  html += '<div style="font-size:.72rem;color:' + dpeColors[b.dpeClasse] + ';font-weight:600;margin-bottom:.6rem;">' + (dpeLabel[b.dpeClasse]||'') + '</div>';
-  html += dpeBar;
-  // Bloc chiffres sous la barre : on n'affiche que ce qui existe
-  if (b.dpeConso || b.gesConso) {
-    html += '<div style="display:flex;gap:1.5rem;margin-top:.8rem;font-size:.78rem;color:var(--gris);">';
-    if (b.dpeConso) html += '<div><div style="font-weight:700;font-size:1.3rem;color:var(--noir);">' + b.dpeConso + '</div>kWh/m².an<br>consommation</div>';
-    if (b.gesConso) html += '<div><div style="font-weight:700;font-size:1.3rem;color:var(--noir);">' + b.gesConso + '</div>kg CO₂/m².an<br>émission</div>';
-    html += '</div>';
+  html += '<div style="' + lab + 'color:#319834;margin-bottom:.7rem;">Logement extrêmement performant</div>';
+  html += reglette(b.dpeClasse, dpeColors, false);
+  html += '<div style="' + lab + 'color:#d7281c;margin-top:.7rem;">Logement extrêmement consommateur d\'énergie</div>';
+  if (b.dpeConso) html += '<div style="margin-top:.6rem;font-size:.8rem;color:var(--gris);"><strong style="color:var(--noir);font-size:1.05rem;">' + b.dpeConso + '</strong> kWh/m².an</div>';
+  html += '</div>';
+
+  // ---- Colonne ÉMISSIONS (GES) ----
+  html += '<div>';
+  html += '<div style="' + lab + 'color:var(--gris);margin-bottom:.2rem;">* Dont émissions de gaz à effet de serre</div>';
+  html += '<div style="' + lab + 'color:#319834;margin-bottom:.7rem;">peu d\'émissions de CO₂</div>';
+  if (b.gesClasse) {
+    html += reglette(b.gesClasse, gesColors, true);
+    html += '<div style="' + lab + 'color:#1e2d5a;margin-top:.7rem;">émissions de CO₂ très importantes</div>';
+    if (b.gesConso) html += '<div style="margin-top:.6rem;font-size:.8rem;color:var(--gris);"><strong style="color:var(--noir);font-size:1.05rem;">' + b.gesConso + '</strong> kg CO₂/m².an</div>';
   } else {
-    html += '<div style="margin-top:.8rem;font-size:.78rem;color:var(--gris);font-style:italic;">Consommation non renseignée</div>';
+    html += '<div style="font-size:.78rem;color:var(--gris);font-style:italic;padding:.4rem 0;">Émissions GES non renseignées</div>';
   }
   html += '</div>';
-  if (b.gesClasse) {
-    html += '<div><div style="font-size:.72rem;color:#3a4f80;font-weight:600;margin-bottom:.6rem;">' + (gesLabel[b.gesClasse]||'') + '</div>' + gesBar + '</div>';
+
+  html += '</div>'; // fin grid
+
+  // ---- Estimation des coûts annuels ----
+  if (b.dpeCoutMin && b.dpeCoutMax) {
+    html += '<div style="margin-top:1.8rem;padding-top:1.2rem;border-top:1px solid var(--beige);">';
+    html += '<div style="font-size:.85rem;font-weight:600;color:var(--noir);margin-bottom:.4rem;">Estimation des coûts annuels d\'énergie du logement</div>';
+    html += '<div style="font-size:.95rem;color:var(--gris);">entre <strong style="color:var(--or-fonce);">' + Number(b.dpeCoutMin).toLocaleString('fr-FR') + ' €</strong> et <strong style="color:var(--or-fonce);">' + Number(b.dpeCoutMax).toLocaleString('fr-FR') + ' €</strong> par an</div>';
+    html += '</div>';
   }
-  html += '</div></div>';
+
+  html += '</div>';
   return html;
 }
 
