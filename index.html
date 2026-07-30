@@ -5288,6 +5288,7 @@ const DEFAULT_BIENS = [
 ];
 ;
 let biens = []
+var vendusAuto = []; // ventes détectées auto depuis 3G (data/vendus-auto.json) — alimentent « Nos dernières ventes »
 let nextId = 7;
 let filterType = 'all';
 let filterVille = '';
@@ -6137,11 +6138,18 @@ function renderVendusCarousel() {
 
   // Convertir les biens vendus admin au même format
   var adminVendus = biensVendus.map(function(b){
-    return { type: b.type || 'Bien', ville: b.ville || '', img: b.img || '' };
+    return { id: b.id, type: b.type || 'Bien', ville: b.ville || '', img: b.img || '' };
   });
 
-  // On met d'abord les ventes récentes (admin), puis les historiques
-  var tous = adminVendus.concat(historiques);
+  // Ventes détectées AUTO depuis 3G (bien archivé/vendu → disparu du flux), sans doublonner l'admin.
+  var idsAdmin = {};
+  adminVendus.forEach(function(v){ idsAdmin[v.id] = true; });
+  var autoVendus = (vendusAuto || [])
+    .filter(function(v){ return !idsAdmin[Number(v.id)]; })
+    .map(function(v){ return { id: v.id, type: v.type || 'Bien', ville: v.ville || '', img: v.img || '' }; });
+
+  // On met d'abord les ventes récentes (admin + auto 3G), puis les historiques
+  var tous = adminVendus.concat(autoVendus).concat(historiques);
 
   // Si aucun bien (cas impossible vu les 4 historiques), masquer la section
   if (tous.length === 0) {
@@ -8531,9 +8539,10 @@ async function loadBiens() {
   try {
     var results = await Promise.all([
       fetch('data/biens.json?t=' + Date.now(), { cache: 'no-cache' }),
-      fetch('data/ventes.json?t=' + Date.now(), { cache: 'no-cache' }).catch(function(){ return null; })
+      fetch('data/ventes.json?t=' + Date.now(), { cache: 'no-cache' }).catch(function(){ return null; }),
+      fetch('data/vendus-auto.json?t=' + Date.now(), { cache: 'no-cache' }).catch(function(){ return null; })
     ]);
-    var bRes = results[0], vRes = results[1];
+    var bRes = results[0], vRes = results[1], vaRes = results[2];
 
     var actifs = [];
     if (bRes && bRes.ok) {
@@ -8546,6 +8555,15 @@ async function loadBiens() {
       try {
         var vj = await vRes.json();
         ventes = (vj.ventes || []).map(_normalizeBien);
+      } catch(e) {}
+    }
+
+    // Ventes détectées AUTO depuis 3G (bien archivé/vendu → disparu du flux) — fichier séparé.
+    vendusAuto = [];
+    if (vaRes && vaRes.ok) {
+      try {
+        var vaj = await vaRes.json();
+        vendusAuto = (vaj.ventes || []);
       } catch(e) {}
     }
     // Si l'admin vient de publier, GitHub Pages peut encore servir l'ancien ventes.json
@@ -8678,14 +8696,19 @@ async function _adminMajBadge(id, changes) {
   if (!b) return;
   var overlay = await _chargerOverlay();
   var i = overlay.findIndex(function(v){ return parseInt(v.id) === parseInt(id); });
-  var e = (i >= 0) ? overlay[i] : { id: parseInt(id), statut: 'en_vente', exclusif: !!b.exclusif };
-  if (changes.statut !== undefined) { e.statut = changes.statut; e.dateVente = (changes.statut === 'vendu') ? new Date().toISOString() : null; }
-  if (changes.exclusif !== undefined) e.exclusif = !!changes.exclusif;
+  var e = (i >= 0) ? overlay[i] : { id: parseInt(id) };
+  // `override` = correction manuelle explicite : PRIORITAIRE sur 3G et conservée même si
+  // le statut redevient « en vente » (sinon impossible de corriger un faux « compromis » venu de 3G).
+  if (changes.statut !== undefined) { e.statut = changes.statut; e.dateVente = (changes.statut === 'vendu') ? new Date().toISOString() : null; e.override = true; }
+  if (changes.exclusif !== undefined) { e.exclusif = !!changes.exclusif; e.override = true; }
   if (changes.alaune !== undefined) e.alaune = !!changes.alaune;
   e.titre = b.titre || ''; e.type = b.type || 'Bien'; e.ville = b.ville || ''; e.img = b.img || ''; e.prix = b.prix || 0;
   if (i >= 0) overlay[i] = e; else overlay.unshift(e);
-  // On retire l'entrée si plus aucun marqueur (en vente, non exclusif, pas à la une) → fichier propre.
-  overlay = overlay.filter(function(v){ return v.statut !== 'en_vente' || v.exclusif || v.alaune; });
+  // Nettoyage : on garde toute entrée porteuse d'un marqueur (correction manuelle, à la une,
+  // exclusivité, ou statut compromis/offre/vendu). On retire les entrées vraiment vides.
+  overlay = overlay.filter(function(v){
+    return v.override || v.alaune || v.exclusif || (v.statut && v.statut !== 'en_vente');
+  });
 
   var ok = await _publierStatuts(overlay);
   if (!ok) return;

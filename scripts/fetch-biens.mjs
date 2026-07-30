@@ -22,7 +22,8 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_PATH = path.join(__dirname, '..', 'data', 'biens.json');
-const OUT_VENTES = path.join(__dirname, '..', 'data', 'ventes.json');
+const OUT_VENTES = path.join(__dirname, '..', 'data', 'ventes.json');          // overlay ADMIN (ne pas écrire ici)
+const OUT_VENDUS_AUTO = path.join(__dirname, '..', 'data', 'vendus-auto.json'); // ventes détectées AUTO depuis 3G
 const MAX_VENTES = 12; // nb de ventes récentes conservées dans « Nos dernières ventes »
 
 const THREEG_TOKEN = process.env.THREEG_TOKEN;
@@ -116,10 +117,13 @@ function annonceVersBien(a, ref) {
   const surface = (ref && toInt(ref.surface)) ? toInt(ref.surface) : corrigerSurface(a.surface_bien);
   const titre = (ref && ref.titre) ? ref.titre : construireTitre(typeLabel, pieces, ville);
 
-  // BADGES (exclusivité + statut) : gérés à la MAIN depuis l'admin (overlay data/ventes.json),
-  // car les champs 3G se sont révélés non fiables. 3G ne fournit que les données du bien.
-  const exclusif = false;
-  const statut = 'en_vente';
+  // BADGES pilotés par 3G (décision cliente 30/07) : statut depuis `etat`, exclusivité depuis
+  // `type_mandat`. L'admin peut CORRIGER à la main (overlay data/ventes.json, prioritaire à la fusion).
+  //   etat : 2 = sous compromis, 3 = offre en cours ; 1/absent/autre = en vente.
+  //   type_mandat : 3 = mandat exclusif.
+  const etat = toInt(a.etat);
+  const statut = etat === 2 ? 'sous_compromis' : (etat === 3 ? 'offre_en_cours' : 'en_vente');
+  const exclusif = toInt(a.type_mandat) === 3;
 
   return {
     id: Number(a.i), titre, type: typeLabel, ville,
@@ -167,6 +171,16 @@ function lireBiensExistants() {
 function lireVentes() {
   try {
     const j = JSON.parse(fs.readFileSync(OUT_VENTES, 'utf8'));
+    return Array.isArray(j.ventes) ? j.ventes : [];
+  } catch {
+    return [];
+  }
+}
+
+// Ventes détectées AUTOMATIQUEMENT (bien disparu du flux 3G) — fichier distinct de l'overlay admin.
+function lireVendusAuto() {
+  try {
+    const j = JSON.parse(fs.readFileSync(OUT_VENDUS_AUTO, 'utf8'));
     return Array.isArray(j.ventes) ? j.ventes : [];
   } catch {
     return [];
@@ -230,15 +244,19 @@ async function main() {
   // « Nos dernières ventes » (data/ventes.json). Si une vente est annulée et que le
   // bien réapparaît actif sur 3G, on le retire automatiquement des ventes.
   const idsActifs = new Set(properties.map((p) => p.id));
-  let ventes = lireVentes().filter((v) => !idsActifs.has(Number(v.id)));
-  const dejaVendu = new Set(ventes.map((v) => Number(v.id)));
+  // On repart des ventes auto connues, en retirant celles qui sont REDEVENUES actives (vente annulée).
+  let vendusAuto = lireVendusAuto().filter((v) => !idsActifs.has(Number(v.id)));
+  const dejaVendu = new Set(vendusAuto.map((v) => Number(v.id)));
   const maintenant = new Date().toISOString();
   let nouvellesVentes = 0;
   for (const [id, prev] of existants) {
     if (idsActifs.has(id) || dejaVendu.has(id)) continue;
     const st = prev && prev.statut;
+    // Un bien qui était sous compromis / offre (ou déjà vendu) et qui DISPARAÎT du flux 3G
+    // = archivé par la cliente dans 3G = vendu. (On ignore les simples « en vente » disparus,
+    // qui peuvent être de simples retraits de mandat, pas des ventes.)
     if (st === 'sous_compromis' || st === 'offre_en_cours' || st === 'vendu') {
-      ventes.unshift({
+      vendusAuto.unshift({
         id: Number(id), titre: prev.titre || '', type: prev.type || 'Bien',
         ville: prev.ville || '', img: prev.img || '', prix: prev.prix || 0,
         statut: 'vendu', dateVente: prev.dateVente || maintenant,
@@ -246,8 +264,8 @@ async function main() {
       nouvellesVentes++;
     }
   }
-  ventes.sort((a, b) => new Date(b.dateVente || 0) - new Date(a.dateVente || 0));
-  ventes = ventes.slice(0, MAX_VENTES);
+  vendusAuto.sort((a, b) => new Date(b.dateVente || 0) - new Date(a.dateVente || 0));
+  vendusAuto = vendusAuto.slice(0, MAX_VENTES);
 
   // Rapport de synthèse (anti-dérive) : visible à chaque run + committé dans data/_audit.json.
   const audit = {
@@ -255,7 +273,7 @@ async function main() {
     total: properties.length,
     parStatut: properties.reduce((acc, p) => { acc[p.statut] = (acc[p.statut] || 0) + 1; return acc; }, {}),
     exclusifs: properties.filter((p) => p.exclusif).length,
-    ventes: ventes.length,
+    ventes: vendusAuto.length,
     nouvellesVentes,
     sansVille: properties.filter((p) => !p.ville).length,
     sansPhoto: properties.filter((p) => !p.photos || p.photos.length === 0).length,
@@ -280,18 +298,18 @@ async function main() {
   if (sansVille.length) console.warn(`   ⚠️ ${sansVille.length} bien(s) sans ville détectée : ${sansVille.map((p) => p.id).join(', ')}`);
 
   if (nouvellesVentes) console.log(`   🏷️ ${nouvellesVentes} bien(s) passé(s) en « vendu » (disparu(s) du flux après compromis/offre).`);
-  console.log(`   📁 ${ventes.length} vente(s) dans « Nos dernières ventes ».`);
+  console.log(`   📁 ${vendusAuto.length} vente(s) auto dans « Nos dernières ventes ».`);
 
   if (DRY_RUN) { console.log('\n✅ Mode test terminé : aucune écriture.\n'); return; }
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, JSON.stringify(payload, null, 2));
-  // ⛔ NE PLUS écrire data/ventes.json ici : c'est l'OVERLAY géré 100 % depuis l'admin
-  //    (statut, exclusivité, à la une, vendu), publié par le worker serverless. Si la synchro
-  //    le réécrivait, elle effacerait les choix de la cliente à chaque passage (toutes les 30 min).
-  //    L'admin est désormais le SEUL auteur de ce fichier. (Détection auto des ventes désactivée.)
+  // Ventes détectées auto → fichier DISTINCT. On ne touche JAMAIS à data/ventes.json,
+  // qui est l'overlay géré depuis l'admin (corrections manuelles + à la une). Les deux
+  // sources se combinent côté site (« Nos dernières ventes »). Évite tout écrasement.
+  fs.writeFileSync(OUT_VENDUS_AUTO, JSON.stringify({ ventes: vendusAuto }, null, 2));
   fs.writeFileSync(path.join(__dirname, '..', 'data', '_audit.json'), JSON.stringify(audit, null, 2));
-  console.log(`\n✅ Terminé : ${properties.length} bien(s) actifs écrits (ventes.json laissé intact, géré depuis l'admin).\n`);
+  console.log(`\n✅ Terminé : ${properties.length} bien(s) actifs + ${vendusAuto.length} vente(s) auto écrits (ventes.json admin intact).\n`);
 }
 
 main().catch((e) => { console.error('\n❌ Échec :', e.message, '\n'); process.exit(1); });
