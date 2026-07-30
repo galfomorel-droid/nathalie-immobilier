@@ -304,6 +304,15 @@ async function main() {
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, JSON.stringify(payload, null, 2));
+  // 🔎 SONDE TEMPORAIRE (à retirer) : liste TOUS les champs 3G + 3 valeurs d'exemple chacun,
+  //    pour brancher ensuite tout ce qui manque (DPE complet, GES, coûts, etc.).
+  try {
+    const keys = [...new Set(annonces.flatMap((a) => Object.keys(a)))].sort();
+    const echantillon = {};
+    for (const k of keys) echantillon[k] = annonces.slice(0, 3).map((a) => a[k]);
+    fs.writeFileSync(path.join(__dirname, '..', 'data', '_3g-debug.json'),
+      JSON.stringify({ nbAnnonces: annonces.length, keys, echantillon }, null, 2));
+  } catch (e) { console.warn('sonde 3G:', e.message); }
   // Ventes détectées auto → fichier DISTINCT. On ne touche JAMAIS à data/ventes.json,
   // qui est l'overlay géré depuis l'admin (corrections manuelles + à la une). Les deux
   // sources se combinent côté site (« Nos dernières ventes »). Évite tout écrasement.
