@@ -153,6 +153,7 @@ function annonceVersBien(a, ref) {
     annee: toInt(a.annee_construction) || (ref && ref.annee) || null,
     exclusif: exclusif,
     ref: a.num_mandat ? String(a.num_mandat) : '',
+    accroche: a.accroche || (ref && ref.accroche) || '',
     description: a.description_annonce || (ref && ref.description) || '',
     img: photos[0] || '', photos,
     // DPE complet depuis 3G (énergie + GES + conso + émissions + coûts annuels + date).
