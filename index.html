@@ -894,7 +894,7 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
 .biens-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  gap: 2.6rem;
   max-width: 1300px;
   margin: 0 auto;
 }
@@ -902,25 +902,26 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
 .biens-page-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2.5rem;
+  gap: 3rem;
   max-width: 1400px;
   margin: 0 auto;
 }
+/* Cartes prestige : angles nets, fond blanc, fin filet, ombre uniquement au survol (lent) */
 .bien-card {
   background: var(--white);
   cursor: pointer;
-  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  transition: box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.55s ease;
   overflow: hidden;
-  border: 1px solid var(--beige);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--beige-dark);
+  border-radius: 0;
+  box-shadow: none;
   position: relative;
   display: flex;
   flex-direction: column;
 }
 .bien-card-body { display: flex; flex-direction: column; flex: 1; }
 .bien-card-body .bien-card-footer { margin-top: auto; }
-.bien-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: transparent; }
+.bien-card:hover { box-shadow: 0 26px 60px rgba(43,42,38,0.14); border-color: var(--beige); }
 
 .bien-card-img {
   position: relative;
@@ -938,7 +939,7 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
   transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   display: block;
 }
-.bien-card:hover .bien-card-img img { transform: scale(1.04); }
+.bien-card:hover .bien-card-img img { transform: scale(1.06); }
 
 /* Voile ardoise léger permanent (lisibilité badge) + voile sauge au survol */
 .bien-card-img::after {
@@ -1066,12 +1067,12 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
 }
 .bien-vg {
   display: inline-block;
-  padding: 0.36rem 0.75rem;
-  border-radius: var(--radius-pill);
+  padding: 0.38rem 0.8rem;
+  border-radius: 0;
   font-family: var(--sans);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #fff;
   line-height: 1;
