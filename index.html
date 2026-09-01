@@ -62,7 +62,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
 <link rel="dns-prefetch" href="https://images.unsplash.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <!-- ================================================================
      SCHEMA.ORG — DONNÉES STRUCTURÉES (résultats enrichis Google)
@@ -287,7 +287,7 @@
   --ardoise: #2B2A26;      /* Alias sémantique des sections sombres */
   --coquillage: #FAF7F1;   /* Alias texte/badges sur fond sombre */
   /* Typographie */
-  --serif: 'Fraunces', Georgia, serif;
+  --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --sans: 'Inter', system-ui, sans-serif;
   /* Mouvement — courbe unique */
   --transition: 0.45s cubic-bezier(0.22, 1, 0.36, 1);
@@ -626,7 +626,18 @@ select.search-field {
   letter-spacing: 0.05em; cursor: pointer; transition: background var(--transition), color var(--transition);
 }
 .biens-alerte:hover { background: var(--or); color: #fff; }
-.biens-tri { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--gris); }
+.biens-vue-toggle {
+  display: inline-flex; align-items: center; gap: 0.5rem; margin-left: auto;
+  background: none; border: 1px solid var(--beige-dark); color: var(--noir);
+  padding: 0.55rem 1.15rem; font-family: var(--sans); font-size: 0.76rem;
+  letter-spacing: 0.05em; cursor: pointer; transition: background var(--transition), border-color var(--transition);
+}
+.biens-vue-toggle:hover, .biens-vue-toggle.active { background: var(--noir); color: #fff; border-color: var(--noir); }
+#biensMap { width: 92%; max-width: 1400px; height: 620px; margin: 1.5rem auto 0; border: 1px solid var(--beige-dark); background: var(--beige); box-sizing: border-box; }
+.biens-map-popup { font-family: var(--sans); font-size: 0.82rem; line-height: 1.5; }
+.biens-map-popup strong { font-family: var(--serif); font-size: 1rem; }
+.biens-map-popup a { color: var(--or-fonce); font-weight: 600; cursor: pointer; }
+.biens-tri { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--gris); }
 .biens-tri select {
   border: 1px solid var(--beige-dark); background: #fff; padding: 0.5rem 0.75rem;
   font-family: var(--sans); font-size: 0.82rem; color: var(--noir); cursor: pointer;
@@ -4472,6 +4483,10 @@ button:focus-visible,
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         Créer une alerte
       </button>
+      <button id="biensVueBtn" class="biens-vue-toggle" onclick="toggleVueCarte()">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
+        <span id="biensVueLabel">Carte</span>
+      </button>
       <div class="biens-tri">
         <label for="biensTri">Trier par :</label>
         <select id="biensTri" onchange="setFiltre('tri', this.value)">
@@ -4484,6 +4499,7 @@ button:focus-visible,
     </div>
   </div>
   <div class="biens-page-grid" id="biensGrid"></div>
+  <div id="biensMap" style="display:none;"></div>
 </div>
 
 <!-- ===== FICHE BIEN ===== -->
@@ -6319,28 +6335,27 @@ function renderReseauxThumbs() {
   });
 }
 
-function renderBiensGrid() {
-  const grid = document.getElementById('biensGrid');
-  if (!grid) return;
-  // Exclure les biens vendus
-  let filtered = biens.filter(function(b){ return b.statut !== 'vendu'; });
-  if (filterType !== 'all') filtered = filtered.filter(b => b.type === filterType);
-  if (filterVille) filtered = filtered.filter(b => b.ville === filterVille);
-  if (filterBudgetMax > 0) filtered = filtered.filter(b => (parseInt(b.prix) || 0) <= filterBudgetMax);
-  if (filterSurfaceMin > 0) filtered = filtered.filter(b => (parseInt(b.surface) || 0) >= filterSurfaceMin);
-  if (filterChambresMin > 0) filtered = filtered.filter(b => (parseInt(b.chambres) || 0) >= filterChambresMin);
-  if (filterRef) {
-    var q = filterRef.toLowerCase().trim();
-    filtered = filtered.filter(b => String(b.ref || '').toLowerCase().indexOf(q) !== -1);
-  }
-  // Tri
-  filtered.sort(function(a, b){
+// Filtrage + tri partagés (grille ET carte)
+function getBiensFiltres() {
+  let f = biens.filter(function(b){ return b.statut !== 'vendu'; });
+  if (filterType !== 'all') f = f.filter(b => b.type === filterType);
+  if (filterVille) f = f.filter(b => b.ville === filterVille);
+  if (filterBudgetMax > 0) f = f.filter(b => (parseInt(b.prix) || 0) <= filterBudgetMax);
+  if (filterSurfaceMin > 0) f = f.filter(b => (parseInt(b.surface) || 0) >= filterSurfaceMin);
+  if (filterChambresMin > 0) f = f.filter(b => (parseInt(b.chambres) || 0) >= filterChambresMin);
+  if (filterRef) { var q = filterRef.toLowerCase().trim(); f = f.filter(b => String(b.ref || '').toLowerCase().indexOf(q) !== -1); }
+  f.sort(function(a, b){
     if (sortBiens === 'prix_asc')  return (parseInt(a.prix)||0) - (parseInt(b.prix)||0);
     if (sortBiens === 'prix_desc') return (parseInt(b.prix)||0) - (parseInt(a.prix)||0);
     if (sortBiens === 'surface_desc') return (parseInt(b.surface)||0) - (parseInt(a.surface)||0);
-    return (parseInt(b.id) || 0) - (parseInt(a.id) || 0); // recent (défaut)
+    return (parseInt(b.id) || 0) - (parseInt(a.id) || 0);
   });
-  // Compteur de résultats
+  return f;
+}
+function renderBiensGrid() {
+  const grid = document.getElementById('biensGrid');
+  if (!grid) return;
+  var filtered = getBiensFiltres();
   var countEl = document.getElementById('biensCount');
   if (countEl) countEl.textContent = filtered.length + ' résultat' + (filtered.length > 1 ? 's' : '');
   grid.innerHTML = '';
@@ -6350,6 +6365,70 @@ function renderBiensGrid() {
     grid.innerHTML = '<p style="padding:3rem;color:var(--gris);grid-column:1/-1">Aucun bien correspondant à votre recherche.</p>';
   }
   observeFadeIns();
+  if (_carteVisible) renderBiensMap();  // maj carte si ouverte
+}
+
+// ===== CARTE (Leaflet, chargé à la demande) =====
+var _carteVisible = false, _leafletMap = null, _leafletLayer = null, _leafletLoading = false;
+var VILLE_COORDS = {
+  'Le Pouliguen': [47.2717, -2.4275], 'La Baule': [47.2861, -2.3936], 'La Baule-Escoublac': [47.2925, -2.3550],
+  'Guérande': [47.3283, -2.4291], 'Pornichet': [47.2661, -2.3400], 'Batz-sur-Mer': [47.2786, -2.4842],
+  'La Turballe': [47.3467, -2.5089], 'Le Croisic': [47.2942, -2.5136], 'Saint-Nazaire': [47.2735, -2.2130],
+  'Herbignac': [47.4459, -2.3169], 'Piriac-sur-Mer': [47.3800, -2.5461], 'Mesquer': [47.3969, -2.4700],
+  'Saint-Molf': [47.3878, -2.4200], 'Assérac': [47.4342, -2.3950], 'Nantes': [47.2184, -1.5536],
+  'Saint-André-des-Eaux': [47.3167, -2.3078], 'Saint-Lyphard': [47.3950, -2.3186], 'Trignac': [47.3167, -2.1889],
+  'Montoir-de-Bretagne': [47.3167, -2.1500], 'Pornic': [47.1158, -2.1050], 'Saint-Brevin-les-Pins': [47.2461, -2.1650],
+  'Donges': [47.3183, -2.0722]
+};
+function _coordVille(ville, id) {
+  var base = VILLE_COORDS[ville] || VILLE_COORDS['Le Pouliguen'];
+  var n = parseInt(id) || 0; // décalage déterministe pour ne pas empiler les biens d'une même ville
+  return [base[0] + (((Math.floor(n / 7)) % 7 - 3) * 0.0016), base[1] + ((n % 7 - 3) * 0.0016)];
+}
+function _chargerLeaflet(cb) {
+  if (window.L) { cb(); return; }
+  if (_leafletLoading) { setTimeout(function(){ _chargerLeaflet(cb); }, 200); return; }
+  _leafletLoading = true;
+  var css = document.createElement('link'); css.rel = 'stylesheet';
+  css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(css);
+  var js = document.createElement('script'); js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  js.onload = cb; document.head.appendChild(js);
+}
+function toggleVueCarte() {
+  _carteVisible = !_carteVisible;
+  var grid = document.getElementById('biensGrid'), map = document.getElementById('biensMap');
+  var btn = document.getElementById('biensVueBtn'), label = document.getElementById('biensVueLabel');
+  if (_carteVisible) {
+    grid.style.display = 'none'; map.style.display = 'block';
+    if (btn) btn.classList.add('active'); if (label) label.textContent = 'Liste';
+    _chargerLeaflet(renderBiensMap);
+  } else {
+    map.style.display = 'none'; grid.style.display = '';
+    if (btn) btn.classList.remove('active'); if (label) label.textContent = 'Carte';
+  }
+}
+function renderBiensMap() {
+  if (!window.L) return;
+  var el = document.getElementById('biensMap'); if (!el) return;
+  if (!_leafletMap) {
+    _leafletMap = L.map(el, { scrollWheelZoom: false }).setView([47.29, -2.40], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap', maxZoom: 19, subdomains: 'abc'
+    }).addTo(_leafletMap);
+  }
+  if (_leafletLayer) _leafletLayer.remove();
+  _leafletLayer = L.layerGroup().addTo(_leafletMap);
+  var liste = getBiensFiltres(), bounds = [];
+  liste.forEach(function(b){
+    var c = _coordVille(b.ville, b.id); bounds.push(c);
+    var prix = (typeof formatPrixPublic === 'function') ? formatPrixPublic(b) : ((b.prix||0) + ' €');
+    L.marker(c).addTo(_leafletLayer).bindPopup(
+      '<div class="biens-map-popup"><strong>' + (b.type||'Bien') + '</strong><br>' +
+      (b.ville||'') + (b.surface ? ' · ' + b.surface + ' m²' : '') + '<br>' +
+      '<span style="color:#8F6E1E;font-weight:600;">' + prix + '</span><br>' +
+      '<a onclick="showFiche(' + (parseInt(b.id)||0) + ');return false;">Voir le bien →</a></div>');
+  });
+  setTimeout(function(){ _leafletMap.invalidateSize(); if (bounds.length) _leafletMap.fitBounds(bounds, { padding: [40,40], maxZoom: 13 }); }, 120);
 }
 // Applique une valeur de filtre depuis les <select> et re-rend
 function setFiltre(champ, valeur) {
