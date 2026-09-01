@@ -423,16 +423,16 @@ nav.scrolled .nav-links a:hover { color: var(--noir); }
 .nav-cta {
   background: var(--or);
   color: var(--noir) !important;
-  padding: 0.6rem 1.4rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.75rem !important;
-  font-weight: 500;
-  letter-spacing: 0.12em;
+  padding: 0.85rem 1.7rem !important;
+  border-radius: 0 !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.16em !important;
   text-transform: uppercase;
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition) !important;
+  transition: background var(--transition) !important;
 }
 .nav-cta::after { display: none !important; }
-.nav-cta:hover { background: var(--or-light) !important; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(201,162,75,0.3); }
+.nav-cta:hover { background: var(--or-light) !important; }
 
 /* Hamburger */
 .hamburger {
@@ -1010,6 +1010,40 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 }
 .biens-link:hover { color: var(--or-light); transform: translateX(5px); }
 .biens-link:hover { opacity: 0.7; }
+
+/* ===== « Nos biens à la une » — mise en page Barnes (intro à gauche + carrousel à droite) ===== */
+.une-layout { display: flex; gap: 3.5rem; align-items: center; max-width: 1400px; margin: 0 auto; }
+.une-intro { flex: 0 0 290px; }
+.une-desc { color: var(--gris); line-height: 1.7; margin: 1.1rem 0 2rem; font-size: .95rem; }
+.une-cta {
+  display: inline-block; background: var(--or); color: #2B2A26;
+  padding: 1rem 1.7rem; font-family: var(--sans); font-size: .72rem;
+  letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+  transition: background var(--transition);
+}
+.une-cta:hover { background: var(--or-light); }
+.une-arrows { display: flex; gap: .7rem; margin-top: 2rem; }
+.une-arrow {
+  width: 48px; height: 48px; border: 1px solid var(--beige-dark); background: transparent;
+  cursor: pointer; font-size: 1.4rem; line-height: 1; color: var(--noir);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.une-arrow:hover { background: var(--noir); color: #fff; border-color: var(--noir); }
+.une-carousel {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; gap: 1.6rem; overflow-x: auto;
+  padding-bottom: 1rem;
+}
+.une-carousel .bien-card { flex: 0 0 330px; }
+.une-carousel::-webkit-scrollbar { height: 5px; }
+.une-carousel::-webkit-scrollbar-track { background: transparent; }
+.une-carousel::-webkit-scrollbar-thumb { background: var(--beige-dark); border-radius: 999px; }
+@media (max-width: 900px) {
+  .une-layout { flex-direction: column; align-items: stretch; gap: 2rem; }
+  .une-intro { flex: none; }
+  .une-arrows { display: none; }
+}
 .biens-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -4042,14 +4076,19 @@ button:focus-visible,
 
   <!-- BIENS EN AVANT -->
   <section id="biens-home">
-    <div class="biens-header">
-      <div>
+    <div class="une-layout">
+      <div class="une-intro">
         <div class="section-tag">Sélection exclusive</div>
-        <h2 class="section-title">Biens à la une</h2>
+        <h2 class="section-title">Nos biens à la une</h2>
+        <p class="une-desc">Une sélection de biens d'exception à vendre sur toute la presqu'île guérandaise.</p>
+        <a href="#" class="une-cta" onclick="showPage('biens');return false;">Découvrez tous nos biens à vendre</a>
+        <div class="une-arrows">
+          <button type="button" class="une-arrow" onclick="scrollUne(-1)" aria-label="Précédent">‹</button>
+          <button type="button" class="une-arrow" onclick="scrollUne(1)" aria-label="Suivant">›</button>
+        </div>
       </div>
-      <a href="#" class="biens-link" onclick="showPage('biens');return false;">Voir tous les biens →</a>
+      <div class="une-carousel" id="homeGrid"></div>
     </div>
-    <div class="biens-grid" id="homeGrid"></div>
   </section>
 
   <!-- POURQUOI -->
@@ -6350,14 +6389,20 @@ function renderHomeGrid() {
   // On exclut les biens vendus de la page d'accueil (ils apparaissent dans "Nos dernières ventes")
   const actifs = biens.filter(function(b){ return b.statut !== 'vendu'; })
     .sort(function(a, b){ return (parseInt(b.id) || 0) - (parseInt(a.id) || 0); }); // plus récents d'abord (ordre d'ajout)
-  // Sélection « à la une » choisie depuis l'admin ; repli sur les 3 plus récents si aucune.
+  // Sélection « à la une » choisie depuis l'admin ; repli sur les plus récents si aucune.
+  // (Carrousel horizontal → on en montre plusieurs, façon Barnes.)
   const choisis = actifs.filter(function(b){ return b.alaune; });
-  const featured = choisis.length ? choisis : actifs.slice(0, 3);
+  const featured = choisis.length ? choisis : actifs.slice(0, 9);
   grid.innerHTML = '';
   featured.forEach(function(b) { grid.appendChild(bienCardHTML(b)); });
   observeFadeIns();
   renderVendusCarousel();
   renderReseauxThumbs();
+}
+// Défilement du carrousel « Nos biens à la une »
+function scrollUne(dir) {
+  var c = document.getElementById('homeGrid');
+  if (c) c.scrollBy({ left: dir * 360, behavior: 'smooth' });
 }
 
 // Remplit les 3 vignettes « feed » de chaque carte réseau avec de VRAIES photos
