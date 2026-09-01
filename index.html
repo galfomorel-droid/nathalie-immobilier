@@ -622,6 +622,25 @@ select.search-field {
 .search-field:last-child { border-right: none; }
 .search-field:focus { outline: none; background: #FAF7F1; }
 .search-ref { flex: 0 1 120px; cursor: text; }
+/* Multi-sélection de villes (page Biens) */
+.ms { position: relative; flex: 1 1 150px; min-width: 0; }
+.ms-toggle {
+  width: 100%; text-align: left; cursor: pointer; background: transparent;
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+}
+.ms-toggle > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-toggle::after { content: '▾'; color: var(--gris); flex: 0 0 auto; font-size: .8rem; }
+.ms-panel {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 40;
+  background: #fff; border: 1px solid var(--beige-dark);
+  min-width: 230px; max-height: 300px; overflow-y: auto;
+  box-shadow: 0 12px 34px rgba(43,42,38,0.16); padding: .3rem 0; display: none;
+}
+.ms.open .ms-panel { display: block; }
+.ms-opt { display: flex; align-items: center; gap: .6rem; padding: .55rem .95rem; cursor: pointer; font-size: .85rem; color: var(--noir); }
+.ms-opt:hover { background: #FAF7F1; }
+.ms-opt input { accent-color: var(--or); width: 15px; height: 15px; flex: 0 0 auto; }
+.ms-opt span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .biens-resultbar {
   display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap;
   margin: 1.6rem 0 0.5rem;
@@ -1630,7 +1649,9 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
   color: var(--or);
   margin-bottom: 2rem;
   transition: opacity var(--transition);
+  white-space: nowrap;
 }
+@media (max-width: 480px) { .cta-tel { font-size: 1.5rem; } }
 .cta-tel:hover { opacity: 0.8; }
 .cta-buttons {
   display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
@@ -4464,7 +4485,10 @@ button:focus-visible,
   </div>
   <div style="padding:2rem 6% 0;max-width:1400px;margin:0 auto;">
     <div class="search-bar">
-      <select id="biensVille" class="search-field" onchange="setFiltre('ville', this.value)"><option value="">Toutes les villes</option></select>
+      <div id="biensVilleMS" class="ms">
+        <button type="button" class="search-field ms-toggle" onclick="toggleVilleMenu(event)"><span id="biensVilleLabel">Toutes les villes</span></button>
+        <div id="biensVillePanel" class="ms-panel"></div>
+      </div>
       <select id="biensType" class="search-field" onchange="setFiltre('type', this.value)">
         <option value="">Type de bien</option>
         <option value="Maison">Maison</option>
@@ -5549,7 +5573,7 @@ let biens = []
 var vendusAuto = []; // ventes détectées auto depuis 3G (data/vendus-auto.json) — alimentent « Nos dernières ventes »
 let nextId = 7;
 let filterType = 'all';
-let filterVille = '';
+let filterVilles = [];   // multi-sélection de villes ([] = toutes)
 let filterBudgetMax = 0;   // 0 = sans limite
 let filterSurfaceMin = 0;
 let filterChambresMin = 0;
@@ -6360,7 +6384,7 @@ function renderReseauxThumbs() {
 function getBiensFiltres() {
   let f = biens.filter(function(b){ return b.statut !== 'vendu'; });
   if (filterType !== 'all') f = f.filter(b => b.type === filterType);
-  if (filterVille) f = f.filter(b => b.ville === filterVille);
+  if (filterVilles.length) f = f.filter(b => filterVilles.indexOf(b.ville) !== -1);
   if (filterBudgetMax > 0) f = f.filter(b => (parseInt(b.prix) || 0) <= filterBudgetMax);
   if (filterSurfaceMin > 0) f = f.filter(b => (parseInt(b.surface) || 0) >= filterSurfaceMin);
   if (filterChambresMin > 0) f = f.filter(b => (parseInt(b.chambres) || 0) >= filterChambresMin);
@@ -6454,7 +6478,6 @@ function renderBiensMap() {
 // Applique une valeur de filtre depuis les <select> et re-rend
 function setFiltre(champ, valeur) {
   if (champ === 'type') filterType = valeur || 'all';
-  else if (champ === 'ville') filterVille = valeur || '';
   else if (champ === 'budget') filterBudgetMax = parseInt(valeur) || 0;
   else if (champ === 'surface') filterSurfaceMin = parseInt(valeur) || 0;
   else if (champ === 'chambres') filterChambresMin = parseInt(valeur) || 0;
@@ -6466,7 +6489,7 @@ function setFiltre(champ, valeur) {
 function lancerRechercheHero() {
   var g = function(id){ var e = document.getElementById(id); return e ? e.value : ''; };
   filterType = g('heroType') || 'all';
-  filterVille = g('heroVille') || '';
+  var _hv = g('heroVille'); filterVilles = _hv ? [_hv] : [];
   filterBudgetMax = parseInt(g('heroBudget')) || 0;
   filterSurfaceMin = parseInt(g('heroSurface')) || 0;
   filterChambresMin = parseInt(g('heroChambres')) || 0;
@@ -6479,16 +6502,17 @@ function lancerRechercheHero() {
 }
 // Recopie l'état des filtres dans les <select> de la page Biens
 function syncFiltresBiens() {
-  var map = { biensType: filterType === 'all' ? '' : filterType, biensVille: filterVille,
+  var map = { biensType: filterType === 'all' ? '' : filterType,
     biensBudget: filterBudgetMax || '', biensSurface: filterSurfaceMin || '',
     biensChambres: filterChambresMin || '', biensTri: sortBiens };
   Object.keys(map).forEach(function(id){ var e = document.getElementById(id); if (e) e.value = String(map[id]); });
+  syncVilleMultiselect();
 }
 // « Créer une alerte » : ouvre le formulaire de contact pré-rempli avec la recherche
 function creerAlerte() {
   var parts = [];
   if (filterType !== 'all') parts.push(filterType.toLowerCase());
-  if (filterVille) parts.push('à ' + filterVille);
+  if (filterVilles.length) parts.push('à ' + filterVilles.join(', '));
   if (filterBudgetMax) parts.push('budget max ' + filterBudgetMax.toLocaleString('fr-FR') + ' €');
   if (filterSurfaceMin) parts.push('surface min ' + filterSurfaceMin + ' m²');
   if (filterChambresMin) parts.push(filterChambresMin + ' chambre(s) min');
@@ -6579,7 +6603,7 @@ function filterByType(t) {
   renderBiensGrid();
 }
 function filterByVille(v) {
-  filterVille = v;
+  filterVilles = v ? [v] : [];
   renderBiensGrid();
 }
 
@@ -7453,21 +7477,84 @@ async function saveEdit() {
 
 var villes = ['Le Pouliguen', 'La Baule', 'Guérande', 'Le Croisic', 'Batz-sur-Mer', 'La Turballe', 'Piriac-sur-Mer', 'Pornichet', 'Saint-Nazaire', 'Saint-André-des-Eaux', 'Herbignac', 'Mesquer', 'Saint-Molf', 'Assérac', 'La Roche Bernard'];
 
-function refreshVilleSelects() {
-  // Listes de villes des barres de recherche (page Biens + hero)
-  var villesTriees = villes.slice().sort(function(a, b){ return a.localeCompare(b, 'fr'); });
-  [['biensVille', 'Toutes les villes'], ['heroVille', 'Ville']].forEach(function(pair){
-    var sel = document.getElementById(pair[0]);
-    if (!sel) return;
-    var currentVal = sel.value;
-    sel.innerHTML = '<option value="">' + pair[1] + '</option>';
-    villesTriees.forEach(function(v){
-      var opt = document.createElement('option');
-      opt.value = v; opt.textContent = v;
-      if (v === currentVal) opt.selected = true;
-      sel.appendChild(opt);
-    });
+// Types / villes réellement présents parmi les biens ACTIFS (barre de recherche intelligente)
+function typesPresents() {
+  var set = {};
+  biens.forEach(function(b){ if (b.statut !== 'vendu' && b.type) set[b.type] = true; });
+  return Object.keys(set).sort(function(a, b){ return a.localeCompare(b, 'fr'); });
+}
+function villesPresentes() {
+  var set = {};
+  biens.forEach(function(b){ if (b.statut !== 'vendu' && b.ville) set[b.ville] = true; });
+  return Object.keys(set).sort(function(a, b){ return a.localeCompare(b, 'fr'); });
+}
+// Panneau multi-villes (cases à cocher) de la page Biens
+function buildVilleMultiselect(villesL) {
+  var panel = document.getElementById('biensVillePanel');
+  if (!panel) return;
+  // on nettoie la sélection des villes qui n'existent plus
+  filterVilles = filterVilles.filter(function(v){ return villesL.indexOf(v) !== -1; });
+  panel.innerHTML = '';
+  villesL.forEach(function(v){
+    var lab = document.createElement('label');
+    lab.className = 'ms-opt';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.value = v; cb.checked = filterVilles.indexOf(v) !== -1;
+    cb.addEventListener('change', function(){ onVilleCheck(cb); });
+    var sp = document.createElement('span'); sp.textContent = v;
+    lab.appendChild(cb); lab.appendChild(sp);
+    panel.appendChild(lab);
   });
+  syncVilleMultiselect();
+}
+function onVilleCheck(cb) {
+  var v = cb.value;
+  if (cb.checked) { if (filterVilles.indexOf(v) === -1) filterVilles.push(v); }
+  else { filterVilles = filterVilles.filter(function(x){ return x !== v; }); }
+  syncVilleMultiselect();
+  renderBiensGrid();
+}
+function syncVilleMultiselect() {
+  var label = document.getElementById('biensVilleLabel');
+  if (label) {
+    if (!filterVilles.length) label.textContent = 'Toutes les villes';
+    else if (filterVilles.length === 1) label.textContent = filterVilles[0];
+    else label.textContent = filterVilles.length + ' villes sélectionnées';
+  }
+  var panel = document.getElementById('biensVillePanel');
+  if (panel) Array.prototype.forEach.call(panel.querySelectorAll('input[type=checkbox]'), function(cb){ cb.checked = filterVilles.indexOf(cb.value) !== -1; });
+}
+function toggleVilleMenu(e) {
+  if (e) e.stopPropagation();
+  var ms = document.getElementById('biensVilleMS');
+  if (ms) ms.classList.toggle('open');
+}
+document.addEventListener('click', function(e){
+  var ms = document.getElementById('biensVilleMS');
+  if (ms && ms.classList.contains('open') && !ms.contains(e.target)) ms.classList.remove('open');
+});
+
+function refreshVilleSelects() {
+  // ===== Barres de recherche INTELLIGENTES : uniquement les types/villes réellement présents =====
+  var villesL = villesPresentes();
+  var typesL = typesPresents();
+  // Types dynamiques (hero + page Biens) — ex. « Villa » n'apparaît pas s'il n'y a aucun villa
+  ['heroType', 'biensType'].forEach(function(id){
+    var sel = document.getElementById(id); if (!sel) return;
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">Type de bien</option>';
+    typesL.forEach(function(t){ var o = document.createElement('option'); o.value = t; o.textContent = t; if (t === cur) o.selected = true; sel.appendChild(o); });
+    if (typesL.indexOf(cur) === -1) sel.value = '';
+  });
+  // Ville du hero (sélection simple, dynamique)
+  var heroV = document.getElementById('heroVille');
+  if (heroV) {
+    var curH = heroV.value;
+    heroV.innerHTML = '<option value="">Ville</option>';
+    villesL.forEach(function(v){ var o = document.createElement('option'); o.value = v; o.textContent = v; if (v === curH) o.selected = true; heroV.appendChild(o); });
+  }
+  // Ville de la page Biens : MULTI-sélection (cases à cocher)
+  buildVilleMultiselect(villesL);
   // Admin select ville
   const adminSel = document.getElementById('aVille');
   if (adminSel) {
@@ -9058,9 +9145,16 @@ async function loadBiens() {
 }
 
 // Normalise un bien pour l'affichage (ville par défaut, unification DPE/GES).
+// Villes canoniques (unifie les variantes 3G : accents, tirets, casse)
+var VILLES_CANON = ['La Baule','Le Pouliguen','Guérande','Pornichet','La Turballe','Le Croisic','Batz-sur-Mer','Saint-Nazaire','Saint-André-des-Eaux','Herbignac','Piriac-sur-Mer','Mesquer','Saint-Molf','Assérac','Trignac','Montoir-de-Bretagne','Saint-Lyphard','Saint-Joachim','Pornic','Saint-Brevin-les-Pins','Donges','Nantes'];
+function _normVilleKey(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[\s\-]+/g,' ').trim(); }
+var _VILLES_CANON_MAP = (function(){ var m={}; VILLES_CANON.forEach(function(v){ m[_normVilleKey(v)] = v; }); m['la baule escoublac']='La Baule'; m['escoublac']='La Baule'; return m; })();
+function _canonVille(v){ var k=_normVilleKey(v); return _VILLES_CANON_MAP[k] || v; }
+
 function _normalizeBien(b) {
   b.id = parseInt(b.id);
   if (b.description && !b.desc) b.desc = b.description;
+  if (b.ville) b.ville = _canonVille(b.ville);
   if (!b.ville || !String(b.ville).trim()) b.ville = 'Le Pouliguen';
   if (!b.dpeClasse && b.dpe) b.dpeClasse = b.dpe;
   if (!b.dpeConso && b.dpeVal) b.dpeConso = b.dpeVal;
