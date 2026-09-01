@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-10T14:37:03.895Z",
-  "total": 25,
+  "generatedAt": "2026-09-01T16:27:16.397Z",
+  "total": 26,
   "parStatut": {
-    "en_vente": 23,
+    "en_vente": 24,
     "sous_compromis": 2
   },
-  "exclusifs": 2,
+  "exclusifs": 3,
   "ventes": 0,
   "nouvellesVentes": 0,
   "sansVille": 0,
