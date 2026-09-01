@@ -560,7 +560,8 @@ nav.scrolled .hamburger span { background: var(--noir); }
 /* ===== Barre de recherche du hero (façon Barnes) ===== */
 .hero-search {
   display: flex; flex-wrap: nowrap; justify-content: center; align-items: stretch;
-  margin: 0 auto 1.8rem; max-width: 1040px; width: 100%;
+  position: relative; left: 50%; transform: translateX(-50%);
+  width: min(1080px, 92vw); max-width: none; margin: 0 0 1.8rem;
   background: rgba(30,28,25,0.32);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.22);
@@ -594,7 +595,7 @@ select.hero-search-field {
 }
 .hero-search-btn:hover { background: var(--or-light); }
 @media (max-width: 900px) {
-  .hero-search { flex-direction: column; max-width: 340px; }
+  .hero-search { flex-direction: column; width: 100%; max-width: 340px; left: auto; transform: none; margin: 0 auto 1.8rem; }
   .hero-search-field { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.18); text-align: center; }
   select.hero-search-field { text-align: left; }
   .hero-search-ref { flex: 1 1 auto; }
@@ -3860,19 +3861,11 @@ button:focus-visible,
         <select id="heroVille" class="hero-search-field"><option value="">Ville</option></select>
         <select id="heroBudget" class="hero-search-field">
           <option value="">Budget</option>
-          <option value="200000">Jusqu'à 200 000 €</option>
-          <option value="400000">Jusqu'à 400 000 €</option>
-          <option value="600000">Jusqu'à 600 000 €</option>
-          <option value="1000000">Jusqu'à 1 000 000 €</option>
-          <option value="3000000">Jusqu'à 3 000 000 €</option>
-        </select>
-        <select id="heroSurface" class="hero-search-field">
-          <option value="">Surface</option>
-          <option value="40">≥ 40 m²</option>
-          <option value="70">≥ 70 m²</option>
-          <option value="100">≥ 100 m²</option>
-          <option value="150">≥ 150 m²</option>
-          <option value="200">≥ 200 m²</option>
+          <option value="200000">≤ 200 000 €</option>
+          <option value="400000">≤ 400 000 €</option>
+          <option value="600000">≤ 600 000 €</option>
+          <option value="1000000">≤ 1 000 000 €</option>
+          <option value="3000000">≤ 3 000 000 €</option>
         </select>
         <select id="heroChambres" class="hero-search-field">
           <option value="">Chambres</option>
@@ -3881,7 +3874,6 @@ button:focus-visible,
           <option value="3">3 et +</option>
           <option value="4">4 et +</option>
         </select>
-        <input id="heroRef" class="hero-search-field hero-search-ref" type="text" placeholder="Réf">
         <button type="submit" class="hero-search-btn" aria-label="Rechercher">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         </button>
