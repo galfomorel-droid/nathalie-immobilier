@@ -413,7 +413,7 @@ nav.scrolled .nav-logo-name { color: var(--noir); }
   content: '';
   position: absolute; bottom: -4px; left: 0;
   width: 0; height: 1px;
-  background: var(--sauge-light);
+  background: var(--or);
   transition: width var(--transition);
 }
 .nav-links a:hover::after { width: 100%; }
@@ -606,7 +606,7 @@ nav.scrolled .hamburger span { background: var(--noir); }
 }
 
 /* ===== SECTIONS COMMUNES ===== */
-section { padding: clamp(4rem, 9vw, 6rem) 6%; }
+section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 .section-tag {
   font-size: 0.72rem;
   letter-spacing: 0.22em;
@@ -882,14 +882,16 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
   margin-right: auto;
 }
 .biens-link {
+  display: inline-block;
   font-size: 0.78rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--or);
   border-bottom: 1px solid currentColor;
   padding-bottom: 2px;
-  transition: opacity var(--transition);
+  transition: color var(--transition), transform var(--transition);
 }
+.biens-link:hover { color: var(--or-light); transform: translateX(5px); }
 .biens-link:hover { opacity: 0.7; }
 .biens-grid {
   display: grid;
