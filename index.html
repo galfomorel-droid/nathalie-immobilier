@@ -678,7 +678,7 @@ select.search-field {
 .btn {
   display: inline-flex; align-items: center; gap: 0.5rem;
   padding: 0.95rem 1.9rem;
-  border-radius: var(--radius-pill);
+  border-radius: 0;   /* angles nets, cohérent avec la nav et « à la une » (look Barnes) */
   font-family: var(--sans);
   font-size: 0.74rem;
   letter-spacing: 0.14em;
@@ -860,8 +860,8 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 .reseau-card:hover .reseau-feed span { transform: scale(1.03); }
 .reseau-btn {
   display: inline-block;
-  padding: 0.55rem 1.9rem;
-  border-radius: 40px;
+  padding: 0.6rem 1.9rem;
+  border-radius: 0;   /* angles nets, cohérent avec le reste du site */
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1014,8 +1014,9 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 .biens-link:hover { opacity: 0.7; }
 
 /* ===== « Nos biens à la une » — mise en page Barnes (intro à gauche + carrousel à droite) ===== */
-/* Fond blanc (souhait client) */
-#biens-home { background: var(--blanc); }
+/* Fond blanc (souhait client). Filet de séparation avec la section réseaux (blanche
+   aussi) pour marquer une coupure nette entre les deux « thèmes ». */
+#biens-home { background: var(--blanc); border-top: 1px solid var(--beige); }
 .une-layout { display: flex; gap: 3.5rem; align-items: center; max-width: 1400px; margin: 0 auto; }
 .une-intro { flex: 0 0 290px; }
 .une-desc { color: var(--gris); line-height: 1.7; margin: 1.1rem 0 2rem; font-size: .95rem; }
@@ -1657,9 +1658,9 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 
 /* ===== CTA ===== */
 #cta {
-  background: 
-    linear-gradient(to bottom right, rgba(43,42,38,0.85), rgba(43,42,38,0.95)),
-    url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1400&q=80') center/cover no-repeat;
+  /* Dégradé sombre local (plus de photo stock Unsplash externe : hors-sujet, dépendance
+     externe, perf/confidentialité). Le doré ressort sur ce fond profond. */
+  background: radial-gradient(120% 120% at 50% 0%, #2E2C25 0%, #201E19 60%, #1A1814 100%);
   text-align: center;
   padding: 10rem 6%;
   color: var(--white);
@@ -4128,7 +4129,7 @@ button:focus-visible,
   <section id="avis">
     <div style="max-width:1300px;margin:0 auto;">
       <div class="section-tag" style="justify-content:center;">Témoignages clients</div>
-      <h2 class="section-title" style="text-align:center;">Ils m'ont fait confiance</h2>
+      <h2 class="section-title" style="text-align:center;">Ce qu'ils disent de moi</h2>
       <div class="avis-google-badge">
         <span class="avis-google-stars">★★★★★</span>
         <span class="avis-google-text">Avis vérifiés Google</span>
