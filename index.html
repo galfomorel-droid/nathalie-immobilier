@@ -1410,7 +1410,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 }
 
 /* ===== AVIS ===== */
-#avis { background: var(--blanc); padding-bottom: 5rem; overflow: hidden; }
+#avis { background: var(--blanc); padding-bottom: 5rem; overflow: hidden; border-top: 1px solid var(--beige); }
 
 .avis-google-badge {
   display: inline-flex;
@@ -4125,6 +4125,101 @@ button:focus-visible,
     </div>
   </section>
 
+  <!-- ===== CARROUSEL BIENS VENDUS (rempli dynamiquement par renderVendusCarousel) ===== -->
+  <section class="vendus-section">
+    <div class="vendus-header">
+      <div class="section-tag">Nos dernières ventes</div>
+      <h2 class="vendus-title">Ils m'ont fait confiance pour vendre leur bien</h2>
+      <p class="vendus-subtitle">Un aperçu des biens récemment vendus sur la presqu'île guérandaise — l'expertise locale en action.</p>
+    </div>
+    <div class="vendus-marquee">
+      <div class="vendus-track">
+        <!-- Les cartes sont dupliquées pour un défilement en boucle fluide -->
+        <div class="vendus-card">
+          <div class="vendus-img-wrap">
+            <img src="https://admin.3gimmobilier.fr/get_file_id/967431/3888" alt="Appartement vendu La Baule-Escoublac" loading="lazy">
+            <span class="vendus-badge">Vendu</span>
+          </div>
+          <div class="vendus-info">
+            <div class="vendus-type">Appartement</div>
+            <div class="vendus-ville">La Baule-Escoublac</div>
+          </div>
+        </div>
+        <div class="vendus-card">
+          <div class="vendus-img-wrap">
+            <img src="https://admin.3gimmobilier.fr/get_file_id/14233/2592" alt="Maison vendue Piriac-sur-Mer" loading="lazy">
+            <span class="vendus-badge">Vendu</span>
+          </div>
+          <div class="vendus-info">
+            <div class="vendus-type">Maison</div>
+            <div class="vendus-ville">Piriac-sur-Mer</div>
+          </div>
+        </div>
+        <div class="vendus-card">
+          <div class="vendus-img-wrap">
+            <img src="https://admin.3gimmobilier.fr/get_file_id/14201/3966" alt="Maison vendue Saint-Nazaire" loading="lazy">
+            <span class="vendus-badge">Vendu</span>
+          </div>
+          <div class="vendus-info">
+            <div class="vendus-type">Maison</div>
+            <div class="vendus-ville">Saint-Nazaire</div>
+          </div>
+        </div>
+        <div class="vendus-card">
+          <div class="vendus-img-wrap">
+            <img src="https://admin.3gimmobilier.fr/get_file_id/14098/2712" alt="Maison vendue Le Pouliguen" loading="lazy">
+            <span class="vendus-badge">Vendu</span>
+          </div>
+          <div class="vendus-info">
+            <div class="vendus-type">Maison</div>
+            <div class="vendus-ville">Le Pouliguen</div>
+          </div>
+        </div>
+        <!-- Duplication pour boucle infinie -->
+        <div class="vendus-card" aria-hidden="true">
+          <div class="vendus-img-wrap">
+            <img src="https://admin.3gimmobilier.fr/get_file_id/967431/3888" alt="" loading="lazy">
+            <span class="vendus-badge">Vendu</span>
+          </div>
+          <div class="vendus-info">
+            <div class="vendus-type">Appartement</div>
+            <div class="vendus-ville">La Baule-Escoublac</div>
+          </div>
+        </div>
+        <div class="vendus-card" aria-hidden="true">
+          <div class="vendus-img-wrap">
+            <img src="https://admin.3gimmobilier.fr/get_file_id/14233/2592" alt="" loading="lazy">
+            <span class="vendus-badge">Vendu</span>
+          </div>
+          <div class="vendus-info">
+            <div class="vendus-type">Maison</div>
+            <div class="vendus-ville">Piriac-sur-Mer</div>
+          </div>
+        </div>
+        <div class="vendus-card" aria-hidden="true">
+          <div class="vendus-img-wrap">
+            <img src="https://admin.3gimmobilier.fr/get_file_id/14201/3966" alt="" loading="lazy">
+            <span class="vendus-badge">Vendu</span>
+          </div>
+          <div class="vendus-info">
+            <div class="vendus-type">Maison</div>
+            <div class="vendus-ville">Saint-Nazaire</div>
+          </div>
+        </div>
+        <div class="vendus-card" aria-hidden="true">
+          <div class="vendus-img-wrap">
+            <img src="https://admin.3gimmobilier.fr/get_file_id/14098/2712" alt="" loading="lazy">
+            <span class="vendus-badge">Vendu</span>
+          </div>
+          <div class="vendus-info">
+            <div class="vendus-type">Maison</div>
+            <div class="vendus-ville">Le Pouliguen</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- AVIS -->
   <section id="avis">
     <div style="max-width:1300px;margin:0 auto;">
@@ -4365,101 +4460,6 @@ button:focus-visible,
     <div class="cta-buttons">
       <button class="btn btn-gold" onclick="openModal('modal-contact')">Nous contacter</button>
       <button class="btn btn-outline" onclick="showPage('estimation')">Estimation gratuite</button>
-    </div>
-  </section>
-
-  <!-- ===== CARROUSEL BIENS VENDUS (rempli dynamiquement par renderVendusCarousel) ===== -->
-  <section class="vendus-section">
-    <div class="vendus-header">
-      <div class="section-tag">Nos dernières ventes</div>
-      <h2 class="vendus-title">Ils m'ont fait confiance pour vendre leur bien</h2>
-      <p class="vendus-subtitle">Un aperçu des biens récemment vendus sur la presqu'île guérandaise — l'expertise locale en action.</p>
-    </div>
-    <div class="vendus-marquee">
-      <div class="vendus-track">
-        <!-- Les cartes sont dupliquées pour un défilement en boucle fluide -->
-        <div class="vendus-card">
-          <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/967431/3888" alt="Appartement vendu La Baule-Escoublac" loading="lazy">
-            <span class="vendus-badge">Vendu</span>
-          </div>
-          <div class="vendus-info">
-            <div class="vendus-type">Appartement</div>
-            <div class="vendus-ville">La Baule-Escoublac</div>
-          </div>
-        </div>
-        <div class="vendus-card">
-          <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14233/2592" alt="Maison vendue Piriac-sur-Mer" loading="lazy">
-            <span class="vendus-badge">Vendu</span>
-          </div>
-          <div class="vendus-info">
-            <div class="vendus-type">Maison</div>
-            <div class="vendus-ville">Piriac-sur-Mer</div>
-          </div>
-        </div>
-        <div class="vendus-card">
-          <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14201/3966" alt="Maison vendue Saint-Nazaire" loading="lazy">
-            <span class="vendus-badge">Vendu</span>
-          </div>
-          <div class="vendus-info">
-            <div class="vendus-type">Maison</div>
-            <div class="vendus-ville">Saint-Nazaire</div>
-          </div>
-        </div>
-        <div class="vendus-card">
-          <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14098/2712" alt="Maison vendue Le Pouliguen" loading="lazy">
-            <span class="vendus-badge">Vendu</span>
-          </div>
-          <div class="vendus-info">
-            <div class="vendus-type">Maison</div>
-            <div class="vendus-ville">Le Pouliguen</div>
-          </div>
-        </div>
-        <!-- Duplication pour boucle infinie -->
-        <div class="vendus-card" aria-hidden="true">
-          <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/967431/3888" alt="" loading="lazy">
-            <span class="vendus-badge">Vendu</span>
-          </div>
-          <div class="vendus-info">
-            <div class="vendus-type">Appartement</div>
-            <div class="vendus-ville">La Baule-Escoublac</div>
-          </div>
-        </div>
-        <div class="vendus-card" aria-hidden="true">
-          <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14233/2592" alt="" loading="lazy">
-            <span class="vendus-badge">Vendu</span>
-          </div>
-          <div class="vendus-info">
-            <div class="vendus-type">Maison</div>
-            <div class="vendus-ville">Piriac-sur-Mer</div>
-          </div>
-        </div>
-        <div class="vendus-card" aria-hidden="true">
-          <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14201/3966" alt="" loading="lazy">
-            <span class="vendus-badge">Vendu</span>
-          </div>
-          <div class="vendus-info">
-            <div class="vendus-type">Maison</div>
-            <div class="vendus-ville">Saint-Nazaire</div>
-          </div>
-        </div>
-        <div class="vendus-card" aria-hidden="true">
-          <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14098/2712" alt="" loading="lazy">
-            <span class="vendus-badge">Vendu</span>
-          </div>
-          <div class="vendus-info">
-            <div class="vendus-type">Maison</div>
-            <div class="vendus-ville">Le Pouliguen</div>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 
