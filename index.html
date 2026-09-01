@@ -57,6 +57,11 @@
 <!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏡</text></svg>">
 
+<!-- Suivi d'audience Plausible (sans cookie, respectueux RGPD ; nécessite un compte plausible.io avec ce domaine).
+     `plausible(...)` en file d'attente pour pouvoir déclencher les pages virtuelles avant le chargement du script. -->
+<script defer data-domain="immobilierdelapresquileguerandaise.fr" src="https://plausible.io/js/script.manual.js"></script>
+<script>window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)};</script>
+
 <!-- Préconnexions pour performance -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5658,6 +5663,8 @@ function showPage(id) {
     var newHash = (id === 'home') ? '' : '#' + id;
     try { window.history.replaceState(null, '', window.location.pathname + newHash); } catch (e) {}
   }
+  // Suivi Plausible : chaque page virtuelle compte comme une vue (site en une seule page)
+  if (typeof plausible === 'function') plausible('pageview');
 }
 
 function _updateSeoForPage(id) {
@@ -8350,7 +8357,7 @@ window.addEventListener('hashchange', function(){ _routeFromHash(); });
 
 function _routeFromHash() {
   var hash = (window.location.hash || '').replace(/^#/, '');
-  if (!hash) { _updateSeoForPage('home'); return; }
+  if (!hash) { _updateSeoForPage('home'); if (typeof plausible === 'function') plausible('pageview'); return; }
   // Format "bien/slug-ref-12"
   var bienMatch = hash.match(/^bien\/.*ref-(\d+)/i);
   if (bienMatch) {
