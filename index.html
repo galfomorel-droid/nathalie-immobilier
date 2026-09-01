@@ -577,7 +577,9 @@ nav.scrolled .hamburger span { background: var(--noir); }
   text-overflow: ellipsis; white-space: nowrap;
 }
 #heroType { flex: 1.5 1 130px; }   /* « Type de bien » : le libellé le plus long → plus de place */
-#heroVille { flex: 1.2 1 100px; }
+#heroVilleMS { flex: 1.2 1 110px; }
+#heroVilleMS .ms-toggle::after { color: rgba(255,255,255,0.72); }
+#heroVilleMS .ms-toggle { border-right: 1px solid rgba(255,255,255,0.18); }
 .hero-search-field::placeholder { color: rgba(255,255,255,0.72); }
 .hero-search-field option { color: #2B2A26; background: #fff; }
 select.hero-search-field {
@@ -3935,7 +3937,10 @@ button:focus-visible,
           <option value="Villa">Villa</option>
           <option value="Terrain">Terrain</option>
         </select>
-        <select id="heroVille" class="hero-search-field"><option value="">Ville</option></select>
+        <div id="heroVilleMS" class="ms hero-ms">
+          <button type="button" class="hero-search-field ms-toggle" onclick="toggleVilleMenu(event,'heroVilleMS')"><span id="heroVilleLabel">Ville</span></button>
+          <div id="heroVillePanel" class="ms-panel"></div>
+        </div>
         <select id="heroBudget" class="hero-search-field">
           <option value="">Budget</option>
           <option value="200000">≤ 200 000 €</option>
@@ -6534,7 +6539,7 @@ function setFiltre(champ, valeur) {
 function lancerRechercheHero() {
   var g = function(id){ var e = document.getElementById(id); return e ? e.value : ''; };
   filterType = g('heroType') || 'all';
-  var _hv = g('heroVille'); filterVilles = _hv ? [_hv] : [];
+  // filterVilles est déjà piloté par les cases à cocher du hero (multi-sélection)
   filterBudgetMax = parseInt(g('heroBudget')) || 0;
   filterSurfaceMin = parseInt(g('heroSurface')) || 0;
   filterChambresMin = parseInt(g('heroChambres')) || 0;
@@ -7533,12 +7538,17 @@ function villesPresentes() {
   biens.forEach(function(b){ if (b.statut !== 'vendu' && b.ville) set[b.ville] = true; });
   return Object.keys(set).sort(function(a, b){ return a.localeCompare(b, 'fr'); });
 }
-// Panneau multi-villes (cases à cocher) de la page Biens
+// Panneaux multi-villes (cases à cocher) — partagés hero + page Biens (même modèle filterVilles)
 function buildVilleMultiselect(villesL) {
-  var panel = document.getElementById('biensVillePanel');
-  if (!panel) return;
   // on nettoie la sélection des villes qui n'existent plus
   filterVilles = filterVilles.filter(function(v){ return villesL.indexOf(v) !== -1; });
+  _buildVillePanel('biensVillePanel', villesL);
+  _buildVillePanel('heroVillePanel', villesL);
+  syncVilleMultiselect();
+}
+function _buildVillePanel(panelId, villesL) {
+  var panel = document.getElementById(panelId);
+  if (!panel) return;
   panel.innerHTML = '';
   villesL.forEach(function(v){
     var lab = document.createElement('label');
@@ -7550,7 +7560,6 @@ function buildVilleMultiselect(villesL) {
     lab.appendChild(cb); lab.appendChild(sp);
     panel.appendChild(lab);
   });
-  syncVilleMultiselect();
 }
 function onVilleCheck(cb) {
   var v = cb.value;
@@ -7560,23 +7569,25 @@ function onVilleCheck(cb) {
   renderBiensGrid();
 }
 function syncVilleMultiselect() {
-  var label = document.getElementById('biensVilleLabel');
-  if (label) {
-    if (!filterVilles.length) label.textContent = 'Toutes les villes';
-    else if (filterVilles.length === 1) label.textContent = filterVilles[0];
-    else label.textContent = filterVilles.length + ' villes sélectionnées';
-  }
-  var panel = document.getElementById('biensVillePanel');
-  if (panel) Array.prototype.forEach.call(panel.querySelectorAll('input[type=checkbox]'), function(cb){ cb.checked = filterVilles.indexOf(cb.value) !== -1; });
+  var txt = !filterVilles.length ? null
+    : (filterVilles.length === 1 ? filterVilles[0] : filterVilles.length + ' villes sélectionnées');
+  var bl = document.getElementById('biensVilleLabel'); if (bl) bl.textContent = txt || 'Toutes les villes';
+  var hl = document.getElementById('heroVilleLabel'); if (hl) hl.textContent = txt || 'Ville';
+  ['biensVillePanel', 'heroVillePanel'].forEach(function(pid){
+    var panel = document.getElementById(pid);
+    if (panel) Array.prototype.forEach.call(panel.querySelectorAll('input[type=checkbox]'), function(cb){ cb.checked = filterVilles.indexOf(cb.value) !== -1; });
+  });
 }
-function toggleVilleMenu(e) {
+function toggleVilleMenu(e, id) {
   if (e) e.stopPropagation();
-  var ms = document.getElementById('biensVilleMS');
+  var ms = document.getElementById(id || 'biensVilleMS');
   if (ms) ms.classList.toggle('open');
 }
 document.addEventListener('click', function(e){
-  var ms = document.getElementById('biensVilleMS');
-  if (ms && ms.classList.contains('open') && !ms.contains(e.target)) ms.classList.remove('open');
+  ['biensVilleMS', 'heroVilleMS'].forEach(function(id){
+    var ms = document.getElementById(id);
+    if (ms && ms.classList.contains('open') && !ms.contains(e.target)) ms.classList.remove('open');
+  });
 });
 
 function refreshVilleSelects() {
@@ -7591,14 +7602,7 @@ function refreshVilleSelects() {
     typesL.forEach(function(t){ var o = document.createElement('option'); o.value = t; o.textContent = t; if (t === cur) o.selected = true; sel.appendChild(o); });
     if (typesL.indexOf(cur) === -1) sel.value = '';
   });
-  // Ville du hero (sélection simple, dynamique)
-  var heroV = document.getElementById('heroVille');
-  if (heroV) {
-    var curH = heroV.value;
-    heroV.innerHTML = '<option value="">Ville</option>';
-    villesL.forEach(function(v){ var o = document.createElement('option'); o.value = v; o.textContent = v; if (v === curH) o.selected = true; heroV.appendChild(o); });
-  }
-  // Ville de la page Biens : MULTI-sélection (cases à cocher)
+  // Ville : MULTI-sélection (cases à cocher) — hero ET page Biens
   buildVilleMultiselect(villesL);
   // Admin select ville
   const adminSel = document.getElementById('aVille');
