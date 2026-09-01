@@ -1037,6 +1037,33 @@ section { padding: clamp(4rem, 9vw, 6rem) 6%; }
   z-index: 3;
 }
 
+/* ===== Vignettes unifiées (nouveauté, exclusivité, compromis, offre, baisse de prix) ===== */
+.bien-vignettes {
+  position: absolute;
+  top: 1rem; left: 1rem;
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 0.4rem;
+  z-index: 3;
+}
+.bien-vg {
+  display: inline-block;
+  padding: 0.36rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1;
+  box-shadow: 0 2px 10px rgba(43,42,38,0.22);
+}
+.vg-new       { background: #7C8A6E; }              /* nouveauté — sauge */
+.vg-exclu     { background: var(--or); color: #2B2A26; } /* exclusivité — sel doré */
+.vg-compromis { background: #B8731E; }              /* sous compromis */
+.vg-offre     { background: #C24D0C; }              /* offre d'achat en cours */
+.vg-baisse    { background: #D7281C; }              /* baisse de prix */
+
 /* Corps de carte — plus généreux */
 .bien-card-body {
   padding: 1.6rem 1.8rem 1.6rem;
@@ -6018,20 +6045,16 @@ function bienCardHTML(b) {
   div.className = 'bien-card';
   div.style.cursor = 'pointer';
   div.setAttribute('data-id', b.id);
-  var exclu = b.exclusif ? '<span class="bien-card-exclusive">Exclusivité</span>' : '';
-  // Statut : sous_compromis, offre_en_cours, vendu (overlay au-dessus de la photo)
-  var statutOverlay = '';
-  if (b.statut === 'sous_compromis') {
-    statutOverlay = '<div class="bien-status-overlay bien-status-compromis">' +
-                      '<span class="bien-status-icon">!</span>' +
-                      '<span class="bien-status-text">Sous compromis</span>' +
-                    '</div>';
-  } else if (b.statut === 'offre_en_cours') {
-    statutOverlay = '<div class="bien-status-overlay bien-status-offre">' +
-                      '<span class="bien-status-icon">●</span>' +
-                      '<span class="bien-status-text">Offre en cours</span>' +
-                    '</div>';
-  }
+  // Vignettes (haut-gauche) : nouveauté, exclusivité, sous compromis, offre, baisse de prix.
+  // (Pas de « coup de cœur », et plus de vignette type Appartement/Maison — déjà écrit sous la photo.)
+  var vgs = [];
+  var estNouveau = b.createdAt && (Date.now() - new Date(b.createdAt).getTime()) < 21 * 86400000;
+  if (estNouveau) vgs.push('<span class="bien-vg vg-new">Nouveauté</span>');
+  if (b.exclusif) vgs.push('<span class="bien-vg vg-exclu">Exclusivité</span>');
+  if (b.statut === 'sous_compromis') vgs.push('<span class="bien-vg vg-compromis">Sous compromis</span>');
+  if (b.statut === 'offre_en_cours') vgs.push('<span class="bien-vg vg-offre">Offre en cours</span>');
+  if (b.baisseDePrix) vgs.push('<span class="bien-vg vg-baisse">Baisse de prix</span>');
+  var vignettes = vgs.length ? '<div class="bien-vignettes">' + vgs.join('') + '</div>' : '';
   var ref = b.ref && String(b.ref).trim() ? String(b.ref).trim() : genRef(b.id);
   var chambres = b.chambres ? b.chambres : (b.pieces ? b.pieces - 1 : 0);
   var altTxt = (b.type || 'Bien') + ' à vendre ' + (b.ville || 'Le Pouliguen') +
@@ -6041,9 +6064,7 @@ function bienCardHTML(b) {
   div.innerHTML =
     '<div class="bien-card-img">' +
       '<img src="' + _esc(b.img || PLACEHOLDER_IMG) + '" alt="' + _esc(altTxt) + '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=PLACEHOLDER_IMG">' +
-      '<span class="bien-card-badge">' + _esc(b.type||'') + '</span>' +
-      exclu +
-      statutOverlay +
+      vignettes +
       '<span class="bien-card-discover">Découvrir ce bien →</span>' +
     '</div>' +
     '<div class="bien-card-body">' +

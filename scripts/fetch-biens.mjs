@@ -125,6 +125,24 @@ function annonceVersBien(a, ref) {
   const statut = etat === 2 ? 'sous_compromis' : (etat === 3 ? 'offre_en_cours' : 'en_vente');
   const exclusif = toInt(a.type_mandat) === 3;
 
+  // « Nouveauté » = date de mise en ligne 3G (le front l'affiche si < 21 jours).
+  const createdAt = a.created_at || (ref && ref.createdAt) || null;
+
+  // « Baisse de prix » : on retient le prix le plus haut connu (prixAncien) + la date de la
+  // dernière baisse, et le front affiche la vignette ~45 jours. Un prix qui remonte l'annule.
+  const curPrix = toInt(a.prix) || 0;
+  const prevPrix = (ref && toInt(ref.prix)) || null;
+  let prixAncien = (ref && toInt(ref.prixAncien)) || null;
+  let baisseDate = (ref && ref.baisseDate) || null;
+  if (prevPrix && curPrix && curPrix < prevPrix) {
+    prixAncien = Math.max(prevPrix, prixAncien || 0);
+    baisseDate = new Date().toISOString();
+  } else if (prixAncien && curPrix && curPrix >= prixAncien) {
+    prixAncien = null; baisseDate = null;
+  }
+  const baisseDePrix = !!(prixAncien && baisseDate && curPrix < prixAncien &&
+    (Date.now() - new Date(baisseDate).getTime()) < 45 * 86400000);
+
   return {
     id: Number(a.i), titre, type: typeLabel, ville,
     prix: toInt(a.prix) || 0, surface, pieces,
@@ -147,6 +165,8 @@ function annonceVersBien(a, ref) {
     dpeCoutMin: toInt(a.cout_min) || (ref && ref.dpeCoutMin) || null,
     dpeCoutMax: toInt(a.cout_max) || (ref && ref.dpeCoutMax) || null,
     dateDpe: a.date_realisation_dpe || (ref && ref.dateDpe) || '',
+    createdAt: createdAt,
+    prixAncien: prixAncien, baisseDate: baisseDate, baisseDePrix: baisseDePrix,
     statut: statut, dateVente: null,
     prixFAI: toInt(a.prix) || 0,
   };
