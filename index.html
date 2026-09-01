@@ -559,15 +559,15 @@ nav.scrolled .hamburger span { background: var(--noir); }
 
 /* ===== Barre de recherche du hero (façon Barnes) ===== */
 .hero-search {
-  display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch;
-  margin: 0 auto 1.8rem; max-width: 940px;
+  display: flex; flex-wrap: nowrap; justify-content: center; align-items: stretch;
+  margin: 0 auto 1.8rem; max-width: 1040px; width: 100%;
   background: rgba(30,28,25,0.32);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.22);
   box-shadow: 0 18px 50px rgba(43,42,38,0.28);
 }
 .hero-search-field {
-  flex: 1 1 140px; min-width: 0;
+  flex: 1 1 90px; min-width: 0;
   border: none; border-right: 1px solid rgba(255,255,255,0.18);
   background: transparent;
   padding: 1.05rem 1.1rem;
@@ -590,9 +590,9 @@ select.hero-search-field {
   transition: background var(--transition);
 }
 .hero-search-btn:hover { background: var(--or-light); }
-@media (max-width: 760px) {
-  .hero-search { flex-direction: column; max-width: 320px; }
-  .hero-search-field { border-right: none; border-bottom: 1px solid #E6DDCD; text-align: center; }
+@media (max-width: 900px) {
+  .hero-search { flex-direction: column; max-width: 340px; }
+  .hero-search-field { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.18); text-align: center; }
   select.hero-search-field { text-align: left; }
   .hero-search-ref { flex: 1 1 auto; }
   .hero-search-btn { padding: 0.9rem; }
@@ -3845,7 +3845,7 @@ button:focus-visible,
     <div class="hero-content" id="heroContent">
       <div class="hero-tag">Agent immobilier · Presqu'île guérandaise</div>
       <h1 class="hero-title">L'immobilier d'exception en presqu'île guérandaise</h1>
-      <p class="hero-sub">Maisons, villas et appartements haut de gamme, du Pouliguen à Guérande.</p>
+      <p class="hero-sub">Maisons, villas et appartements, du Pouliguen à Guérande.</p>
       <form class="hero-search" onsubmit="lancerRechercheHero();return false;">
         <select id="heroType" class="hero-search-field">
           <option value="">Type de bien</option>
