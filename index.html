@@ -9254,6 +9254,7 @@ async function _publierStatuts(ventes) {
       body: JSON.stringify({ password: _adminPwd, ventes: ventes })
     });
     if (res.status === 401) { if (typeof showToast==='function') showToast('Mot de passe refusé par le serveur.', 'error', 6000); return false; }
+    if (res.status === 502) { if (typeof showToast==='function') showToast('Publication impossible : le jeton du serveur a expiré. Préviens Charles pour le renouveler.', 'error', 9000); return false; }
     if (!res.ok) { if (typeof showToast==='function') showToast('Échec de publication (' + res.status + ').', 'error', 6000); return false; }
     return true;
   } catch(e) { if (typeof showToast==='function') showToast('Connexion au serveur impossible.', 'error', 6000); return false; }
