@@ -3357,6 +3357,12 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 .btn-une { background: #EEF1E9; color: #5C6A4E; border: 1px solid #C7D0BA; }
 .btn-une:hover { background: #E3E9D9; }
 .btn-une.active { background: #7C8A6E; color: #fff; border-color: #7C8A6E; }
+.btn-new { background: #EEF1E9; color: #5C6A4E; border: 1px solid #C7D0BA; }
+.btn-new:hover { background: #E3E9D9; }
+.btn-new.active { background: #7C8A6E; color: #fff; border-color: #7C8A6E; }
+.btn-baisse { background: #FBE9E7; color: #B5271C; border: 1px solid #F0C6C1; }
+.btn-baisse:hover { background: #F7D8D4; }
+.btn-baisse.active { background: #D7281C; color: #fff; border-color: #D7281C; }
 
 /* Badges statut dans le titre admin */
 .admin-statut-badge {
@@ -6362,12 +6368,15 @@ function bienCardHTML(b) {
   // Vignettes (haut-gauche) : nouveauté, exclusivité, sous compromis, offre, baisse de prix.
   // (Pas de « coup de cœur », et plus de vignette type Appartement/Maison — déjà écrit sous la photo.)
   var vgs = [];
-  var estNouveau = b.createdAt && (Date.now() - new Date(b.createdAt).getTime()) < 21 * 86400000;
+  // « Nouveauté » / « Baisse de prix » : override manuel de l'admin (b.nouveaute / b.baisse)
+  // prioritaire sur la détection automatique (mise en ligne < 21 j / baisse détectée sur 3G).
+  var estNouveau = (b.nouveaute !== undefined) ? !!b.nouveaute : !!(b.createdAt && (Date.now() - new Date(b.createdAt).getTime()) < 21 * 86400000);
+  var estBaisse = (b.baisse !== undefined) ? !!b.baisse : !!b.baisseDePrix;
   if (estNouveau) vgs.push('<span class="bien-vg vg-new">Nouveauté</span>');
   if (b.exclusif) vgs.push('<span class="bien-vg vg-exclu">Exclusivité</span>');
   if (b.statut === 'sous_compromis') vgs.push('<span class="bien-vg vg-compromis">Sous compromis</span>');
   if (b.statut === 'offre_en_cours') vgs.push('<span class="bien-vg vg-offre">Offre en cours</span>');
-  if (b.baisseDePrix) vgs.push('<span class="bien-vg vg-baisse">Baisse de prix</span>');
+  if (estBaisse) vgs.push('<span class="bien-vg vg-baisse">Baisse de prix</span>');
   var vignettes = vgs.length ? '<div class="bien-vignettes">' + vgs.join('') + '</div>' : '';
   var ref = b.ref && String(b.ref).trim() ? String(b.ref).trim() : genRef(b.id);
   var chambres = b.chambres ? b.chambres : (b.pieces ? b.pieces - 1 : 0);
@@ -7299,6 +7308,10 @@ function renderAdmin() {
   if (!list) return;
   list.innerHTML = biens.map(b => {
     var statut = b.statut || 'en_vente';
+    // État EFFECTIF des étiquettes « Nouveauté » / « Baisse de prix » : override manuel
+    // (b.nouveaute / b.baisse depuis l'overlay) sinon détection automatique.
+    var estNouveau = (b.nouveaute !== undefined) ? !!b.nouveaute : !!(b.createdAt && (Date.now() - new Date(b.createdAt).getTime()) < 21 * 86400000);
+    var estBaisse = (b.baisse !== undefined) ? !!b.baisse : !!b.baisseDePrix;
     var statutBadge = '';
     if (statut === 'sous_compromis') statutBadge = '<span class="admin-statut-badge admin-statut-compromis">Sous compromis</span>';
     else if (statut === 'offre_en_cours') statutBadge = '<span class="admin-statut-badge admin-statut-offre">Offre en cours</span>';
@@ -7313,6 +7326,8 @@ function renderAdmin() {
       <div class="admin-bien-actions">
         <button class="btn-edit" onclick="adminEdit(${b.id})">Modifier</button>
         <button class="btn-statut btn-une ${b.alaune ? 'active' : ''}" onclick="adminSetUne(${b.id})" title="Afficher / retirer des « Biens à la une » (page d'accueil)">★ À la une</button>
+        <button class="btn-statut btn-new ${estNouveau ? 'active' : ''}" onclick="adminSetNouveaute(${b.id})" title="Afficher / retirer l'étiquette « Nouveauté »">Nouveauté</button>
+        <button class="btn-statut btn-baisse ${estBaisse ? 'active' : ''}" onclick="adminSetBaisse(${b.id})" title="Afficher / retirer l'étiquette « Baisse de prix »">Baisse de prix</button>
         <button class="btn-statut btn-exclu ${b.exclusif ? 'active' : ''}" onclick="adminSetExclusif(${b.id})" title="Marquer / retirer l'exclusivité">Exclusivité</button>
         <button class="btn-statut btn-compromis ${statut === 'sous_compromis' ? 'active' : ''}" onclick="adminSetStatut(${b.id}, 'sous_compromis')" title="Sous compromis de vente">Compromis</button>
         <button class="btn-statut btn-offre ${statut === 'offre_en_cours' ? 'active' : ''}" onclick="adminSetStatut(${b.id}, 'offre_en_cours')" title="Offre en cours">Offre</button>
@@ -8321,7 +8336,7 @@ function _signatureDonnees(tb, tv) {
     var vj = tv ? JSON.parse(tv) : { ventes: [] };
     return JSON.stringify({
       b: props.map(function(p){ return [p.id, p.statut, p.exclusif, p.prix, p.titre, p.img]; }),
-      v: (vj.ventes || []).map(function(x){ return [x.id, x.statut, x.exclusif, x.alaune]; })
+      v: (vj.ventes || []).map(function(x){ return [x.id, x.statut, x.exclusif, x.alaune, x.nouveaute, x.baisse]; })
     });
   } catch(e) { return null; }
 }
@@ -9156,6 +9171,8 @@ async function loadBiens() {
           if (ov.statut) b.statut = ov.statut;
           if (ov.exclusif !== undefined) b.exclusif = !!ov.exclusif;
           if (ov.alaune !== undefined) b.alaune = !!ov.alaune;
+          if (ov.nouveaute !== undefined) b.nouveaute = !!ov.nouveaute;
+          if (ov.baisse !== undefined) b.baisse = !!ov.baisse;
         }
         if (b.statut === 'vendu') b.statut = 'en_vente';  // sécurité (le vendu vient de soldMap)
       });
@@ -9273,12 +9290,16 @@ async function _adminMajBadge(id, changes) {
   if (changes.statut !== undefined) { e.statut = changes.statut; e.dateVente = (changes.statut === 'vendu') ? new Date().toISOString() : null; e.override = true; }
   if (changes.exclusif !== undefined) { e.exclusif = !!changes.exclusif; e.override = true; }
   if (changes.alaune !== undefined) e.alaune = !!changes.alaune;
+  if (changes.nouveaute !== undefined) e.nouveaute = !!changes.nouveaute;
+  if (changes.baisse !== undefined) e.baisse = !!changes.baisse;
   e.titre = b.titre || ''; e.type = b.type || 'Bien'; e.ville = b.ville || ''; e.img = b.img || ''; e.prix = b.prix || 0;
   if (i >= 0) overlay[i] = e; else overlay.unshift(e);
   // Nettoyage : on garde toute entrée porteuse d'un marqueur (correction manuelle, à la une,
-  // exclusivité, ou statut compromis/offre/vendu). On retire les entrées vraiment vides.
+  // exclusivité, étiquette nouveauté/baisse forcée, ou statut compromis/offre/vendu).
   overlay = overlay.filter(function(v){
-    return v.override || v.alaune || v.exclusif || (v.statut && v.statut !== 'en_vente');
+    return v.override || v.alaune || v.exclusif ||
+      (typeof v.nouveaute !== 'undefined') || (typeof v.baisse !== 'undefined') ||
+      (v.statut && v.statut !== 'en_vente');
   });
 
   var ok = await _publierStatuts(overlay);
@@ -9290,6 +9311,8 @@ async function _adminMajBadge(id, changes) {
   if (changes.statut !== undefined) { b.statut = changes.statut; b.dateVente = e.dateVente || null; }
   if (changes.exclusif !== undefined) b.exclusif = !!changes.exclusif;
   if (changes.alaune !== undefined) b.alaune = !!changes.alaune;
+  if (changes.nouveaute !== undefined) b.nouveaute = !!changes.nouveaute;
+  if (changes.baisse !== undefined) b.baisse = !!changes.baisse;
   saveBiens();
   renderAdmin();
   renderHomeGrid();
@@ -9312,6 +9335,19 @@ async function adminSetExclusif(id) {
 }
 async function adminSetUne(id) {
   await _adminMajBadge(id, { alaune: !(biens.find(function(x){ return parseInt(x.id) === parseInt(id); }) || {}).alaune });
+}
+// Étiquette « Nouveauté » : inverse l'état EFFECTIF (override manuel sinon auto < 21 j).
+async function adminSetNouveaute(id) {
+  var b = biens.find(function(x){ return parseInt(x.id) === parseInt(id); }) || {};
+  var eff = (b.nouveaute !== undefined) ? !!b.nouveaute
+    : !!(b.createdAt && (Date.now() - new Date(b.createdAt).getTime()) < 21 * 86400000);
+  await _adminMajBadge(id, { nouveaute: !eff });
+}
+// Étiquette « Baisse de prix » : inverse l'état EFFECTIF (override manuel sinon auto 3G).
+async function adminSetBaisse(id) {
+  var b = biens.find(function(x){ return parseInt(x.id) === parseInt(id); }) || {};
+  var eff = (b.baisse !== undefined) ? !!b.baisse : !!b.baisseDePrix;
+  await _adminMajBadge(id, { baisse: !eff });
 }
 
 // Cookies
