@@ -1,6 +1,15 @@
 {
   "ventes": [
     {
+      "id": 2000022985,
+      "alaune": true,
+      "titre": "Appartement 1 pièces à La Baule-Escoublac",
+      "type": "Appartement",
+      "ville": "La Baule",
+      "img": "https://admin.3gimmobilier.fr/get_file_id/1215461/1788801156",
+      "prix": 239200
+    },
+    {
       "id": 2000019709,
       "statut": "en_vente",
       "exclusif": false,
@@ -20,8 +29,7 @@
       "type": "Appartement",
       "ville": "Pornichet",
       "img": "https://admin.3gimmobilier.fr/get_file_id/1100807/1782882412",
-      "prix": 153470,
-      "alaune": false
+      "prix": 153470
     },
     {
       "id": 2000015637,
