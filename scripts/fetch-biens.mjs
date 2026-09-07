@@ -117,12 +117,14 @@ function annonceVersBien(a, ref) {
   const surface = (ref && toInt(ref.surface)) ? toInt(ref.surface) : corrigerSurface(a.surface_bien);
   const titre = (ref && ref.titre) ? ref.titre : construireTitre(typeLabel, pieces, ville);
 
-  // BADGES pilotés par 3G (décision cliente 30/07) : statut depuis `etat`, exclusivité depuis
-  // `type_mandat`. L'admin peut CORRIGER à la main (overlay data/ventes.json, prioritaire à la fusion).
-  //   etat : 2 = sous compromis, 3 = offre en cours ; 1/absent/autre = en vente.
-  //   type_mandat : 3 = mandat exclusif.
-  const etat = toInt(a.etat);
-  const statut = etat === 2 ? 'sous_compromis' : (etat === 3 ? 'offre_en_cours' : 'en_vente');
+  // ⚠️ CORRECTION 01/09/2026 : le champ 3G `etat` n'est PAS le statut de transaction, c'est
+  // l'ÉTAT GÉNÉRAL DU BIEN (condition : neuf/bon état/à rénover…). Confirmé par la cliente :
+  // la réf 223758 avait `etat=2` mais n'était PAS sous compromis dans 3G. L'API `site-perso`
+  // n'expose AUCUN statut compromis/offre fiable → on met tout « en vente » par défaut.
+  // Les statuts « sous compromis / offre / vendu » se gèrent MANUELLEMENT depuis l'admin du
+  // site (overlay data/ventes.json, prioritaire à la fusion). Ne PAS remapper `etat` en statut.
+  const statut = 'en_vente';
+  // Exclusivité : `type_mandat` = 3 (mandat exclusif). Champ standard, conservé.
   const exclusif = toInt(a.type_mandat) === 3;
 
   // « Nouveauté » = date de mise en ligne 3G (le front l'affiche si < 21 jours).
