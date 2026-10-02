@@ -1,15 +1,15 @@
 {
   "ventes": [
     {
-      "id": 2000017985,
-      "statut": "offre_en_cours",
+      "id": 2000021521,
+      "statut": "sous_compromis",
       "dateVente": null,
       "override": true,
-      "titre": "Maison 4 pièces à La Baule",
-      "type": "Maison",
-      "ville": "Guérande",
-      "img": "https://admin.3gimmobilier.fr/get_file_id/1129852/1790946076",
-      "prix": 234000
+      "titre": "Appartement 2 pièces à Le Pouliguen",
+      "type": "Appartement",
+      "ville": "Le Pouliguen",
+      "img": "https://admin.3gimmobilier.fr/get_file_id/1189979/1790946076",
+      "prix": 203840
     },
     {
       "id": 2000022985,
