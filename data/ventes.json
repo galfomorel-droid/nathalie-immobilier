@@ -1,6 +1,17 @@
 {
   "ventes": [
     {
+      "id": 2000017985,
+      "statut": "offre_en_cours",
+      "dateVente": null,
+      "override": true,
+      "titre": "Maison 4 pièces à La Baule",
+      "type": "Maison",
+      "ville": "Guérande",
+      "img": "https://admin.3gimmobilier.fr/get_file_id/1129852/1790946076",
+      "prix": 234000
+    },
+    {
       "id": 2000022985,
       "alaune": true,
       "titre": "Appartement 1 pièces à La Baule-Escoublac",
