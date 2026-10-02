@@ -2,6 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://www.immobilierdelapresquileguerandaise.fr/sitemap.xml
+Sitemap: https://www.cotepresquile.com/sitemap.xml
 
 Crawl-delay: 1
