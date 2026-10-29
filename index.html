@@ -4437,6 +4437,53 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 @media (max-width: 720px) { .ft-bottom { padding-right: 28px; } footer#site-footer { padding-bottom: 96px; } }
 @media (max-width: 620px) { .cb-map .city text { font-size: 26px; } .cb-map .lbl { font-size: 19px; } .cb-map .city circle { r: 9px; } }
 
+
+/* ---------- Critères de recherche (page Acheter) ---------- */
+.feat-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+.feat-chip { border: 1px solid var(--line-c); background: #fff; color: var(--noir); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: .8rem; cursor: pointer; transition: all .2s; }
+.feat-chip span { color: var(--gris); font-size: .72rem; margin-left: 2px; }
+.feat-chip:hover:not(:disabled) { border-color: var(--noir); }
+.feat-chip.on { background: var(--noir); border-color: var(--noir); color: #fff; }
+.feat-chip.on span { color: rgba(255,255,255,.7); }
+.feat-chip:disabled { opacity: .4; cursor: default; }
+.feat-reset { background: none; border: 0; font: inherit; font-size: .8rem; color: var(--or-fonce); text-decoration: underline; cursor: pointer; padding: 7px 6px; }
+/* ---------- Fiche : points clés, carte, actions ---------- */
+.fiche-keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 18px 0 22px; }
+.fiche-keys:empty { display: none; }
+.fk { background: var(--light-bg); border: 1px solid var(--line-c); border-radius: 12px; padding: 12px 14px; }
+.fk span { display: block; font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gris); }
+.fk strong { display: block; font-size: 1.05rem; font-weight: 800; color: var(--noir); margin-top: 2px; }
+.fk-dpe { display: inline-flex; width: 28px; height: 28px; border-radius: 6px; align-items: center; justify-content: center; color: #fff; font-size: .9rem; }
+.fk-A { background: #009C6D; } .fk-B { background: #52B153; } .fk-C { background: #78BD76; } .fk-D { background: #F4E70F; color: #192D56; }
+.fk-E { background: #F0B50F; color: #192D56; } .fk-F { background: #EB8235; } .fk-G { background: #D7221F; }
+.fiche-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 8px; }
+.fiche-bloc { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line-c); }
+.fiche-bloc h3 { font-size: 1rem; font-weight: 800; margin-bottom: 12px; color: var(--noir); }
+.fiche-map { height: 300px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line-c); background: var(--light-bg); position: relative; z-index: 0; }
+.fiche-note { font-size: .85rem; color: var(--gris); margin-top: 10px; }
+.fiche-note a { color: var(--or-fonce); text-decoration: underline; }
+.fiche-mobile-bar { display: none; }
+@media (max-width: 760px) {
+  .fiche-mobile-bar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 950; background: #fff; border-top: 1px solid var(--line-c);
+    box-shadow: 0 -6px 20px rgba(19,36,74,.10); padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); gap: 8px; align-items: center; }
+  .fiche-mobile-bar .p { flex: 1; font-weight: 800; color: var(--noir); font-size: .92rem; line-height: 1.2; min-width: 0; }
+  .fiche-mobile-bar .cb-btn { padding: 11px 15px; font-size: .7rem; letter-spacing: .08em; }
+  body:has(#page-fiche.active) .wa-float { bottom: 84px; }
+  #page-fiche { padding-bottom: 76px; }
+}
+/* ---------- Galerie : bouton plein écran ---------- */
+#lightbox-fs { position: absolute; top: 1.5rem; right: 5.2rem; background: rgba(255,255,255,.15); border: none; color: #fff; width: 44px; height: 44px;
+  border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2; }
+#lightbox-fs:hover { background: rgba(255,255,255,.3); }
+#lightbox-fs svg { width: 18px; height: 18px; }
+/* ---------- Vendre : portails ---------- */
+.vd-group { margin-top: 34px; }
+.vd-gt { font-size: .68rem; letter-spacing: .22em; text-transform: uppercase; color: var(--gris); font-weight: 600; text-align: center; margin-bottom: 14px; }
+.vd-portals { margin-top: 0; }
+.vd-portals > span { min-width: 150px; text-align: center; }
+.vd-more { margin-top: 30px; text-align: center; font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gris); }
+@media print { .fiche-mobile-bar, .fiche-actions, .fiche-share-wrap { display: none !important; } }
+
 /* Utilitaires */
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -4562,7 +4609,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         <a href="#" class="cb-card" onclick="showPage('parrainage');return false;">
           <span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v9H5v-9"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></span>
           <h3 class="cb-h3">Parrainer</h3>
-          <p>Un proche souhaite vendre ? Présentez-le-moi : je vous remercie si la vente se conclut.</p>
+          <p>Un proche souhaite vendre ? Présentez-le-moi : 1 000 € pour vous si la vente se conclut.</p>
           <span class="cb-more">Découvrir →</span>
         </a>
       </div>
@@ -5144,6 +5191,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       </select>
       <input id="biensRef" class="search-field search-ref" type="text" placeholder="Réf" oninput="setFiltre('ref', this.value)">
     </div>
+    <div class="feat-chips" id="featChips" aria-label="Critères de recherche"></div>
     <div class="biens-resultbar">
       <span id="biensCount" class="biens-count">— résultats</span>
       <button class="biens-alerte" onclick="creerAlerte()">
@@ -5197,6 +5245,10 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
         <span>Favori</span>
       </button>
+      <button type="button" class="fiche-share-btn" id="ficheBtnPdf" onclick="telechargerFichePDF()" aria-label="Télécharger la fiche en PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Fiche PDF</span>
+      </button>
       <button type="button" class="fiche-share-btn" onclick="window.print()" aria-label="Imprimer la fiche">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         <span>Imprimer</span>
@@ -5243,11 +5295,13 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <p class="fiche-accroche" id="ficheAccroche" style="display:none;"></p>
       <p class="fiche-loc" id="ficheLoc"></p>
       <div class="fiche-price" id="fichePrix"></div>
+      <div class="fiche-keys" id="ficheKeys"></div>
       <div class="fiche-specs" id="ficheSpecs"></div>
       <div class="fiche-desc" id="ficheDesc"></div>
       <div id="fichePrixSection"></div>
       <div id="ficheLegal"></div>
       <div id="ficheDPE"></div>
+      <div id="ficheExtras"></div>
     </div>
     <div class="fiche-sidebar">
       <!-- Bandeau prix avec photo du bien en fond -->
@@ -5304,6 +5358,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   </div>
   <!-- Section "Autres biens aux alentours" — pleine largeur, sous le bloc 2 colonnes -->
   <div id="ficheSimilaires" class="fiche-similaires-section"></div>
+  <div class="fiche-mobile-bar" aria-label="Actions rapides"><div class="p" id="ficheMobilePrix"></div><a class="cb-btn ghost" href="tel:+33648384375">Appeler</a><button type="button" class="cb-btn" onclick="ficheVisiter()">Visiter</button></div>
 </div>
 
 <!-- ===== PAGE ME CONNAÎTRE (id historique : apropos) ===== -->
@@ -5635,12 +5690,14 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   </section>
 
   <section class="cb-section light cb-center">
-    <div class="cb-wrap narrow">
+    <div class="cb-wrap">
       <span class="cb-kicker">Diffusion</span>
-      <h2 class="cb-h2">Où votre bien est visible</h2>
-      <p class="cb-lead">Votre annonce bénéficie de la puissance du réseau 3G Immobilier et d'une diffusion sur les principaux sites immobiliers*.</p>
-      <div class="vd-portals"><span>cotepresquile.com</span><span>3G Immobilier</span><span>SeLoger</span><span>Leboncoin</span><span>Bien'ici</span><span>Logic-Immo</span></div>
-      <p class="cb-note">* Selon le type de mandat et les accords de diffusion en vigueur dans le réseau.</p>
+      <h2 class="cb-h2">Une diffusion ciblée sur plus de 100 sites</h2>
+      <p class="cb-lead">Maison, appartement, local commercial ou terrain : votre annonce est présentée sur mon site, sur le réseau 3G Immobilier et sur les portails les plus adaptés à votre bien, en France et à l'international, puis à mon fichier d'acquéreurs.</p>
+      <div class="vd-group"><p class="vd-gt">Habitation</p><div class="vd-portals"><span style="color:#E2001A;font-weight:800">SeLoger</span><span style="color:#FF6E14;font-weight:700">leboncoin</span><span style="color:#12A5A0;font-weight:600">bien<span style="color:#F4B400">'</span>ici</span><span style="color:#0A4FA0;font-weight:800">LOGIC-IMMO</span><span style="color:#B2282B;font-weight:600">ouestfrance-immo</span><span style="color:#192D56;">Le Figaro Immobilier</span><span style="color:#192D56;letter-spacing:.08em">Belles Demeures</span><span style="color:#192D56;letter-spacing:.06em">Propriétés Le Figaro</span><span style="color:#192D56;font-weight:800"><span style="color:#E2001A">Paru</span>Vendu</span><span style="color:#2D3A8C;">Properstar</span><span style="color:#16324F;font-weight:700">Jinka</span><span style="color:#1F4538;">Gens de Confiance</span><span style="color:#192D56;">Meilleurs Agents</span><span style="color:#2E9E7E;">Tous Voisins</span></div></div>
+      <div class="vd-group"><p class="vd-gt">Commerce &amp; professionnel</p><div class="vd-portals"><span style="color:#E2001A;font-weight:700">SeLoger Bureaux &amp; Commerces</span><span style="color:#0E2A47;font-weight:700">Webimm</span><span style="color:#C0392B;font-style:italic;font-weight:700">Commerce en direct</span><span style="color:#192D56;">Hôtel Restau</span><span style="color:#E5399A;">octissimo</span><span style="color:#192D56;">DOM immo</span></div></div>
+      <div class="vd-group"><p class="vd-gt">Terrain</p><div class="vd-portals"><span style="color:#192D56;">Terrain Construction</span><span style="color:#5BA82E;">les-terrains</span><span style="color:#192D56;">Superimmo</span></div></div>
+      <p class="vd-more">+ de 100 autres portails spécialisés</p>
     </div>
   </section>
 
@@ -5687,11 +5744,11 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <div>
         <span class="cb-kicker">Parrainage</span>
         <h1 class="cb-h1">Vous connaissez un vendeur ? <span class="cb-accent">Parlez-lui de moi</span></h1>
-        <p class="cb-lead">Un proche, un voisin, un collègue souhaite vendre sur la presqu'île ? Mettez-nous en relation : si la vente se conclut avec moi, je vous remercie.</p>
+        <p class="cb-lead">Un proche, un voisin, un collègue souhaite vendre sur la presqu'île ? Mettez-nous en relation : si la vente se conclut avec moi, je vous remercie à hauteur de 1 000 €.</p>
       </div>
       <div class="pr-reward">
         <div class="k">Votre remerciement</div>
-        <div class="v is-text" id="parrainagePrime">Une prime de parrainage</div>
+        <div class="v" id="parrainagePrime">1 000 €</div>
         <p>pour chaque vente conclue grâce à votre recommandation</p>
       </div>
     </div>
@@ -5703,7 +5760,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <div class="cb-grid g3">
         <div class="cb-card step"><h3 class="cb-h3">1. Vous me le présentez</h3><p>Transmettez-moi les coordonnées du propriétaire, avec son accord, via le formulaire ci-dessous.</p></div>
         <div class="cb-card step"><h3 class="cb-h3">2. Je prends le relais</h3><p>Je le contacte, j'estime son bien et je l'accompagne dans sa vente, en vous tenant informé.</p></div>
-        <div class="cb-card step"><h3 class="cb-h3">3. Vous êtes remercié</h3><p>Dès la signature de l'acte de vente, votre remerciement vous est remis.</p></div>
+        <div class="cb-card step"><h3 class="cb-h3">3. Vous recevez 1 000 €</h3><p>Dès la signature de l'acte de vente, votre remerciement de 1 000 € vous est versé.</p></div>
       </div>
     </div>
   </section>
@@ -6674,7 +6731,7 @@ function _updateSeoForPage(id) {
     },
     'parrainage': {
       title: "Parrainage — recommandez un vendeur à Nathalie Chaudet Morel",
-      desc: "Un proche souhaite vendre sur la presqu'île guérandaise ? Présentez-le à Nathalie Chaudet Morel et soyez remercié si la vente se conclut."
+      desc: "Un proche souhaite vendre sur la presqu'île guérandaise ? Présentez-le à Nathalie Chaudet Morel : 1 000 € de remerciement si la vente se conclut."
     },
     'outils': {
       title: "Simulateurs immobiliers : capacité d'emprunt, frais de notaire, mensualité — Côté Presqu'île",
@@ -7450,6 +7507,7 @@ function getBiensFiltres() {
   if (filterSurfaceMin > 0) f = f.filter(b => (parseInt(b.surface) || 0) >= filterSurfaceMin);
   if (filterChambresMin > 0) f = f.filter(b => (parseInt(b.chambres) || 0) >= filterChambresMin);
   if (filterRef) { var q = filterRef.toLowerCase().trim(); f = f.filter(b => String(b.ref || '').toLowerCase().indexOf(q) !== -1); }
+  if (typeof filterFeatures !== 'undefined' && filterFeatures.length) f = f.filter(function(b){ var k = bienFeatures(b); return filterFeatures.every(function(x){ return k.indexOf(x) !== -1; }); });
   f.sort(function(a, b){
     if (sortBiens === 'prix_asc')  return (parseInt(a.prix)||0) - (parseInt(b.prix)||0);
     if (sortBiens === 'prix_desc') return (parseInt(b.prix)||0) - (parseInt(a.prix)||0);
@@ -7461,6 +7519,7 @@ function getBiensFiltres() {
 function renderBiensGrid() {
   const grid = document.getElementById('biensGrid');
   if (!grid) return;
+  if (typeof renderFeatChips === 'function') renderFeatChips();
   var filtered = getBiensFiltres();
   var countEl = document.getElementById('biensCount');
   if (countEl) countEl.textContent = filtered.length + ' résultat' + (filtered.length > 1 ? 's' : '');
@@ -7868,6 +7927,7 @@ function showFiche(id) {
     try { window.history.replaceState(null, '', window.location.pathname + '#bien/' + slug); } catch (e) {}
   }
 
+  if (typeof renderFicheExtras === 'function') renderFicheExtras(b);
   showPage('fiche');
 }
 
@@ -9245,7 +9305,7 @@ async function submitContact() {
 
 // ===== REFONTE « façon La Cabane » : favoris, estimation en étapes, critères d'achat, parrainage =====
 // Montant du parrainage : laisser vide tant que Nathalie ne l'a pas fixé (ex. '500 €').
-var PARRAINAGE_PRIME = '';
+var PARRAINAGE_PRIME = '1 000 €';
 var _HEART_PATH = 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z';
 
 // --- Favoris (enregistrés dans le navigateur du visiteur) ---
@@ -9942,6 +10002,140 @@ document.addEventListener('DOMContentLoaded', function () {
   else init();
 })();
 
+// ===== Critères de recherche détectés dans l'annonce (idée reprise du site Sabolien) =====
+// Indicatif : une annonce qui ne mentionne pas un équipement n'est pas retenue pour ce critère.
+var filterFeatures = [];
+var BIEN_FEATURES = [
+  { key: 'plain-pied', label: 'Plain-pied', test: function (b, t) { return /plain[- ]pied/.test(t); } },
+  { key: 'a-renover', label: 'À rénover', test: function (b, t) { return /à rénover|a renover|à rafraîchir|travaux à prévoir|à restaurer|à réhabiliter/.test(t); } },
+  { key: 'grand-terrain', label: 'Grand terrain', test: function (b) { return (parseInt(b.terrain) || 0) >= 1000; } },
+  { key: 'jardin', label: 'Jardin', test: function (b, t) { return /jardin/.test(t) || (b.type === 'Maison' && (parseInt(b.terrain) || 0) >= 200); } },
+  { key: 'terrasse', label: 'Terrasse / balcon', test: function (b, t) { return /terrasse|balcon|loggia/.test(t); } },
+  { key: 'piscine', label: 'Piscine', test: function (b, t) { return /piscine/.test(t); } },
+  { key: 'vue-mer', label: 'Vue mer', test: function (b, t) { return /vue (sur la |sur |)mer|vue (sur l'|)océan|vue sur la baie|front de mer|première ligne|pieds dans l'eau/.test(t); } },
+  { key: 'plage', label: 'Proche plage', test: function (b, t) { return /plage/.test(t); } },
+  { key: 'belle-vue', label: 'Belle vue', test: function (b, t) { return /belle vue|vue dégagée|vue imprenable|vue panoramique|sans vis-à-vis|vue sur le port|vue sur les marais/.test(t); } },
+  { key: 'cheminee', label: 'Cheminée / poêle', test: function (b, t) { return /chemin[ée]e|poêle|poele|insert/.test(t); } },
+  { key: 'cave', label: 'Cave / sous-sol', test: function (b, t) { return /\bcave\b|sous-sol|cellier/.test(t); } },
+  { key: 'garage', label: 'Garage / parking', test: function (b, t) { return /garage|parking|stationnement|\bbox\b|carport/.test(t); } },
+  { key: 'ascenseur', label: 'Ascenseur', test: function (b, t) { return /ascenseur/.test(t); } },
+  { key: 'gardien', label: 'Gardien', test: function (b, t) { return /gardien|concierge/.test(t); } }
+];
+function bienFeatures(b) {
+  if (b._feat) return b._feat;
+  var t = [b.titre, b.accroche, b.description, b.desc].join(' ').toLowerCase();
+  b._feat = BIEN_FEATURES.filter(function (f) { try { return f.test(b, t); } catch (e) { return false; } }).map(function (f) { return f.key; });
+  return b._feat;
+}
+function renderFeatChips() {
+  var box = document.getElementById('featChips'); if (!box || typeof biens === 'undefined') return;
+  var actifs = biens.filter(function (b) { return b.statut !== 'vendu'; });
+  box.innerHTML = BIEN_FEATURES.map(function (f) {
+    var n = actifs.filter(function (b) { return bienFeatures(b).indexOf(f.key) !== -1; }).length;
+    var on = filterFeatures.indexOf(f.key) !== -1;
+    return '<button type="button" class="feat-chip' + (on ? ' on' : '') + '" aria-pressed="' + on + '"' + (n || on ? '' : ' disabled') +
+      ' onclick="toggleFeature(\'' + f.key + '\')">' + f.label + ' <span>' + n + '</span></button>';
+  }).join('') + (filterFeatures.length ? '<button type="button" class="feat-reset" onclick="filterFeatures=[];renderFeatChips();renderBiensGrid();">Effacer les critères</button>' : '');
+}
+function toggleFeature(k) {
+  var i = filterFeatures.indexOf(k);
+  if (i === -1) filterFeatures.push(k); else filterFeatures.splice(i, 1);
+  renderFeatChips(); renderBiensGrid();
+}
+
+// ===== Fiche : points clés, carte du secteur, Géorisques, boutons, barre mobile =====
+var _ficheMap = null;
+function renderFicheExtras(b) {
+  var prixNum = parseInt(b.prixFAI || b.prix) || 0, surf = parseFloat(b.surface) || 0;
+  var masque = (typeof isPrixMasque === 'function') && isPrixMasque(b);
+  var keys = [];
+  if (surf) keys.push(['Surface', surf + ' m²']);
+  if (b.pieces) keys.push(['Pièces', b.pieces]);
+  if (b.chambres) keys.push(['Chambres', b.chambres]);
+  if (parseInt(b.terrain)) keys.push(['Terrain', parseInt(b.terrain).toLocaleString('fr-FR') + ' m²']);
+  if (!masque && prixNum && surf) keys.push(['Prix / m²', Math.round(prixNum / surf).toLocaleString('fr-FR') + ' €']);
+  var dpe = b.dpeClasse || b.dpe;
+  if (dpe && /^[A-G]$/i.test(dpe)) keys.push(['DPE', '<span class="fk-dpe fk-' + dpe.toUpperCase() + '">' + dpe.toUpperCase() + '</span>']);
+  var kEl = document.getElementById('ficheKeys');
+  if (kEl) kEl.innerHTML = keys.map(function (k) { return '<div class="fk"><span>' + k[0] + '</span><strong>' + k[1] + '</strong></div>'; }).join('');
+
+  var ref = b.ref && String(b.ref).trim() ? String(b.ref).trim() : (typeof genRef === 'function' ? genRef(b.id) : b.id);
+  var url = location.origin + location.pathname + '#bien/' + (typeof _slugifyBien === 'function' ? _slugifyBien(b) : ('ref-' + b.id));
+  var waTxt = encodeURIComponent('Bonjour Nathalie, je suis intéressé(e) par le bien réf. ' + ref + ' (' + (b.type || 'bien') + ' à ' + (b.ville || '') + ') : ' + url);
+  var mailSubj = encodeURIComponent('Bien réf. ' + ref + ' — ' + (b.type || 'Bien') + ' à ' + (b.ville || ''));
+  var ville = b.ville || 'la presqu\'île guérandaise';
+  var ex = document.getElementById('ficheExtras');
+  if (ex) {
+    ex.innerHTML =
+      '<div class="fiche-actions">' +
+        '<button type="button" class="cb-btn" onclick="ficheVisiter()">Organiser une visite</button>' +
+        '<a class="cb-btn ghost" href="https://wa.me/33648384375?text=' + waTxt + '" target="_blank" rel="noopener">WhatsApp</a>' +
+        '<a class="cb-btn ghost" href="mailto:contact@cotepresquile.com?subject=' + mailSubj + '">E-mail</a>' +
+      '</div>' +
+      '<div class="fiche-bloc">' +
+        '<h3>Localisation</h3>' +
+        '<div id="ficheMap" class="fiche-map" role="img" aria-label="Secteur approximatif du bien à ' + _esc(ville) + '"></div>' +
+        '<p class="fiche-note">Secteur approximatif : ' + _esc(ville) + '. L\'adresse exacte vous est communiquée lors de la visite.</p>' +
+      '</div>' +
+      '<div class="fiche-bloc">' +
+        '<h3>Risques</h3>' +
+        '<p class="fiche-note">Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : ' +
+        '<a href="https://www.georisques.gouv.fr" target="_blank" rel="noopener">www.georisques.gouv.fr</a></p>' +
+      '</div>';
+  }
+  if (typeof _chargerLeaflet === 'function') {
+    _chargerLeaflet(function () {
+      var el = document.getElementById('ficheMap'); if (!el || !window.L) return;
+      if (_ficheMap) { try { _ficheMap.remove(); } catch (e) {} _ficheMap = null; }
+      var c = (typeof VILLE_COORDS !== 'undefined' && VILLE_COORDS[b.ville]) || [47.29, -2.40];
+      _ficheMap = L.map(el, { scrollWheelZoom: false, zoomControl: true, attributionControl: true }).setView(c, 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 17, subdomains: 'abc' }).addTo(_ficheMap);
+      L.circle(c, { radius: 900, color: '#192D56', weight: 2, fillColor: '#6D8CC4', fillOpacity: .25 }).addTo(_ficheMap);
+      setTimeout(function () { if (_ficheMap) _ficheMap.invalidateSize(); }, 300);
+    });
+  }
+  var mb = document.getElementById('ficheMobilePrix');
+  if (mb) mb.textContent = (typeof formatPrixPublic === 'function') ? formatPrixPublic(b) : '';
+}
+function ficheVisiter() {
+  var f = document.querySelector('#page-fiche .fiche-contact-form'); if (!f) return;
+  var m = document.getElementById('ficheContactMessage');
+  var b = window._bienAffiche || {};
+  var ref = b.ref && String(b.ref).trim() ? String(b.ref).trim() : (typeof genRef === 'function' ? genRef(b.id) : '');
+  if (m) m.value = 'Bonjour, je souhaite organiser une visite du bien (Réf : ' + ref + '). Voici mes disponibilités : ';
+  window.scrollTo({ top: f.getBoundingClientRect().top + window.scrollY - 100, behavior: 'smooth' });
+  setTimeout(function () { var n = f.querySelector('input'); if (n) n.focus({ preventScroll: true }); }, 600);
+}
+// Le bouton PDF fonctionne même si le module PDF n'est pas encore chargé (repli : impression)
+if (typeof window.telechargerFichePDF !== 'function') window.telechargerFichePDF = function () { window.print(); };
+
+// ===== Galerie plein écran : glisser au doigt + plein écran =====
+(function () {
+  var x0 = null, y0 = null;
+  document.addEventListener('touchstart', function (e) {
+    var lb = document.getElementById('lightbox');
+    if (!lb || !lb.classList.contains('open') || e.touches.length !== 1) return;
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) lightboxNav(dx < 0 ? 1 : -1);
+  }, { passive: true });
+  document.addEventListener('click', function (e) {
+    var lb = document.getElementById('lightbox');
+    if (lb && lb.classList.contains('open') && e.target === lb) closeLightbox();
+  });
+})();
+function lightboxFullscreen() {
+  var lb = document.getElementById('lightbox'); if (!lb) return;
+  if (document.fullscreenElement) { document.exitFullscreen && document.exitFullscreen(); return; }
+  var fn = lb.requestFullscreen || lb.webkitRequestFullscreen;
+  if (fn) fn.call(lb);
+}
+
+
 // ===== HAMBURGER =====
 function toggleMobileMenu() {
   const menu = document.getElementById('mobile-menu');
@@ -10088,6 +10282,7 @@ function openLightbox(idx) {
 }
 
 function closeLightbox() {
+  if (document.fullscreenElement && document.exitFullscreen) { try { document.exitFullscreen(); } catch (e) {} }
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow = '';
 }
@@ -11106,6 +11301,7 @@ function showCookieSection(key,el){
 <!-- ===== LIGHTBOX GALLERIE ===== -->
 <div id="lightbox" role="dialog" aria-modal="true" aria-label="Galerie photos">
   <button id="lightbox-close" onclick="closeLightbox()" aria-label="Fermer">✕</button>
+  <button id="lightbox-fs" onclick="lightboxFullscreen()" aria-label="Plein écran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
   <div id="lightbox-counter">1 / 1</div>
   <button id="lightbox-prev" onclick="lightboxNav(-1)" aria-label="Photo précédente">‹</button>
   <img id="lightbox-img" src="" alt="">
