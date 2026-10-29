@@ -67,6 +67,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
 <link rel="dns-prefetch" href="https://images.unsplash.com">
+<link rel="preconnect" href="https://wsrv.nl">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Allura&display=swap" rel="stylesheet">
 
 <!-- ================================================================
@@ -4575,6 +4576,19 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   .split-contact > div:first-child .cb-chip { padding: 6px 12px; font-size: .76rem; }
 }
 
+/* ---------- Bandeaux défilants (ventes, témoignages) : affichage immédiat ---------- */
+.vendus-marquee, .avis-marquee { -webkit-mask-image: none !important; mask-image: none !important; }
+.vendus-marquee::before, .vendus-marquee::after, .avis-marquee::before, .avis-marquee::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 6%; z-index: 2; pointer-events: none;
+}
+.vendus-marquee::before, .avis-marquee::before { left: 0; background: linear-gradient(to right, #fff, rgba(255,255,255,0)); }
+.vendus-marquee::after, .avis-marquee::after { right: 0; background: linear-gradient(to left, #fff, rgba(255,255,255,0)); }
+.vendus-track, .avis-track { will-change: transform; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+@media (max-width: 620px) {
+  .avis-marquee .avis-card { flex: 0 0 290px; padding: 1.5rem; min-height: 0; }
+  .vendus-card { flex: 0 0 240px; }
+}
+
 /* Utilitaires */
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -4787,7 +4801,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         <!-- Les cartes sont dupliquées pour un défilement en boucle fluide -->
         <div class="vendus-card">
           <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/967431/3888" alt="Appartement vendu La Baule-Escoublac" loading="lazy">
+            <img src="https://wsrv.nl/?url=admin.3gimmobilier.fr/get_file_id/967431/3888&w=700&we&output=webp&q=74" data-orig="https://admin.3gimmobilier.fr/get_file_id/967431/3888" alt="Appartement vendu La Baule-Escoublac" decoding="async" fetchpriority="low" onerror="imgRepli(this)">
             <span class="vendus-badge">Vendu</span>
           </div>
           <div class="vendus-info">
@@ -4797,7 +4811,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="vendus-card">
           <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14233/2592" alt="Maison vendue Piriac-sur-Mer" loading="lazy">
+            <img src="https://wsrv.nl/?url=admin.3gimmobilier.fr/get_file_id/14233/2592&w=700&we&output=webp&q=74" data-orig="https://admin.3gimmobilier.fr/get_file_id/14233/2592" alt="Maison vendue Piriac-sur-Mer" decoding="async" fetchpriority="low" onerror="imgRepli(this)">
             <span class="vendus-badge">Vendu</span>
           </div>
           <div class="vendus-info">
@@ -4807,7 +4821,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="vendus-card">
           <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14201/3966" alt="Maison vendue Saint-Nazaire" loading="lazy">
+            <img src="https://wsrv.nl/?url=admin.3gimmobilier.fr/get_file_id/14201/3966&w=700&we&output=webp&q=74" data-orig="https://admin.3gimmobilier.fr/get_file_id/14201/3966" alt="Maison vendue Saint-Nazaire" decoding="async" fetchpriority="low" onerror="imgRepli(this)">
             <span class="vendus-badge">Vendu</span>
           </div>
           <div class="vendus-info">
@@ -4817,7 +4831,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="vendus-card">
           <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14098/2712" alt="Maison vendue Le Pouliguen" loading="lazy">
+            <img src="https://wsrv.nl/?url=admin.3gimmobilier.fr/get_file_id/14098/2712&w=700&we&output=webp&q=74" data-orig="https://admin.3gimmobilier.fr/get_file_id/14098/2712" alt="Maison vendue Le Pouliguen" decoding="async" fetchpriority="low" onerror="imgRepli(this)">
             <span class="vendus-badge">Vendu</span>
           </div>
           <div class="vendus-info">
@@ -4828,7 +4842,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         <!-- Duplication pour boucle infinie -->
         <div class="vendus-card" aria-hidden="true">
           <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/967431/3888" alt="" loading="lazy">
+            <img src="https://wsrv.nl/?url=admin.3gimmobilier.fr/get_file_id/967431/3888&w=700&we&output=webp&q=74" data-orig="https://admin.3gimmobilier.fr/get_file_id/967431/3888" alt="" decoding="async" fetchpriority="low" onerror="imgRepli(this)">
             <span class="vendus-badge">Vendu</span>
           </div>
           <div class="vendus-info">
@@ -4838,7 +4852,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="vendus-card" aria-hidden="true">
           <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14233/2592" alt="" loading="lazy">
+            <img src="https://wsrv.nl/?url=admin.3gimmobilier.fr/get_file_id/14233/2592&w=700&we&output=webp&q=74" data-orig="https://admin.3gimmobilier.fr/get_file_id/14233/2592" alt="" decoding="async" fetchpriority="low" onerror="imgRepli(this)">
             <span class="vendus-badge">Vendu</span>
           </div>
           <div class="vendus-info">
@@ -4848,7 +4862,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="vendus-card" aria-hidden="true">
           <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14201/3966" alt="" loading="lazy">
+            <img src="https://wsrv.nl/?url=admin.3gimmobilier.fr/get_file_id/14201/3966&w=700&we&output=webp&q=74" data-orig="https://admin.3gimmobilier.fr/get_file_id/14201/3966" alt="" decoding="async" fetchpriority="low" onerror="imgRepli(this)">
             <span class="vendus-badge">Vendu</span>
           </div>
           <div class="vendus-info">
@@ -4858,7 +4872,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="vendus-card" aria-hidden="true">
           <div class="vendus-img-wrap">
-            <img src="https://admin.3gimmobilier.fr/get_file_id/14098/2712" alt="" loading="lazy">
+            <img src="https://wsrv.nl/?url=admin.3gimmobilier.fr/get_file_id/14098/2712&w=700&we&output=webp&q=74" data-orig="https://admin.3gimmobilier.fr/get_file_id/14098/2712" alt="" decoding="async" fetchpriority="low" onerror="imgRepli(this)">
             <span class="vendus-badge">Vendu</span>
           </div>
           <div class="vendus-info">
@@ -7584,7 +7598,7 @@ function renderReseauxThumbs() {
   var k = 0;
   cards.forEach(function(card){
     card.querySelectorAll('.reseau-feed span').forEach(function(sp){
-      sp.style.backgroundImage = "url('" + photos[k % photos.length] + "')";
+      sp.style.backgroundImage = "url('" + imgOpt(photos[k % photos.length], 240) + "')";
       k++;
     });
   });
@@ -7780,7 +7794,7 @@ function renderVendusCarousel() {
     var altText = (v.type || 'Bien vendu') + ' ' + (v.ville || '');
     return '<div class="vendus-card"' + (ariaHidden ? ' aria-hidden="true"' : '') + '>' +
       '<div class="vendus-img-wrap">' +
-        '<img src="' + (v.img || PLACEHOLDER_IMG) + '" alt="' + altText.replace(/"/g,'&quot;') + '" loading="lazy" onerror="this.onerror=null;this.src=PLACEHOLDER_IMG">' +
+        '<img src="' + (v.img ? imgOpt(v.img, 700) : PLACEHOLDER_IMG) + '" data-orig="' + (v.img || '') + '" alt="' + altText.replace(/"/g,'&quot;') + '" decoding="async" fetchpriority="low" onerror="imgRepli(this)">' +
         '<span class="vendus-badge">Vendu</span>' +
       '</div>' +
       '<div class="vendus-info">' +
@@ -7952,7 +7966,7 @@ function showFiche(id) {
 
   // Construction de la galerie selon le nombre de photos
   var galleryHtml = '<div class="fiche-gallery-main">' +
-      '<img src="' + (photo1 || PLACEHOLDER_IMG) + '" alt="' + altBase.replace(/"/g,'&quot;') + '" loading="eager" fetchpriority="high" decoding="async" onclick="openLightbox(0)" onerror="this.onerror=null;this.src=PLACEHOLDER_IMG">' +
+      '<img src="' + (photo1 ? imgOpt(photo1, 1600) : PLACEHOLDER_IMG) + '" data-orig="' + (photo1 || '') + '" alt="' + altBase.replace(/"/g,'&quot;') + '" loading="eager" fetchpriority="high" decoding="async" onclick="openLightbox(0)" onerror="imgRepli(this)">' +
       photoBtnHtml +
     '</div>';
 
@@ -7961,14 +7975,14 @@ function showFiche(id) {
     // 3+ photos : main + 2 sub empilées à droite
     galleryMode = 'three';
     galleryHtml += '<div class="fiche-gallery-sub">' +
-      '<img src="' + photo2 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 2" loading="lazy" decoding="async" onclick="openLightbox(1)">' +
-      '<img src="' + photo3 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 3" loading="lazy" decoding="async" onclick="openLightbox(2)">' +
+      '<img src="' + imgOpt(photo2, 900) + '" data-orig="' + photo2 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 2" decoding="async" onclick="openLightbox(1)" onerror="imgRepli(this)">' +
+      '<img src="' + imgOpt(photo3, 900) + '" data-orig="' + photo3 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 3" decoding="async" onclick="openLightbox(2)" onerror="imgRepli(this)">' +
     '</div>';
   } else if (photo2) {
     // 2 photos : main + 1 sub pleine hauteur à droite
     galleryMode = 'two';
     galleryHtml += '<div class="fiche-gallery-sub">' +
-      '<img src="' + photo2 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 2" loading="lazy" decoding="async" onclick="openLightbox(1)">' +
+      '<img src="' + imgOpt(photo2, 1200) + '" data-orig="' + photo2 + '" alt="' + altBase.replace(/"/g,'&quot;') + ' - vue 2" decoding="async" onclick="openLightbox(1)" onerror="imgRepli(this)">' +
     '</div>';
   }
 
@@ -7980,7 +7994,7 @@ function showFiche(id) {
   // ===== Sidebar Barnes-style : bandeau prix + photo agent =====
   var priceBar = document.getElementById('fichePriceBar');
   if (priceBar) {
-    priceBar.style.backgroundImage = photo1 ? 'url("' + photo1 + '")' : '';
+    priceBar.style.backgroundImage = photo1 ? 'url("' + imgOpt(photo1, 900) + '")' : '';
   }
   var priceBarTitle = document.getElementById('fichePriceBarTitle');
   if (priceBarTitle) {
@@ -10987,8 +11001,8 @@ function bcSlides(b, alt) {
   var ph = bcPhotos(b);
   return '<div class="bc-track" data-n="' + ph.length + '">' + ph.map(function (u, i) {
     // seule la 1re photo est chargée tout de suite ; les autres à la demande (data-src)
-    return '<div class="bc-slide"><img ' + (i === 0 ? 'src' : 'data-src') + '="' + _esc(u) + '" alt="' + _esc(alt + (i ? ' — photo ' + (i + 1) : '')) +
-           '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=PLACEHOLDER_IMG"></div>';
+    return '<div class="bc-slide"><img ' + (i === 0 ? 'src' : 'data-src') + '="' + _esc(imgOpt(u, 800)) + '" data-orig="' + _esc(u) + '" alt="' + _esc(alt + (i ? ' — photo ' + (i + 1) : '')) +
+           '" loading="lazy" decoding="async" onerror="imgRepli(this)"></div>';
   }).join('') + '</div>';
 }
 function bcArrow(dir, label) {
@@ -11052,6 +11066,20 @@ function bcNav(ev, btn, dir) {
     if (b && b._swipe && Date.now() - b._swipe < 450) { e.stopPropagation(); e.preventDefault(); }
   }, true);
 })();
+
+// ===== Photos 3G allégées =====
+// Les photos 3G pèsent 2 à 3 Mo (jusqu'à 5 712 px de large). On les sert redimensionnées en WebP
+// via le relais d'images wsrv.nl (≈ 40 Ko pour une carte, 85× plus léger). Si le relais ne répond pas,
+// la photo d'origine 3G est rechargée automatiquement (attribut data-orig), puis l'image de remplacement.
+function imgOpt(url, w) {
+  if (!url || typeof url !== 'string' || url.indexOf('admin.3gimmobilier.fr') === -1) return url;
+  return 'https://wsrv.nl/?url=' + url.replace(/^https?:\/\//, '') + '&w=' + (w || 800) + '&we&output=webp&q=74';
+}
+function imgRepli(img) {
+  var o = img.getAttribute('data-orig');
+  if (o && img.src !== o) { img.removeAttribute('data-orig'); img.src = o; return; }
+  img.onerror = null; img.src = PLACEHOLDER_IMG;
+}
 
 // ===== HAMBURGER =====
 function toggleMobileMenu() {
@@ -11212,7 +11240,10 @@ function lightboxNav(dir) {
 
 function updateLightbox() {
   const photos = window._currentPhotos;
-  document.getElementById('lightbox-img').src = photos[_lbIdx];
+  var _lbImg = document.getElementById('lightbox-img');
+  _lbImg.setAttribute('data-orig', photos[_lbIdx]);
+  _lbImg.onerror = function () { imgRepli(this); };
+  _lbImg.src = imgOpt(photos[_lbIdx], 2000);
   document.getElementById('lightbox-counter').textContent = (_lbIdx + 1) + ' / ' + photos.length;
 
   // Flèches : masquer si 1 seule photo
@@ -11222,7 +11253,7 @@ function updateLightbox() {
   // Miniatures
   const thumbs = document.getElementById('lightbox-thumbs');
   thumbs.innerHTML = photos.map((p, i) =>
-    `<img src="${p}" alt="Photo du bien ${i + 1}" class="${i === _lbIdx ? 'active' : ''}" onclick="(_lbIdx=${i}, updateLightbox())">`
+    `<img src="${imgOpt(p, 200)}" alt="Photo du bien ${i + 1}" class="${i === _lbIdx ? 'active' : ''}" onclick="(_lbIdx=${i}, updateLightbox())">`
   ).join('');
   // Fix onclick dans template string
   thumbs.querySelectorAll('img').forEach((img, i) => {
