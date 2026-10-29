@@ -4484,6 +4484,29 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 .vd-more { margin-top: 30px; text-align: center; font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gris); }
 @media print { .fiche-mobile-bar, .fiche-actions, .fiche-share-wrap { display: none !important; } }
 
+/* ---------- Cartes : mini-diaporama ---------- */
+.bc-track { display: flex; width: 100%; height: 100%; transition: transform .45s cubic-bezier(.22,1,.36,1); will-change: transform; }
+.bc-slide { flex: 0 0 100%; height: 100%; overflow: hidden; }
+.bien-card-img { touch-action: pan-y; }
+.une-carousel .bien-card-img { touch-action: auto; }
+.bc-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 4; width: 38px; height: 38px; border-radius: 50%;
+  border: 0; background: rgba(255,255,255,.95); color: var(--noir); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 0 2px 10px rgba(19,36,74,.25); transition: opacity .25s ease, transform .25s ease;
+}
+.bc-arrow svg { width: 16px; height: 16px; }
+.bc-prev { left: 12px; }
+.bc-next { right: 12px; }
+.bc-arrow:hover { transform: translateY(-50%) scale(1.08); }
+.bc-arrow:focus-visible { outline: 2px solid var(--accent-b); outline-offset: 2px; }
+@media (hover: hover) {
+  .bc-arrow { opacity: 0; }
+  .bien-card:hover .bc-arrow, .bc-arrow:focus-visible { opacity: 1; }
+}
+.bc-dots { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 6px; z-index: 4; pointer-events: none; }
+.bc-dots span { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.88); box-shadow: 0 1px 3px rgba(0,0,0,.28); transition: width .25s ease, background .25s ease; }
+.bc-dots span.on { width: 22px; background: var(--noir); }
+
 /* Utilitaires */
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -7435,9 +7458,10 @@ function bienCardHTML(b) {
     ' - Nathalie Chaudet Morel';
   div.innerHTML =
     '<div class="bien-card-img">' +
-      '<img src="' + _esc(b.img || PLACEHOLDER_IMG) + '" alt="' + _esc(altTxt) + '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=PLACEHOLDER_IMG">' +
+      bcSlides(b, altTxt) +
       vignettes + favBouton(b.id) +
       '<span class="bien-card-discover">Découvrir ce bien →</span>' +
+      bcControls(b) +
     '</div>' +
     '<div class="bien-card-body">' +
       '<div class="bien-card-type">' + _esc(b.type || '—') + '</div>' +
@@ -10876,6 +10900,85 @@ function lightboxFullscreen() {
       _busy = false;
     }
   };
+})();
+
+// ===== Mini-diaporama sur les cartes : faire défiler les photos sans ouvrir l'annonce =====
+var BC_MAX = 10;   // photos max par carte (les suivantes restent visibles dans l'annonce)
+var BC_CHEV = { prev: '<path d="M15 18l-6-6 6-6"/>', next: '<path d="M9 18l6-6-6-6"/>' };
+function bcPhotos(b) {
+  var l = (Array.isArray(b.photos) ? b.photos : []).filter(Boolean);
+  if (b.img && l.indexOf(b.img) === -1) l.unshift(b.img);
+  if (!l.length) l = [b.img || PLACEHOLDER_IMG];
+  return l.slice(0, BC_MAX);
+}
+function bcSlides(b, alt) {
+  var ph = bcPhotos(b);
+  return '<div class="bc-track" data-n="' + ph.length + '">' + ph.map(function (u, i) {
+    // seule la 1re photo est chargée tout de suite ; les autres à la demande (data-src)
+    return '<div class="bc-slide"><img ' + (i === 0 ? 'src' : 'data-src') + '="' + _esc(u) + '" alt="' + _esc(alt + (i ? ' — photo ' + (i + 1) : '')) +
+           '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=PLACEHOLDER_IMG"></div>';
+  }).join('') + '</div>';
+}
+function bcArrow(dir, label) {
+  return '<button type="button" class="bc-arrow bc-' + dir + '" aria-label="' + label + '" onclick="bcNav(event,this,' + (dir === 'prev' ? -1 : 1) + ')">' +
+         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + BC_CHEV[dir] + '</svg></button>';
+}
+function bcControls(b) {
+  var n = bcPhotos(b).length;
+  if (n < 2) return '';
+  return bcArrow('prev', 'Photo précédente') + bcArrow('next', 'Photo suivante') +
+         '<div class="bc-dots" aria-hidden="true">' + bcDotsHTML(0, n) + '</div>';
+}
+function bcDotsHTML(i, n) {   // 5 points max, fenêtre glissante autour de la photo affichée
+  var max = 5, start = Math.max(0, Math.min(i - 2, n - max)), end = Math.min(n, start + max), h = '';
+  for (var k = start; k < end; k++) h += '<span' + (k === i ? ' class="on"' : '') + '></span>';
+  return h;
+}
+function bcCharger(tr, k) {
+  var im = tr.children[k] && tr.children[k].querySelector('img[data-src]');
+  if (im) { im.src = im.getAttribute('data-src'); im.removeAttribute('data-src'); }
+}
+function bcGo(box, i) {
+  var tr = box.querySelector('.bc-track'); if (!tr) return;
+  var n = +tr.getAttribute('data-n') || 1;
+  i = ((i % n) + n) % n;
+  box.setAttribute('data-i', i);
+  bcCharger(tr, i); bcCharger(tr, (i + 1) % n);
+  tr.style.transform = 'translateX(' + (-100 * i) + '%)';
+  var d = box.querySelector('.bc-dots'); if (d) d.innerHTML = bcDotsHTML(i, n);
+}
+function bcNav(ev, btn, dir) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }   // n'ouvre pas l'annonce
+  var box = btn.closest('.bien-card-img'); if (!box) return;
+  bcGo(box, (+box.getAttribute('data-i') || 0) + dir);
+}
+(function () {
+  // Survol (ordinateur) : on précharge la 2e photo pour un défilement instantané
+  document.addEventListener('mouseover', function (e) {
+    var box = e.target.closest && e.target.closest('.bien-card-img');
+    if (box && !box._pre) { box._pre = 1; var tr = box.querySelector('.bc-track'); if (tr) bcCharger(tr, 1); }
+  });
+  // Glisser au doigt (téléphone) — sauf dans le carrousel de l'accueil, qui défile déjà au doigt
+  var box = null, sx = 0, sy = 0;
+  document.addEventListener('touchstart', function (e) {
+    var b = e.target.closest && e.target.closest('.bien-card-img');
+    box = (b && b.querySelector('.bc-arrow') && !b.closest('.une-carousel')) ? b : null;
+    if (box) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (!box) return;
+    var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+      bcGo(box, (+box.getAttribute('data-i') || 0) + (dx < 0 ? 1 : -1));
+      box._swipe = Date.now();
+    }
+    box = null;
+  }, { passive: true });
+  // un glissement ne doit pas ouvrir l'annonce
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.bien-card-img');
+    if (b && b._swipe && Date.now() - b._swipe < 450) { e.stopPropagation(); e.preventDefault(); }
+  }, true);
 })();
 
 // ===== HAMBURGER =====
