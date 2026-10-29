@@ -4451,7 +4451,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 .fiche-keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 18px 0 22px; }
 .fiche-keys:empty { display: none; }
 .fk { background: var(--light-bg); border: 1px solid var(--line-c); border-radius: 12px; padding: 12px 14px; }
-.fk span { display: block; font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gris); }
+
 .fk strong { display: block; font-size: 1.05rem; font-weight: 800; color: var(--noir); margin-top: 2px; }
 .fk-dpe { display: inline-flex; width: 28px; height: 28px; border-radius: 6px; align-items: center; justify-content: center; color: #fff; font-size: .9rem; }
 .fk-A { background: #009C6D; } .fk-B { background: #52B153; } .fk-C { background: #78BD76; } .fk-D { background: #F4E70F; color: #192D56; }
@@ -4506,6 +4506,74 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 .bc-dots { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 6px; z-index: 4; pointer-events: none; }
 .bc-dots span { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.88); box-shadow: 0 1px 3px rgba(0,0,0,.28); transition: width .25s ease, background .25s ease; }
 .bc-dots span.on { width: 22px; background: var(--noir); }
+
+/* ===================== AFFICHAGE MOBILE (contrôle complet) ===================== */
+.cb-split.split-contact { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: start; }
+.cb-split.split-parrain { grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); }
+@media (max-width: 860px) {
+  .cb-split.split-contact, .cb-split.split-parrain, .vd-hero .cb-split { grid-template-columns: minmax(0, 1fr); }
+}
+.hero-content { width: 100%; min-width: 0; box-sizing: border-box; }
+.fiche-body > * { min-width: 0; }
+@media (max-width: 1024px) { .fiche-body { grid-template-columns: minmax(0, 1fr); } }
+#ficheSpecs table { table-layout: fixed; }
+#ficheSpecs td, .fiche-desc, .fiche-title, .fiche-loc { overflow-wrap: break-word; }
+
+
+/* ---------- Corrections d'affichage mobile ---------- */
+#page-biens, #page-estimation, #page-contact, #page-apropos { padding-top: 0 !important; }   /* les bandeaux gèrent déjà la place du menu */
+.fk > span { display: block; font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gris); }
+.fk span.fk-dpe { display: inline-flex; font-size: .95rem; letter-spacing: 0; font-weight: 800; text-transform: none; }
+.fiche-price { font-family: var(--sans); font-weight: 800; color: var(--noir); font-size: clamp(1.6rem, 5vw, 2.2rem); letter-spacing: -0.01em; }
+.fiche-contact-form-title { font-family: var(--sans); font-style: normal; font-weight: 800; font-size: 1.15rem; color: var(--noir); }
+.fiche-agent-info > a[href^="tel:"] { font-family: var(--sans) !important; font-weight: 700; }
+.fiche-agent-photo { object-fit: cover; }
+.feat-toggle { display: none; }
+@media (max-width: 900px) {
+  .hero-search { width: 100%; max-width: none; left: auto; transform: none; margin: 0 0 1.8rem; }
+}
+@media (max-width: 760px) {
+  p, li, .cb-lead { text-wrap: wrap; }
+  .feat-toggle { display: inline-flex; align-items: center; border: 1px dashed var(--noir); background: #fff; color: var(--noir); border-radius: 999px;
+    padding: 8px 16px; font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer; }
+  #featChips:not(.is-open) .feat-chip:not(.on), #featChips:not(.is-open) .feat-reset { display: none; }
+}
+@media (max-width: 620px) {
+  .cb-wrap { padding: 0 20px; }
+  .cb-section { padding: 56px 0; }
+  .cb-hero { padding: calc(var(--nav-h) + 40px) 0 44px; }
+  .cb-card { padding: 24px 20px; }
+  .cb-grid { gap: 14px; margin-top: 28px; }
+  .cb-actions { flex-direction: column; align-items: stretch; }
+  .cb-actions .cb-btn { width: 100%; }
+  .une-cta { display: block; text-align: center; }
+  .hide-sm { display: none; }
+  .back-btn { white-space: nowrap; }
+  .fiche-share-btn { width: 40px; height: 40px; }
+  /* Portails : grille 2 colonnes */
+  .vd-portals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .vd-portals > span { min-width: 0; padding: 12px 8px; font-size: .84rem; display: flex; align-items: center; justify-content: center; text-align: center; }
+  .honoraires-table th, .honoraires-table td { padding: 12px 10px !important; font-size: .85rem; }
+  /* Fiche : caractéristiques en 2 colonnes lisibles */
+  #ficheSpecs table, #ficheSpecs tbody { display: block; width: 100%; }
+  #ficheSpecs tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-bottom: 0 !important; }
+  #ficheSpecs td { display: block; width: auto !important; padding: 11px 8px 11px 0 !important; border-bottom: 1px solid var(--line-c); }
+  #ficheSpecs td:empty { display: none; }
+  /* Photos portrait : format carré, visage cadré */
+  .cb-hero .cb-photo, #nathalie .cb-photo { aspect-ratio: 1 / 1; max-width: 100%; }
+  .cb-photo img { object-position: center 28%; }
+  .ft-legal { justify-content: center; }
+}
+@media (max-width: 860px) {
+  /* Contact : cartes coordonnées compactes avant le formulaire */
+  .split-contact > div:first-child { display: grid; gap: 10px; }
+  .split-contact > div:first-child .cb-card { margin: 0 !important; padding: 16px 18px; display: grid; grid-template-columns: 42px minmax(0, 1fr); column-gap: 14px; align-items: center; }
+  .split-contact > div:first-child .cb-ico { grid-row: span 2; margin: 0; width: 42px; height: 42px; background: var(--light-bg); border-radius: 50%; }
+  .split-contact > div:first-child .cb-ico svg { width: 20px; height: 20px; }
+  .split-contact > div:first-child .cb-h3 { margin: 0; font-size: .9rem; }
+  .split-contact > div:first-child .cb-chips { grid-column: 1 / -1; margin-top: 12px !important; }
+  .split-contact > div:first-child .cb-chip { padding: 6px 12px; font-size: .76rem; }
+}
 
 /* Utilitaires */
 [hidden] { display: none !important; }
@@ -4584,11 +4652,11 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <select id="heroBudget" class="hero-search-field">
           <option value="">Budget</option>
-          <option value="200000">≤ 200 000 €</option>
-          <option value="400000">≤ 400 000 €</option>
-          <option value="600000">≤ 600 000 €</option>
-          <option value="1000000">≤ 1 000 000 €</option>
-          <option value="3000000">≤ 3 000 000 €</option>
+          <option value="200000">≤ 200 000 €</option>
+          <option value="400000">≤ 400 000 €</option>
+          <option value="600000">≤ 600 000 €</option>
+          <option value="1000000">≤ 1 000 000 €</option>
+          <option value="3000000">≤ 3 000 000 €</option>
         </select>
         <select id="heroChambres" class="hero-search-field">
           <option value="">Chambres</option>
@@ -4608,13 +4676,13 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   <section class="cb-section cb-center" id="services">
     <div class="cb-wrap">
       <span class="cb-kicker">Mes services</span>
-      <h2 class="cb-h2">Quel est votre projet ?</h2>
-      <p class="cb-lead">Acheter, vendre, connaître la valeur de votre bien ou recommander un proche : je vous accompagne de A à Z, avec la même exigence.</p>
+      <h2 class="cb-h2">Quel est votre projet ?</h2>
+      <p class="cb-lead">Acheter, vendre, connaître la valeur de votre bien ou recommander un proche : je vous accompagne de A à Z, avec la même exigence.</p>
       <div class="cb-grid g4">
         <a href="#" class="cb-card" onclick="showPage('biens');return false;">
           <span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg></span>
           <h3 class="cb-h3">Acheter</h3>
-          <p>Maisons, appartements, villas : je vous aide à trouver le bon bien et je vous accompagne jusqu'à la signature.</p>
+          <p>Maisons, appartements, villas : je vous aide à trouver le bon bien et je vous accompagne jusqu'à la signature.</p>
           <span class="cb-more">Voir les biens →</span>
         </a>
         <a href="#" class="cb-card" onclick="showPage('vendre');return false;">
@@ -4626,13 +4694,13 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         <a href="#" class="cb-card" onclick="showPage('estimation');return false;">
           <span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></span>
           <h3 class="cb-h3">Estimer</h3>
-          <p>Un avis de valeur gratuit et argumenté, fondé sur les ventes réelles du secteur, sous 24 h.</p>
+          <p>Un avis de valeur gratuit et argumenté, fondé sur les ventes réelles du secteur, sous 24 h.</p>
           <span class="cb-more">Estimer mon bien →</span>
         </a>
         <a href="#" class="cb-card" onclick="showPage('parrainage');return false;">
           <span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v9H5v-9"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></span>
           <h3 class="cb-h3">Parrainer</h3>
-          <p>Un proche souhaite vendre ? Présentez-le-moi : 1 000 € pour vous si la vente se conclut.</p>
+          <p>Un proche souhaite vendre ? Présentez-le-moi : 1 000 € pour vous si la vente se conclut.</p>
           <span class="cb-more">Découvrir →</span>
         </a>
       </div>
@@ -4646,11 +4714,11 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <div>
         <span class="cb-kicker">Me connaître</span>
         <h2 class="cb-h2">Nathalie Chaudet Morel, votre conseillère immobilier au cœur de la presqu'île guérandaise.</h2>
-        <p class="cb-lead">Depuis plus de 20 ans, j'accompagne avec écoute et rigueur celles et ceux qui souhaitent <strong>vendre</strong>, <strong>acheter</strong> ou <strong>estimer</strong> un bien, du Pouliguen à Guérande.</p>
+        <p class="cb-lead">Depuis plus de 20 ans, j'accompagne avec écoute et rigueur celles et ceux qui souhaitent <strong>vendre</strong>, <strong>acheter</strong> ou <strong>estimer</strong> un bien, du Pouliguen à Guérande.</p>
         <div class="cb-chips">
-          <span class="cb-chip">Plus de 20 ans d'expérience</span>
+          <span class="cb-chip">Plus de 20 ans d'expérience</span>
           <span class="cb-chip">7j/7 sur rendez-vous</span>
-          <span class="cb-chip">Estimation offerte sous 24 h</span>
+          <span class="cb-chip">Estimation offerte sous 24 h</span>
         </div>
         <div class="cb-actions"><button class="cb-btn accent" onclick="showPage('apropos')">En savoir plus sur moi</button></div>
       </div>
@@ -4679,7 +4747,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
     <div class="cb-wrap">
       <span class="cb-kicker">Mon secteur</span>
       <h2 class="cb-h2">Partout sur la presqu'île guérandaise</h2>
-      <p class="cb-lead">Du Croisic à Saint-Nazaire, de Piriac à Pornichet : je connais chaque commune, ses quartiers et ses prix, et je suis sur le terrain au quotidien.</p>
+      <p class="cb-lead">Du Croisic à Saint-Nazaire, de Piriac à Pornichet : je connais chaque commune, ses quartiers et ses prix, et je suis sur le terrain au quotidien.</p>
       <div class="cb-map">
 <svg viewBox="0 0 1000 632" role="img" aria-label="Carte des communes de la presqu'île guérandaise où intervient Nathalie Chaudet Morel" xmlns="http://www.w3.org/2000/svg">
 <defs><pattern id="mHatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="9" stroke="rgba(255,255,255,.28)" stroke-width="2"/></pattern></defs>
@@ -4872,7 +4940,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="avis-card">
           <div class="avis-stars">★★★★★</div>
-          <p class="avis-text">"Nous remercions Nathalie pour sa disponibilité dans le cadre d'un achat de maison à distance. Nous avons senti dès le premier contact téléphonique que Nathalie faisait partie de ces personnes très professionnelles, réactives, énergiques, à l'écoute et de bon conseil !"</p>
+          <p class="avis-text">"Nous remercions Nathalie pour sa disponibilité dans le cadre d'un achat de maison à distance. Nous avons senti dès le premier contact téléphonique que Nathalie faisait partie de ces personnes très professionnelles, réactives, énergiques, à l'écoute et de bon conseil !"</p>
           <div class="avis-author">
             <div class="avis-avatar">P</div>
             <div>
@@ -4905,7 +4973,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="avis-card">
           <div class="avis-stars">★★★★★</div>
-          <p class="avis-text">"Nous avons rencontré Madame Chaudet pour la vente de notre maison. L'estimation a été faite correctement et sérieusement. Nous avons travaillé en exclusivité et en toute confiance. Maison vendue en 2 mois et des acquéreurs rassurés par vos conseils et votre bienveillance. UN GRAND MERCI :)"</p>
+          <p class="avis-text">"Nous avons rencontré Madame Chaudet pour la vente de notre maison. L'estimation a été faite correctement et sérieusement. Nous avons travaillé en exclusivité et en toute confiance. Maison vendue en 2 mois et des acquéreurs rassurés par vos conseils et votre bienveillance. UN GRAND MERCI :)"</p>
           <div class="avis-author">
             <div class="avis-avatar">C</div>
             <div>
@@ -4938,7 +5006,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="avis-card">
           <div class="avis-stars">★★★★★</div>
-          <p class="avis-text">"Merci infiniment à Nathalie pour notre cocon, elle a su être à l'écoute et nous trouver rapidement notre bien et on y est très bien. Très professionnel ! Je recommande !"</p>
+          <p class="avis-text">"Merci infiniment à Nathalie pour notre cocon, elle a su être à l'écoute et nous trouver rapidement notre bien et on y est très bien. Très professionnel ! Je recommande !"</p>
           <div class="avis-author">
             <div class="avis-avatar">F</div>
             <div>
@@ -5015,7 +5083,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         </div>
         <div class="avis-card">
           <div class="avis-stars">★★★★★</div>
-          <p class="avis-text">"Une professionnelle sur laquelle on peut compter !"</p>
+          <p class="avis-text">"Une professionnelle sur laquelle on peut compter !"</p>
           <div class="avis-author">
             <div class="avis-avatar">V</div>
             <div>
@@ -5037,7 +5105,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <div style="text-align:center;">
         <div class="section-tag" style="justify-content:center;">Suivez-moi au quotidien</div>
         <h2 class="section-title">Retrouvez-moi sur les réseaux</h2>
-        <p class="reseaux-intro">Nouveaux biens, visites en images, coulisses et conseils : suivez toute l'actualité immobilière de la presqu'île guérandaise sur vos plateformes préférées.</p>
+        <p class="reseaux-intro">Nouveaux biens, visites en images, coulisses et conseils : suivez toute l'actualité immobilière de la presqu'île guérandaise sur vos plateformes préférées.</p>
       </div>
       <div class="reseaux-grid">
         <a class="reseau-card reseau-facebook" href="https://www.facebook.com/Cotepresquilenathaliechaudet" target="_blank" rel="noopener noreferrer" aria-label="Suivre Nathalie Chaudet Morel sur Facebook">
@@ -5100,7 +5168,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   <section id="cta">
     <div class="section-tag cta-tag">Contact</div>
     <h2 class="cta-title">Parlons de votre projet</h2>
-    <p class="cta-sub">Le premier échange est toujours gratuit et sans engagement : appelez-moi ou écrivez-moi.</p>
+    <p class="cta-sub">Le premier échange est toujours gratuit et sans engagement : appelez-moi ou écrivez-moi.</p>
     <div class="cb-actions" style="justify-content:center;">
       <button class="cb-btn" onclick="showPage('contact')">Me contacter</button>
       <a class="cb-btn ghost" href="tel:+33648384375">06 48 38 43 75</a>
@@ -5114,12 +5182,12 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <h2 class="seo-title">L'immobilier au Pouliguen avec Nathalie Chaudet Morel</h2>
       <div class="seo-content">
         <p><strong>Le Pouliguen</strong> est l'une des communes les plus recherchées de la <strong>presqu'île guérandaise</strong>. Entre le charme de son port de pêche, ses plages familiales, son cœur de ville animé et la qualité de vie unique qu'il offre, c'est une destination prisée à la fois pour y vivre à l'année et pour y investir en résidence secondaire.</p>
-        <p>En tant qu'<strong>agent commercial en immobilier indépendant au Pouliguen</strong>, Nathalie Chaudet Morel accompagne acheteurs et vendeurs depuis plus de 20 ans sur toute la presqu'île. Sa parfaite connaissance des quartiers (centre-ville, plage de Saint-Michel, Penchâteau, Nau…) et son réseau local (notaires, artisans, architectes) font la différence à chaque étape de votre projet.</p>
+        <p>En tant qu'<strong>agent commercial en immobilier indépendant au Pouliguen</strong>, Nathalie Chaudet Morel accompagne acheteurs et vendeurs depuis plus de 20 ans sur toute la presqu'île. Sa parfaite connaissance des quartiers (centre-ville, plage de Saint-Michel, Penchâteau, Nau…) et son réseau local (notaires, artisans, architectes) font la différence à chaque étape de votre projet.</p>
 
         <div class="seo-grid">
           <article class="seo-card">
             <h3>Acheter au Pouliguen</h3>
-            <p>Villas avec vue mer, maisons de caractère à rénover, appartements en résidence sécurisée, biens atypiques : le marché du Pouliguen offre une diversité rare. Nathalie vous aide à identifier le bien idéal, à sécuriser votre acquisition et à négocier au juste prix.</p>
+            <p>Villas avec vue mer, maisons de caractère à rénover, appartements en résidence sécurisée, biens atypiques : le marché du Pouliguen offre une diversité rare. Nathalie vous aide à identifier le bien idéal, à sécuriser votre acquisition et à négocier au juste prix.</p>
           </article>
           <article class="seo-card">
             <h3>Vendre au Pouliguen</h3>
@@ -5135,9 +5203,9 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
           </article>
         </div>
 
-        <h3 class="seo-subtitle">Pourquoi choisir Nathalie Chaudet Morel au Pouliguen ?</h3>
+        <h3 class="seo-subtitle">Pourquoi choisir Nathalie Chaudet Morel au Pouliguen ?</h3>
         <ul class="seo-list">
-          <li><strong>plus de 20 ans d'expertise</strong> sur la presqu'île guérandaise et ses spécificités</li>
+          <li><strong>plus de 20 ans d'expertise</strong> sur la presqu'île guérandaise et ses spécificités</li>
           <li><strong>Agent indépendant</strong>, disponible et réactive, un seul interlocuteur de A à Z</li>
           <li><strong>Estimation gratuite</strong> à domicile au Pouliguen et ses environs</li>
           <li><strong>Mandats limités</strong> pour garantir un service premium et personnalisé</li>
@@ -5147,19 +5215,19 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 
         <h3 class="seo-subtitle">Questions fréquentes sur l'immobilier au Pouliguen</h3>
         <details class="seo-faq">
-          <summary>Quel est le prix moyen au m² au Pouliguen ?</summary>
-          <p>Le prix moyen au m² au Pouliguen varie entre 4 500 € et 7 500 € selon le quartier, la proximité de la plage et la qualité du bien. Les biens en première ligne peuvent dépasser 10 000 €/m². Pour une estimation précise de votre bien, demandez un rendez-vous gratuit avec Nathalie Chaudet Morel.</p>
+          <summary>Quel est le prix moyen au m² au Pouliguen ?</summary>
+          <p>Le prix moyen au m² au Pouliguen varie entre 4 500 € et 7 500 € selon le quartier, la proximité de la plage et la qualité du bien. Les biens en première ligne peuvent dépasser 10 000 €/m². Pour une estimation précise de votre bien, demandez un rendez-vous gratuit avec Nathalie Chaudet Morel.</p>
         </details>
         <details class="seo-faq">
-          <summary>Combien de temps pour vendre un bien au Pouliguen ?</summary>
+          <summary>Combien de temps pour vendre un bien au Pouliguen ?</summary>
           <p>Un bien correctement estimé au Pouliguen se vend en moyenne entre 4 et 10 semaines. Une bonne stratégie de prix, des photos professionnelles et un bon accompagnement font toute la différence.</p>
         </details>
         <details class="seo-faq">
-          <summary>L'estimation est-elle vraiment gratuite ?</summary>
+          <summary>L'estimation est-elle vraiment gratuite ?</summary>
           <p>Oui, l'estimation immobilière proposée par Nathalie Chaudet Morel est entièrement gratuite et sans engagement, que ce soit au Pouliguen, à La Baule, à Guérande, à Pornichet ou à Batz-sur-Mer. Nathalie se déplace chez vous pour expertiser votre bien et vous remettre un rapport d'estimation détaillé.</p>
         </details>
         <details class="seo-faq">
-          <summary>Comment contacter Nathalie au Pouliguen ?</summary>
+          <summary>Comment contacter Nathalie au Pouliguen ?</summary>
           <p>Pour joindre Nathalie Chaudet Morel au Pouliguen, appelez le <a href="tel:+33648384375"><strong>06 48 38 43 75</strong></a> ou utilisez le formulaire de contact. Réponse garantie sous 24h.</p>
         </details>
       </div>
@@ -5190,19 +5258,19 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       </select>
       <select id="biensBudget" class="search-field" onchange="setFiltre('budget', this.value)">
         <option value="">Budget</option>
-        <option value="200000">Jusqu'à 200 000 €</option>
-        <option value="400000">Jusqu'à 400 000 €</option>
-        <option value="600000">Jusqu'à 600 000 €</option>
-        <option value="1000000">Jusqu'à 1 000 000 €</option>
-        <option value="3000000">Jusqu'à 3 000 000 €</option>
+        <option value="200000">Jusqu'à 200 000 €</option>
+        <option value="400000">Jusqu'à 400 000 €</option>
+        <option value="600000">Jusqu'à 600 000 €</option>
+        <option value="1000000">Jusqu'à 1 000 000 €</option>
+        <option value="3000000">Jusqu'à 3 000 000 €</option>
       </select>
       <select id="biensSurface" class="search-field" onchange="setFiltre('surface', this.value)">
         <option value="">Surface</option>
-        <option value="40">≥ 40 m²</option>
-        <option value="70">≥ 70 m²</option>
-        <option value="100">≥ 100 m²</option>
-        <option value="150">≥ 150 m²</option>
-        <option value="200">≥ 200 m²</option>
+        <option value="40">≥ 40 m²</option>
+        <option value="70">≥ 70 m²</option>
+        <option value="100">≥ 100 m²</option>
+        <option value="150">≥ 150 m²</option>
+        <option value="200">≥ 200 m²</option>
       </select>
       <select id="biensChambres" class="search-field" onchange="setFiltre('chambres', this.value)">
         <option value="">Chambres</option>
@@ -5226,7 +5294,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         <span id="biensVueLabel">Carte</span>
       </button>
       <div class="biens-tri">
-        <label for="biensTri">Trier par :</label>
+        <label for="biensTri">Trier par :</label>
         <select id="biensTri" onchange="setFiltre('tri', this.value)">
           <option value="recent">Plus récents</option>
           <option value="prix_asc">Prix croissant</option>
@@ -5243,17 +5311,17 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <span class="cb-kicker">Mon accompagnement</span>
       <h2 class="cb-h2">Acheter en toute sérénité</h2>
       <div class="cb-grid g3">
-        <div class="cb-card step"><h3 class="cb-h3">Cerner votre projet</h3><p>Budget, secteur, style de vie : on fait le point ensemble pour cibler les biens qui vous correspondent vraiment.</p></div>
-        <div class="cb-card step"><h3 class="cb-h3">Visiter les bons biens</h3><p>Je vous présente des biens que je connais, avec un avis honnête sur chacun : atouts, points de vigilance, prix.</p></div>
-        <div class="cb-card step"><h3 class="cb-h3">Signer l'esprit tranquille</h3><p>Offre, compromis, financement, notaire : je reste à vos côtés à chaque étape, jusqu'à la remise des clés.</p></div>
+        <div class="cb-card step"><h3 class="cb-h3">Cerner votre projet</h3><p>Budget, secteur, style de vie : on fait le point ensemble pour cibler les biens qui vous correspondent vraiment.</p></div>
+        <div class="cb-card step"><h3 class="cb-h3">Visiter les bons biens</h3><p>Je vous présente des biens que je connais, avec un avis honnête sur chacun : atouts, points de vigilance, prix.</p></div>
+        <div class="cb-card step"><h3 class="cb-h3">Signer l'esprit tranquille</h3><p>Offre, compromis, financement, notaire : je reste à vos côtés à chaque étape, jusqu'à la remise des clés.</p></div>
       </div>
     </div>
   </section>
   <section class="cb-section light cb-center">
     <div class="cb-wrap narrow">
-      <span class="cb-kicker">Pas encore de coup de cœur ?</span>
+      <span class="cb-kicker">Pas encore de coup de cœur ?</span>
       <h2 class="cb-h2">Confiez-moi votre recherche</h2>
-      <p class="cb-lead">Certains biens se vendent avant d'être publiés. Dites-moi ce que vous cherchez : je vous préviens en priorité dès qu'un bien correspond.</p>
+      <p class="cb-lead">Certains biens se vendent avant d'être publiés. Dites-moi ce que vous cherchez : je vous préviens en priorité dès qu'un bien correspond.</p>
       <div class="cb-actions"><button class="cb-btn" onclick="ouvrirCriteres()">Définir mes critères d'achat</button></div>
     </div>
   </section>
@@ -5262,7 +5330,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 <!-- ===== FICHE BIEN ===== -->
 <div id="page-fiche" class="page">
   <div class="fiche-toolbar">
-    <button class="back-btn" onclick="goBack()">← Retour aux biens</button>
+    <button class="back-btn" onclick="goBack()">← Retour<span class="hide-sm"> aux biens</span></button>
     <div class="fiche-share-wrap">
       <button type="button" class="fiche-share-btn fiche-fav" id="ficheFavBtn" onclick="if(window._bienAffiche){toggleFav(window._bienAffiche.id, event);}" aria-label="Ajouter ce bien à mes favoris">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
@@ -5337,7 +5405,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 
       <!-- Carte agent -->
       <div class="fiche-agent-card">
-        <img class="fiche-agent-photo" id="ficheAgentPhoto" src="" alt="Nathalie Chaudet Morel">
+        <img class="fiche-agent-photo" id="ficheAgentPhoto" src="nathalie-avatar.jpg" alt="Nathalie Chaudet Morel" width="400" height="400">
         <div class="fiche-agent-info">
           <div style="font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--sauge-text);font-weight:600;margin-bottom:.5rem;">Votre interlocutrice</div>
           <div class="fiche-agent-name">Nathalie<br>Chaudet Morel</div>
@@ -5357,7 +5425,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 
       <!-- Formulaire de contact -->
       <form class="fiche-contact-form" onsubmit="submitFicheContact(event)">
-        <div class="fiche-contact-form-title">Intéressé par ce bien ?</div>
+        <div class="fiche-contact-form-title">Intéressé par ce bien ?</div>
         <div class="fiche-form-row-2">
           <input type="text" name="nom" class="fiche-input" placeholder="Nom *" required>
           <input type="text" name="prenom" class="fiche-input" placeholder="Prénom *" required>
@@ -5428,8 +5496,8 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <span class="cb-kicker">Ce qui fait la différence</span>
       <h2 class="cb-h2">Mes engagements, au quotidien</h2>
       <div class="cb-grid g3">
-        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3 class="cb-h3">Une expertise locale</h3><p>Plus de 20 ans d'expérience. Je connais les prix réels, les micro-marchés et les opportunités avant qu'elles ne deviennent publiques.</p></div>
-        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><h3 class="cb-h3">Un accompagnement sur mesure</h3><p>Pas de standardisation : chaque client reçoit une attention personnelle, de la première visite à la signature définitive.</p></div>
+        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3 class="cb-h3">Une expertise locale</h3><p>Plus de 20 ans d'expérience. Je connais les prix réels, les micro-marchés et les opportunités avant qu'elles ne deviennent publiques.</p></div>
+        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><h3 class="cb-h3">Un accompagnement sur mesure</h3><p>Pas de standardisation : chaque client reçoit une attention personnelle, de la première visite à la signature définitive.</p></div>
         <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><h3 class="cb-h3">Réactive, 7 jours sur 7</h3><p>Je réponds rapidement à vos questions. Dans l'immobilier, la réactivité fait souvent la différence entre une opportunité saisie ou manquée.</p></div>
       </div>
     </div>
@@ -5443,7 +5511,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><h3 class="cb-h3">Transparence</h3><p>Des informations claires et des échanges sincères pour sécuriser votre projet.</p></div>
         <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><h3 class="cb-h3">Disponibilité</h3><p>Je réponds à vos messages et appels rapidement, 7 jours sur 7.</p></div>
         <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg></span><h3 class="cb-h3">Expertise de terrain</h3><p>Je visite personnellement chaque bien que je propose, pour vous donner un avis éclairé.</p></div>
-        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span><h3 class="cb-h3">Suivi après la vente</h3><p>Mon accompagnement ne s'arrête pas à la signature : je vous oriente vers les bons interlocuteurs.</p></div>
+        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span><h3 class="cb-h3">Suivi après la vente</h3><p>Mon accompagnement ne s'arrête pas à la signature : je vous oriente vers les bons interlocuteurs.</p></div>
       </div>
     </div>
   </section>
@@ -5470,7 +5538,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
     <div class="cb-wrap">
       <span class="cb-kicker">Estimation gratuite</span>
       <h1 class="cb-h1">Combien vaut <span class="cb-accent">votre bien</span> ?</h1>
-      <p class="cb-lead">Décrivez votre bien en 2 minutes : je vous réponds sous 24 h avec une première estimation, puis je vous propose une visite pour l'affiner, gratuitement et sans engagement.</p>
+      <p class="cb-lead">Décrivez votre bien en 2 minutes : je vous réponds sous 24 h avec une première estimation, puis je vous propose une visite pour l'affiner, gratuitement et sans engagement.</p>
       <div class="est-progress" id="estProgress" aria-hidden="true"><span class="on"></span><span></span><span></span><span></span><span></span></div>
     </div>
   </section>
@@ -5480,7 +5548,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 
         <div class="est-step active" data-step="1">
           <div class="est-num">— Étape 1 sur 5</div>
-          <h2 class="est-q">Quel type de bien souhaitez-vous estimer ?</h2>
+          <h2 class="est-q">Quel type de bien souhaitez-vous estimer ?</h2>
           <p class="est-help">Choisissez la catégorie qui correspond à votre bien.</p>
           <div class="est-types">
           <button type="button" class="est-type" data-type="Maison" onclick="estChoisirType(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>Maison</button>
@@ -5501,8 +5569,8 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 
         <div class="est-step" data-step="2">
           <div class="est-num">— Étape 2 sur 5</div>
-          <h2 class="est-q">Où se situe votre bien ?</h2>
-          <p class="est-help">Commencez à taper l'adresse : je vous propose les adresses correspondantes.</p>
+          <h2 class="est-q">Où se situe votre bien ?</h2>
+          <p class="est-help">Commencez à taper l'adresse : je vous propose les adresses correspondantes.</p>
           <div class="form-row est-addr">
             <label class="form-label" for="estimAdresse">Adresse du bien</label>
             <input type="text" id="estimAdresse" class="form-input" placeholder="Ex : 12 rue de la Plage, Le Pouliguen" autocomplete="off" oninput="estAdresseSaisie(this.value)" aria-autocomplete="list" aria-controls="estSugg">
@@ -5523,7 +5591,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         <div class="est-step" data-step="3">
           <div class="est-num">— Étape 3 sur 5</div>
           <h2 class="est-q">Ses caractéristiques</h2>
-          <p class="est-help">Quelques chiffres suffisent ; laissez vide ce que vous ne connaissez pas.</p>
+          <p class="est-help">Quelques chiffres suffisent ; laissez vide ce que vous ne connaissez pas.</p>
           <div class="form-row-2">
             <div class="form-row"><label class="form-label" for="estimSurface">Surface habitable (m²) *</label><input type="number" id="estimSurface" class="form-input" placeholder="Ex : 120" min="0" required></div>
             <div class="form-row"><label class="form-label" for="estimTerrain">Surface du terrain (m²)</label><input type="number" id="estimTerrain" class="form-input" placeholder="Ex : 500" min="0"></div>
@@ -5581,7 +5649,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
         <div class="est-step" data-step="5">
           <div class="est-num">— Étape 5 sur 5</div>
           <h2 class="est-q">Vos coordonnées</h2>
-          <p class="est-help">Je vous recontacte sous 24 h avec votre estimation.</p>
+          <p class="est-help">Je vous recontacte sous 24 h avec votre estimation.</p>
           <div class="form-row-2">
             <div class="form-row"><label class="form-label" for="estimPrenom">Prénom *</label><input type="text" id="estimPrenom" class="form-input" placeholder="Votre prénom" required></div>
             <div class="form-row"><label class="form-label" for="estimNom">Nom *</label><input type="text" id="estimNom" class="form-input" placeholder="Votre nom" required></div>
@@ -5609,11 +5677,11 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
     <div class="cb-wrap">
       <span class="cb-kicker">Contact</span>
       <h1 class="cb-h1">Parlons de votre projet</h1>
-      <p class="cb-lead">Une question, une visite, une estimation ? Écrivez-moi : je vous réponds rapidement, 7 jours sur 7.</p>
+      <p class="cb-lead">Une question, une visite, une estimation ? Écrivez-moi : je vous réponds rapidement, 7 jours sur 7.</p>
     </div>
   </section>
   <section class="cb-section" style="padding-top:clamp(40px,5vw,64px);">
-    <div class="cb-wrap cb-split" style="align-items:start;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);">
+    <div class="cb-wrap cb-split split-contact">
       <div>
         <div class="cb-card" style="margin-bottom:18px;">
           <span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><h3 class="cb-h3">Téléphone</h3><p><a href="tel:+33648384375" style="font-weight:600;">06 48 38 43 75</a></p>
@@ -5683,7 +5751,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <div>
         <span class="cb-kicker" style="color:rgba(255,255,255,.62);">Vendre</span>
         <h1 class="cb-h1">Vendre au bon prix, <span class="cb-accent">sereinement</span></h1>
-        <p class="cb-lead">Une vente réussie se prépare : estimation argumentée, mise en valeur soignée, diffusion large et suivi régulier. Je m'occupe de tout, à vos côtés.</p>
+        <p class="cb-lead">Une vente réussie se prépare : estimation argumentée, mise en valeur soignée, diffusion large et suivi régulier. Je m'occupe de tout, à vos côtés.</p>
         <div class="cb-actions">
           <button class="cb-btn on-dark" onclick="showPage('estimation')">Estimer mon bien</button>
           <button class="cb-btn on-dark-outline" onclick="showPage('contact')">Me contacter</button>
@@ -5691,7 +5759,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       </div>
       <div class="vd-photo">
         <div class="cb-photo"><img src="hero.jpg" alt="Le port du Pouliguen, presqu'île guérandaise" loading="lazy" decoding="async"></div>
-        <div class="vd-float f1"><strong>Estimation offerte</strong>sous 24 h, sans engagement</div>
+        <div class="vd-float f1"><strong>Estimation offerte</strong>sous 24 h, sans engagement</div>
         <div class="vd-float f2"><strong>Un compte rendu</strong>après chaque visite</div>
       </div>
     </div>
@@ -5702,12 +5770,12 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <span class="cb-kicker">Ma méthode</span>
       <h2 class="cb-h2">Votre vente, étape par étape</h2>
       <div class="cb-grid g3">
-        <div class="cb-card centered"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><h3 class="cb-h3">Comprendre votre projet</h3><p>Délais, contraintes, prochain projet : on fait le point pour bâtir une stratégie adaptée.</p></div>
+        <div class="cb-card centered"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><h3 class="cb-h3">Comprendre votre projet</h3><p>Délais, contraintes, prochain projet : on fait le point pour bâtir une stratégie adaptée.</p></div>
         <div class="cb-card centered"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3 class="cb-h3">Estimer au juste prix</h3><p>Un avis de valeur argumenté, fondé sur les ventes récentes du quartier et l'état du marché.</p></div>
         <div class="cb-card centered"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><h3 class="cb-h3">Mettre en valeur</h3><p>Photos soignées, annonce rédigée avec soin et conseils de présentation pour séduire dès la première visite.</p></div>
         <div class="cb-card centered"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><h3 class="cb-h3">Diffuser largement</h3><p>Votre bien est présenté sur mon site, sur le réseau 3G Immobilier et sur les grands portails immobiliers.</p></div>
         <div class="cb-card centered"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><h3 class="cb-h3">Organiser les visites</h3><p>Je qualifie chaque acquéreur et j'assure les visites, avec un compte rendu à chaque fois.</p></div>
-        <div class="cb-card centered"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><h3 class="cb-h3">Vous accompagner jusqu'à l'acte</h3><p>Négociation, compromis, notaire : je suis à vos côtés jusqu'à la signature définitive.</p></div>
+        <div class="cb-card centered"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><h3 class="cb-h3">Vous accompagner jusqu'à l'acte</h3><p>Négociation, compromis, notaire : je suis à vos côtés jusqu'à la signature définitive.</p></div>
       </div>
     </div>
   </section>
@@ -5716,7 +5784,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
     <div class="cb-wrap">
       <span class="cb-kicker">Diffusion</span>
       <h2 class="cb-h2">Une diffusion ciblée sur plus de 100 sites</h2>
-      <p class="cb-lead">Maison, appartement, local commercial ou terrain : votre annonce est présentée sur mon site, sur le réseau 3G Immobilier et sur les portails les plus adaptés à votre bien, en France et à l'international, puis à mon fichier d'acquéreurs.</p>
+      <p class="cb-lead">Maison, appartement, local commercial ou terrain : votre annonce est présentée sur mon site, sur le réseau 3G Immobilier et sur les portails les plus adaptés à votre bien, en France et à l'international, puis à mon fichier d'acquéreurs.</p>
       <div class="vd-group"><p class="vd-gt">Habitation</p><div class="vd-portals"><span style="color:#E2001A;font-weight:800">SeLoger</span><span style="color:#FF6E14;font-weight:700">leboncoin</span><span style="color:#12A5A0;font-weight:600">bien<span style="color:#F4B400">'</span>ici</span><span style="color:#0A4FA0;font-weight:800">LOGIC-IMMO</span><span style="color:#B2282B;font-weight:600">ouestfrance-immo</span><span style="color:#192D56;">Le Figaro Immobilier</span><span style="color:#192D56;letter-spacing:.08em">Belles Demeures</span><span style="color:#192D56;letter-spacing:.06em">Propriétés Le Figaro</span><span style="color:#192D56;font-weight:800"><span style="color:#E2001A">Paru</span>Vendu</span><span style="color:#2D3A8C;">Properstar</span><span style="color:#16324F;font-weight:700">Jinka</span><span style="color:#1F4538;">Gens de Confiance</span><span style="color:#192D56;">Meilleurs Agents</span><span style="color:#2E9E7E;">Tous Voisins</span></div></div>
       <div class="vd-group"><p class="vd-gt">Commerce &amp; professionnel</p><div class="vd-portals"><span style="color:#E2001A;font-weight:700">SeLoger Bureaux &amp; Commerces</span><span style="color:#0E2A47;font-weight:700">Webimm</span><span style="color:#C0392B;font-style:italic;font-weight:700">Commerce en direct</span><span style="color:#192D56;">Hôtel Restau</span><span style="color:#E5399A;">octissimo</span><span style="color:#192D56;">DOM immo</span></div></div>
       <div class="vd-group"><p class="vd-gt">Terrain</p><div class="vd-portals"><span style="color:#192D56;">Terrain Construction</span><span style="color:#5BA82E;">les-terrains</span><span style="color:#192D56;">Superimmo</span></div></div>
@@ -5727,12 +5795,12 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   <section class="cb-section">
     <div class="cb-wrap">
       <span class="cb-kicker">Le mandat exclusif</span>
-      <h2 class="cb-h2">Pourquoi choisir l'exclusivité ?</h2>
+      <h2 class="cb-h2">Pourquoi choisir l'exclusivité ?</h2>
       <div class="cb-grid g4">
-        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3 class="cb-h3">Un prix cohérent, défendu</h3><p>Un seul prix affiché partout : votre bien garde toute sa valeur aux yeux des acquéreurs.</p></div>
-        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><h3 class="cb-h3">Une priorité dans mon agenda</h3><p>Je m'investis pleinement : mise en avant renforcée et relances actives de mes acquéreurs.</p></div>
-        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><h3 class="cb-h3">Une annonce maîtrisée</h3><p>Pas de doublons ni de prix contradictoires : une présentation unique et soignée.</p></div>
-        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span><h3 class="cb-h3">Un suivi transparent</h3><p>Des comptes rendus réguliers : vous savez toujours où en est votre vente.</p></div>
+        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3 class="cb-h3">Un prix cohérent, défendu</h3><p>Un seul prix affiché partout : votre bien garde toute sa valeur aux yeux des acquéreurs.</p></div>
+        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><h3 class="cb-h3">Une priorité dans mon agenda</h3><p>Je m'investis pleinement : mise en avant renforcée et relances actives de mes acquéreurs.</p></div>
+        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><h3 class="cb-h3">Une annonce maîtrisée</h3><p>Pas de doublons ni de prix contradictoires : une présentation unique et soignée.</p></div>
+        <div class="cb-card"><span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span><h3 class="cb-h3">Un suivi transparent</h3><p>Des comptes rendus réguliers : vous savez toujours où en est votre vente.</p></div>
       </div>
     </div>
   </section>
@@ -5744,7 +5812,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <p class="cb-lead">Honoraires à la charge de l'acquéreur, sauf mention contraire, calculés sur le prix net vendeur.</p>
       <table class="honoraires-table" style="margin-top:24px;width:100%;">
         <thead><tr><th>Prix net vendeur</th><th>Honoraires TTC</th></tr></thead>
-        <tbody><tr><td>Jusqu'à 175 000 € inclus</td><td>Forfait de 7 000 € TTC</td></tr><tr><td>Au-delà de 175 000 €</td><td>4 % maximum TTC</td></tr></tbody>
+        <tbody><tr><td>Jusqu'à 175 000 € inclus</td><td>Forfait de 7 000 € TTC</td></tr><tr><td>Au-delà de 175 000 €</td><td>4 % maximum TTC</td></tr></tbody>
       </table>
       <div class="cb-actions"><button class="cb-btn ghost" onclick="showLegal('honoraires')">Voir le barème complet</button></div>
     </div>
@@ -5754,7 +5822,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
     <div class="cb-wrap narrow">
       <span class="cb-kicker">Vendre avec moi</span>
       <h2 class="cb-h2">Confiez-moi votre bien</h2>
-      <p class="cb-lead">Parlons de votre projet : le premier rendez-vous et l'estimation sont offerts.</p>
+      <p class="cb-lead">Parlons de votre projet : le premier rendez-vous et l'estimation sont offerts.</p>
       <div class="cb-actions"><button class="cb-btn on-dark" onclick="showPage('estimation')">Estimer mon bien</button><a class="cb-btn on-dark-outline" href="tel:+33648384375">06 48 38 43 75</a></div>
     </div>
   </section>
@@ -5763,15 +5831,15 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 <!-- ===== PAGE PARRAINAGE ===== -->
 <div id="page-parrainage" class="page">
   <section class="cb-hero is-light">
-    <div class="cb-wrap cb-split" style="grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);">
+    <div class="cb-wrap cb-split split-parrain">
       <div>
         <span class="cb-kicker">Parrainage</span>
-        <h1 class="cb-h1">Vous connaissez un vendeur ? <span class="cb-accent">Parlez-lui de moi</span></h1>
-        <p class="cb-lead">Un proche, un voisin, un collègue souhaite vendre sur la presqu'île ? Mettez-nous en relation : si la vente se conclut avec moi, je vous remercie à hauteur de 1 000 €.</p>
+        <h1 class="cb-h1">Vous connaissez un vendeur ? <span class="cb-accent">Parlez-lui de moi</span></h1>
+        <p class="cb-lead">Un proche, un voisin, un collègue souhaite vendre sur la presqu'île ? Mettez-nous en relation : si la vente se conclut avec moi, je vous remercie à hauteur de 1 000 €.</p>
       </div>
       <div class="pr-reward">
         <div class="k">Votre remerciement</div>
-        <div class="v" id="parrainagePrime">1 000 €</div>
+        <div class="v" id="parrainagePrime">1 000 €</div>
         <p>pour chaque vente conclue grâce à votre recommandation</p>
       </div>
     </div>
@@ -5783,14 +5851,14 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <div class="cb-grid g3">
         <div class="cb-card step"><h3 class="cb-h3">1. Vous me le présentez</h3><p>Transmettez-moi les coordonnées du propriétaire, avec son accord, via le formulaire ci-dessous.</p></div>
         <div class="cb-card step"><h3 class="cb-h3">2. Je prends le relais</h3><p>Je le contacte, j'estime son bien et je l'accompagne dans sa vente, en vous tenant informé.</p></div>
-        <div class="cb-card step"><h3 class="cb-h3">3. Vous recevez 1 000 €</h3><p>Dès la signature de l'acte de vente, votre remerciement de 1 000 € vous est versé.</p></div>
+        <div class="cb-card step"><h3 class="cb-h3">3. Vous recevez 1 000 €</h3><p>Dès la signature de l'acte de vente, votre remerciement de 1 000 € vous est versé.</p></div>
       </div>
     </div>
   </section>
   <section class="cb-section light cb-center">
     <div class="cb-wrap">
       <span class="cb-kicker">Formulaire</span>
-      <h2 class="cb-h2">Un propriétaire à me présenter ?</h2>
+      <h2 class="cb-h2">Un propriétaire à me présenter ?</h2>
       <p class="cb-lead">Quelques informations suffisent, je m'occupe du reste.</p>
       <form class="cb-form" id="parrainageForm" onsubmit="submitParrainage(event);return false;">
         <fieldset>
@@ -5908,7 +5976,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
               <span class="outils-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M3 21h18"/><path d="M5 21v-9M9.5 21v-9M14.5 21v-9M19 21v-9"/><path d="M2.5 9.5 12 4l9.5 5.5"/><path d="M4 12h16"/></svg></span>
               <span class="outils-trigger-txt">
                 <span class="outils-trigger-title">Calculez vos frais de notaire</span>
-                <span class="outils-trigger-sub">Droits de mutation, émoluments, débours : le détail selon le département.</span>
+                <span class="outils-trigger-sub">Droits de mutation, émoluments, débours : le détail selon le département.</span>
               </span>
               <span class="outils-pm" aria-hidden="true"></span>
             </button>
@@ -5938,7 +6006,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
                     <label class="outils-check" for="outils-not-primo">
                       <input type="checkbox" id="outils-not-primo">
                       <span class="outils-check-txt">Je suis primo-accédant(e) — résidence principale
-                        <small>Pas propriétaire de votre résidence principale ces deux dernières années : la hausse de 0,5&nbsp;point des droits départementaux ne s'applique pas.</small>
+                        <small>Pas propriétaire de votre résidence principale ces deux dernières années : la hausse de 0,5&nbsp;point des droits départementaux ne s'applique pas.</small>
                       </span>
                     </label>
                   </div>
@@ -5955,7 +6023,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
                     <div class="outils-res-row is-total"><dt>Coût total de l'acquisition</dt><dd id="outils-o-not-cout">—</dd></div>
                   </dl>
                 </div>
-                <p class="outils-foot">Droits de mutation : taux départementaux en vigueur au 1er&nbsp;juin 2026. Émoluments selon le barème réglementé des notaires (TVA 20&nbsp;%). Débours estimés forfaitairement.</p>
+                <p class="outils-foot">Droits de mutation : taux départementaux en vigueur au 1er&nbsp;juin 2026. Émoluments selon le barème réglementé des notaires (TVA 20&nbsp;%). Débours estimés forfaitairement.</p>
               </div>
             </div>
           </div>
@@ -6337,7 +6405,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
     </form>
     <div class="success-msg" id="contactSuccess">
       <div class="success-icon">✦</div>
-      <div class="success-title">Message envoyé !</div>
+      <div class="success-title">Message envoyé !</div>
       <p>Nathalie vous contactera dans les 24 heures. Merci de votre confiance.</p>
     </div>
   </div>
@@ -10055,7 +10123,11 @@ function bienFeatures(b) {
 function renderFeatChips() {
   var box = document.getElementById('featChips'); if (!box || typeof biens === 'undefined') return;
   var actifs = biens.filter(function (b) { return b.statut !== 'vendu'; });
-  box.innerHTML = BIEN_FEATURES.map(function (f) {
+  box.classList.toggle('is-open', !!window._featOpen);
+  var nbOn = filterFeatures.length;
+  var toggle = '<button type="button" class="feat-toggle" onclick="window._featOpen=!window._featOpen;renderFeatChips();" aria-expanded="' + !!window._featOpen + '">' +
+    (window._featOpen ? 'Masquer les critères' : '+ Plus de critères' + (nbOn ? ' (' + nbOn + ' choisi' + (nbOn > 1 ? 's' : '') + ')' : '')) + '</button>';
+  box.innerHTML = toggle + BIEN_FEATURES.map(function (f) {
     var n = actifs.filter(function (b) { return bienFeatures(b).indexOf(f.key) !== -1; }).length;
     var on = filterFeatures.indexOf(f.key) !== -1;
     return '<button type="button" class="feat-chip' + (on ? ' on' : '') + '" aria-pressed="' + on + '"' + (n || on ? '' : ' disabled') +
