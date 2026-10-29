@@ -28,24 +28,26 @@ Statuts (conservés, re-teintés pour l'harmonie marine) : exclusivité = `--acc
 
 ## 2. Typographies (Google Fonts)
 
-Chargées depuis le CSS de référence : **Cormorant Garamond** (serif chic) + **Montserrat** (sans moderne).
+> **Correction (29/10/2026)** : après mesure des polices réellement *rendues* sur la référence, les titres ne sont pas en serif : **tout le site est en Montserrat** (titres 800, texte 300). Le logo est une écriture manuscrite → **Allura** pour « Côté Presqu'île ».
 
 ```
-https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Montserrat:wght@300;400;500;600&display=swap
+https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Allura&display=swap
 ```
 
 | Token | Famille | Usage |
 |---|---|---|
-| `--serif` | `'Cormorant Garamond', Georgia, serif` | **Titres** (h1, h2, h3), hero, citations — élégance bord de mer |
-| `--sans` | `'Montserrat', system-ui, sans-serif` | **Corps**, UI, boutons, labels, badges, formulaires |
+| `--sans` (et `--serif`, aligné) | `'Montserrat', system-ui, sans-serif` | Titres (800), texte (300), boutons, formulaires |
+| `--script` | `'Allura', cursive` | Logo « Côté Presqu'île » (menu + pied de page) |
 
-**Hiérarchie** (référence : h1 44px/800 uppercase, boutons 13px/500 uppercase ls 1.56px) :
-- `h1` : `--serif`, `clamp(2.6rem, 5vw, 4rem)`, poids 600, line-height 1.05
-- `h2` : `--serif`, `clamp(1.8rem, 3vw, 2.6rem)`, poids 600
-- `h3` : `--serif`, `1.4rem`, poids 600
-- Kicker/label : `--sans`, 0.72rem, **UPPERCASE**, letter-spacing `0.14em`, poids 500
-- Corps : `--sans`, 1rem (16px), line-height 1.7, poids 400
-- Bouton : `--sans`, 0.8rem, **UPPERCASE**, letter-spacing `0.12em`, poids 500
+**Hiérarchie** :
+- Grand titre accueil : capitales, 800, `clamp(2.5rem, 7.4vw, 6.4rem)`
+- `h1` de page (`.cb-h1`) : 800, `clamp(2.2rem, 4.6vw, 3.5rem)`
+- `h2` (`.cb-h2`) : 800, `clamp(1.75rem, 3.2vw, 2.5rem)`
+- Sur-titre (`.cb-kicker`) : 0.68rem, capitales, interlettrage 0.26em, bleu `#6D8CC4`
+- Texte : 300, 1rem, interligne 1.7, marine `#192D56`
+- Bouton (`.cb-btn`) : pilule marine, capitales 0.8rem, interlettrage 0.12em
+
+Composants réutilisables : `.cb-section` (`.light`, `.dark`), `.cb-hero` (`.is-light`), `.cb-card` (liseré `#D5DCEA`, rayon 14px, `.step`, `.centered`), `.cb-grid g2/g3/g4`, `.cb-split`, `.cb-photo`, `.cb-chip`, `.cb-btn` (`.ghost`, `.accent`, `.on-dark`, `.on-dark-outline`).
 
 ---
 
