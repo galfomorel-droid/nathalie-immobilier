@@ -7738,7 +7738,8 @@ function showFiche(id) {
   document.getElementById('ficheLoc').textContent = b.ville || '';
   var accEl = document.getElementById('ficheAccroche');
   if (accEl) {
-    if (b.accroche && String(b.accroche).trim()) { accEl.textContent = String(b.accroche).trim(); accEl.style.display = ''; }
+    // 3G renvoie parfois un simple code (« 41 », « 33 ») dans ce champ : on n'affiche qu'une vraie phrase
+    if (b.accroche && /[a-zà-ÿ]{3}/i.test(String(b.accroche))) { accEl.textContent = String(b.accroche).trim(); accEl.style.display = ''; }
     else { accEl.style.display = 'none'; }
   }
   document.getElementById('fichePrix').textContent = formatPrixPublic(b);
@@ -10135,6 +10136,747 @@ function lightboxFullscreen() {
   if (fn) fn.call(lb);
 }
 
+
+// ===== FICHE PDF (générée dans le navigateur : jsPDF + QR code, photos via wsrv.nl) =====
+/* =====================================================================
+   FICHE PDF TÉLÉCHARGEABLE — bouton « Télécharger la fiche (PDF) »
+   - jsPDF 2.5.1 + qrcode-generator 1.4.4 chargés à la demande (cdnjs)
+   - Photos 3G via le proxy CORS wsrv.nl, recadrées en canvas (cover)
+   - N'expose que window.telechargerFichePDF()
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var JSPDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  var QR_URL    = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+  var SITE_BASE = 'https://www.cotepresquile.com/';
+  var ERR_MSG   = 'Le PDF n\'a pas pu être généré, utilisez « Imprimer ».';
+  var MAX_PHOTOS = 10;
+
+  var AGENT = {
+    nom: 'Nathalie Chaudet Morel',
+    role: 'Votre conseillère immobilier — presqu’île guérandaise',
+    tel: '06 48 38 43 75', telHref: 'tel:+33648384375',
+    mail: 'contact@cotepresquile.com',
+    site: 'www.cotepresquile.com',
+    avatar: 'nathalie-avatar.jpg'
+  };
+  var FOOTER_TXT = 'Côté Presqu\'île — Nathalie Chaudet Morel, mandataire 3G Immobilier, inscrite au RSAC de Saint-Nazaire ' +
+    'n° 753 478 916 (SIRET 753 478 916 00046), carte professionnelle de la société 3G Immobilier — Document non contractuel, ' +
+    'informations données à titre indicatif.';
+
+  // ---- Charte ----
+  var NAVY = [25, 45, 86], ACCENT = [109, 140, 196], LIGHT = [244, 246, 250], LINE = [213, 220, 234];
+  var GREY = [96, 106, 128], MUTED = [134, 144, 164], WHITE = [255, 255, 255], SUBTLE = [190, 204, 232], BODY = [45, 58, 88];
+  var DPE_COL = { A: '#009C6D', B: '#52B153', C: '#78BD76', D: '#F4E70F', E: '#F0B50F', F: '#EB8235', G: '#D7221F' };
+  var GES_COL = { A: '#A4DBF8', B: '#8CB4D3', C: '#7792B1', D: '#606F8F', E: '#4D5272', F: '#393551', G: '#2C1A48' };
+  var CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+  // ---- Géométrie A4 (mm) ----
+  var PW = 210, M = 14, CW = PW - 2 * M;
+  var BOTTOM = 279;          // limite basse du contenu (pied de page en dessous)
+  var GAP = 2.5;             // gouttière entre photos
+
+  var _jspdfP = null, _qrP = null, _busy = false;
+
+  /* ------------------------------------------------------------------ */
+  /*  Utilitaires                                                        */
+  /* ------------------------------------------------------------------ */
+  function hex(c) { return [parseInt(c.substr(1, 2), 16), parseInt(c.substr(3, 2), 16), parseInt(c.substr(5, 2), 16)]; }
+  function num(v) { var n = Number(v); return isFinite(n) && n > 0 ? n : 0; }
+  function fmtInt(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0'); }
+  function toast(msg, type, ms) { try { if (typeof showToast === 'function') showToast(msg, type, ms); } catch (e) {} }
+
+  // jsPDF + Helvetica standard = encodage WinAnsi (cp1252) : Latin-1 + € ’ “ ” – — … œ • s'affichent bien.
+  // Tout le reste (espaces fines, exposants, emojis, puces Unicode…) est converti ou supprimé.
+  var CP1252_EXTRA = '€\u201A\u0192\u201E…\u2020\u2021\u02C6\u2030\u0160\u2039Œ\u017D‘’“”•–—\u02DC\u2122\u0161\u203Aœ\u017E\u0178';
+  var CHAR_MAP = {
+    '\u202F': '\u00A0', '\u2007': '\u00A0', '\u2009': ' ', '\u2002': ' ', '\u2003': ' ', '\u2004': ' ', '\u2005': ' ', '\u2006': ' ',
+    '\u2008': ' ', '\u200A': ' ', '\u205F': ' ', '\u3000': ' ', '\t': ' ',
+    '\u200B': '', '\u200C': '', '\u200D': '', '\u2060': '', '\uFEFF': '', '\uFE0F': '', '\uFE0E': '', '\u20E3': '', '\u00AD': '',
+    '\u2010': '-', '\u2011': '-', '\u2012': '-', '\u2212': '-', '\u2043': '-', '\u2015': '—', '\u2032': '\'', '\u2033': '"',
+    '\u201B': '’', '\u201F': '”', '\u2264': '<=', '\u2265': '>=', '\u2248': '~', '\u2260': '!=',
+    '\u2192': '->', '\u2190': '<-', '\u2194': '<->', '\u21D2': '=>', '\u279C': '->', '\u2794': '->', '\u27A1': '->',
+    '\u1D49': 'e', '\u02B3': 'r', '\u1D48': 'd', '\u02E2': 's', '\u1D50': 'm', '\u207F': 'n', '\u1D57': 't', '\u02B0': 'h',
+    '\u2070': '0', '\u2074': '4', '\u2075': '5', '\u2076': '6', '\u2077': '7', '\u2078': '8', '\u2079': '9',
+    '\u2080': '0', '\u2081': '1', '\u2082': '2', '\u2083': '3', '\u2084': '4', '\u2085': '5', '\u2086': '6', '\u2087': '7', '\u2088': '8', '\u2089': '9',
+    '\u25CF': '•', '\u25CB': '•', '\u25E6': '•', '\u25AA': '•', '\u25AB': '•', '\u25A0': '•', '\u25A1': '•',
+    '\u25C6': '•', '\u25C7': '•', '\u25BA': '•', '\u25B6': '•', '\u2219': '·', '\u22C5': '·',
+    '\u2116': 'n°', '\u2103': '°C', '\u33A1': 'm²'
+  };
+  function okChar(ch) {
+    var c = ch.charCodeAt(0);
+    return (c >= 0x20 && c <= 0x7E) || (c >= 0xA0 && c <= 0xFF) || c === 10 || CP1252_EXTRA.indexOf(ch) !== -1;
+  }
+  function san(s) {
+    if (s == null) return '';
+    s = String(s).replace(/\r\n?/g, '\n');
+    var out = '';
+    for (var i = 0; i < s.length; i++) {
+      var ch = s.charAt(i), code = s.charCodeAt(i);
+      if (code >= 0xD800 && code <= 0xDBFF) { i++; continue; }   // emoji / hors BMP : supprimé
+      if (code >= 0xDC00 && code <= 0xDFFF) continue;
+      if (okChar(ch)) { out += ch; continue; }
+      if (Object.prototype.hasOwnProperty.call(CHAR_MAP, ch)) { out += CHAR_MAP[ch]; continue; }
+      if ((code >= 0x2300 && code <= 0x23FF) || (code >= 0x2600 && code <= 0x27BF) || (code >= 0x2B00 && code <= 0x2BFF)) continue;
+      var base = ch.normalize ? ch.normalize('NFD').replace(/[\u0300-\u036F]/g, '') : '';
+      if (base && base.split('').every(okChar)) out += base;   // ex. « \u0151 » -> « o »
+    }
+    // espaces multiples ; ponctuation haute française et guillemets insécables (pas de « ; » seul en début de ligne)
+    return out.replace(/ {2,}/g, ' ').replace(/ ([;:!?»])/g, '\u00A0$1').replace(/« /g, '«\u00A0');
+  }
+  function slug(s) {
+    return String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036F]/g, '')
+      .replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
+  // ---- Réutilisation des helpers du site (avec repli) ----
+  function prixMasque(b) {
+    if (typeof isPrixMasque === 'function') return !!isPrixMasque(b);
+    return b.statut === 'vendu' || b.statut === 'sous_compromis' || b.statut === 'offre_en_cours';
+  }
+  function prixPublic(b) {
+    if (typeof formatPrixPublic === 'function') return formatPrixPublic(b);
+    var p = num(b.prix || b.prixFAI);
+    return p ? fmtInt(p) + ' € FAI' : 'Prix sur demande';
+  }
+  function refAffichee(b) {
+    if (b.ref && String(b.ref).trim()) return String(b.ref).trim();
+    if (typeof genRef === 'function') return String(genRef(b.id)).replace(/^REF\.\s*/i, '');
+    return String(b.id || '');
+  }
+  function titreBien(b) {
+    var t = (b.titre && String(b.titre).trim()) ? String(b.titre).trim() : (b.type || 'Bien') + (b.ville ? ' à ' + b.ville : '');
+    return t.replace(/\b1 pièces\b/i, '1 pièce');   // titres 3G : « Appartement 1 pièces »
+  }
+  // L'accroche 3G contient parfois un simple code numérique (« 41 ») : on l'ignore.
+  function accrocheValide(b) {
+    var a = String(b.accroche || '').trim();
+    return (a.length >= 10 && /[A-Za-zÀ-ÿ]{3,}/.test(a)) ? a : '';
+  }
+  function urlAnnonce(b) {
+    var real = /^https?:$/.test(location.protocol) && !/^(localhost|127\.|\[?::1\]?$|0\.0\.0\.0)/.test(location.hostname);
+    if (real && /^#bien\//.test(location.hash || '')) return location.href;
+    var base = real ? location.origin + location.pathname : SITE_BASE;
+    var s = (typeof _slugifyBien === 'function') ? _slugifyBien(b) : String(b.id || '');
+    return base + '#bien/' + s;
+  }
+  function nomFichier(b) {
+    return 'Fiche-' + [slug(b.type || 'Bien'), slug(b.ville), 'ref', slug(refAffichee(b))].filter(Boolean).join('-') + '.pdf';
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Chargement des librairies (une seule fois, promesse en cache)      */
+  /* ------------------------------------------------------------------ */
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src; s.async = true; s.crossOrigin = 'anonymous';
+      s.onload = function () { resolve(); };
+      s.onerror = function () { if (s.parentNode) s.parentNode.removeChild(s); reject(new Error('Chargement impossible : ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  function loadJsPDF() {
+    if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve();
+    if (!_jspdfP) {
+      _jspdfP = loadScript(JSPDF_URL).then(function () {
+        if (!(window.jspdf && window.jspdf.jsPDF)) throw new Error('jsPDF indisponible');
+      }).catch(function (e) { _jspdfP = null; throw e; });
+    }
+    return _jspdfP;
+  }
+  function loadQR() {   // facultatif : sans QR, le PDF est quand même généré
+    if (typeof window.qrcode === 'function') return Promise.resolve(true);
+    if (!_qrP) {
+      _qrP = loadScript(QR_URL).then(function () { return typeof window.qrcode === 'function'; })
+        .catch(function () { _qrP = null; return false; });
+    }
+    return _qrP;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Images : proxy CORS + recadrage canvas                             */
+  /* ------------------------------------------------------------------ */
+  function proxied(url, w) {
+    return 'https://wsrv.nl/?url=' + encodeURIComponent(String(url).replace(/^https?:\/\//, '')) + '&w=' + (w || 1400) + '&output=jpg&q=78';
+  }
+  function loadImg(src, ms) {
+    return new Promise(function (resolve) {
+      var img = new Image(), done = false;
+      var t = setTimeout(function () { if (!done) { done = true; resolve(null); } }, ms || 15000);
+      img.crossOrigin = 'anonymous';
+      img.onload = function () {
+        if (done) return; done = true; clearTimeout(t);
+        resolve((img.naturalWidth || img.width) ? img : null);
+      };
+      img.onerror = function () { if (done) return; done = true; clearTimeout(t); resolve(null); };
+      img.src = src;
+    });
+  }
+  function roundPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+  }
+  // Recadrage « cover » au ratio exact de la boîte PDF (coins arrondis ou cercle sur fond `bg`).
+  // Renvoie un dataURL JPEG, ou null si l'image est inutilisable (canvas « tainted », etc.).
+  function cropImg(img, wMm, hMm, opt) {
+    opt = opt || {};
+    try {
+      var k = opt.pxPerMm || 6;
+      var cw = Math.max(1, Math.round(wMm * k)), ch = Math.max(1, Math.round(hMm * k));
+      var cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+      var ctx = cv.getContext('2d');
+      var bg = opt.bg || WHITE;
+      ctx.fillStyle = 'rgb(' + bg.join(',') + ')'; ctx.fillRect(0, 0, cw, ch);
+      ctx.save();
+      if (opt.shape === 'circle') { ctx.beginPath(); ctx.arc(cw / 2, ch / 2, Math.min(cw, ch) / 2, 0, Math.PI * 2); ctx.closePath(); ctx.clip(); }
+      else if (opt.radiusMm) { roundPath(ctx, 0, 0, cw, ch, opt.radiusMm * k); ctx.clip(); }
+      var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+      var s = Math.max(cw / iw, ch / ih), sw = cw / s, sh = ch / s;
+      var sx = (iw - sw) / 2, sy = (ih - sh) * (opt.focusY == null ? 0.5 : opt.focusY);
+      if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
+      ctx.restore();
+      return cv.toDataURL('image/jpeg', opt.q || 0.84);
+    } catch (e) { return null; }
+  }
+  // Charge (en parallèle) jusqu'à MAX_PHOTOS photos + le portrait. Les échecs sont ignorés.
+  function loadAssets(b) {
+    var list = [];
+    (b.photos && b.photos.length ? b.photos : [b.img]).forEach(function (u) {
+      if (u && typeof u === 'string' && list.indexOf(u) === -1) list.push(u);
+    });
+    if (!list.length && b.img) list.push(b.img);
+    var jobs = list.slice(0, MAX_PHOTOS).map(function (u, i) {
+      return loadImg(/^data:/.test(u) ? u : proxied(u, i < 2 ? 1400 : 800), 15000);
+    });
+    jobs.push(loadImg(AGENT.avatar, 8000));
+    return Promise.all(jobs).then(function (imgs) {
+      var avatar = imgs.pop();
+      return { imgs: imgs.filter(Boolean), avatar: avatar };
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Description : nettoyage + découpage en blocs                       */
+  /* ------------------------------------------------------------------ */
+  var LEGAL_RE = [/Honoraires de \d/i, /Honoraires à la charge/i, /Consulter le barème/i, /Votre agent commercial/i,
+    /Selon l['’]article/i, /Les informations sur les risques/i, /\* ?Prix net/i, /Document non contractuel/i, /RSAC de /i, /Code Monétaire/i];
+  function sansMentionsLegales(t) {
+    if (typeof _descSplitLegal === 'function') { try { return _descSplitLegal(t).main; } catch (e) {} }
+    var start = -1;
+    LEGAL_RE.forEach(function (re) { var m = t.search(re); if (m !== -1 && (start === -1 || m < start)) start = m; });
+    return start > 0 ? t.substring(0, start).trim() : t;
+  }
+  // Marqueurs de liste en début de ligne : tirets, puces Unicode, emojis…
+  var BULLET_LEAD = /^(?:[\-–—*•\u25CF\u25CB\u25E6\u25AA\u25AB\u25A0\u25A1\u25C6\u25C7\u25BA\u25B6\u27A2\u27A4\u2713\u2714\u2611\u2605\u2756\u2794\u2192·>]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2300-\u23FF\u2600-\u27BF\u2B00-\u2BFF]|[\uFE0F\u200D\u20E3])+\s*/;
+
+  function parseDescription(raw) {
+    var t = String(raw || '').replace(/\r\n?/g, '\n').trim();
+    if (!t) return [];
+    t = sansMentionsLegales(t);
+    var blocks = [], blank = true;
+    t.split('\n').forEach(function (l) {
+      var tr = l.replace(/^[\s\u00A0]+/, '').replace(/\s+$/, '');
+      if (!tr) { blank = true; return; }
+      var m = tr.match(BULLET_LEAD), isBullet = false, txt = tr;
+      // on exige un vrai symbole suivi de texte (« -5 % » n'est pas une puce)
+      if (m && m[0].replace(/\s/g, '') && tr.length > m[0].length && !/^[\-–—]\d/.test(tr)) {
+        isBullet = true; txt = tr.slice(m[0].length);
+      }
+      txt = san(txt).trim();
+      if (!txt) return;
+      blocks.push({ text: txt, bullet: isBullet, blankBefore: blank });
+      blank = false;
+    });
+    for (var i = 0; i < blocks.length; i++) {
+      var nx = blocks[i + 1], tx = blocks[i].text;
+      var blankAfter = !nx || nx.blankBefore;
+      var shortish = tx.length <= 75 && tx.split(/\s+/).length <= 11 && !/[.!?,;…]$/.test(tx);
+      blocks[i].heading = !blocks[i].bullet && !!nx && shortish &&
+        (/:$/.test(tx) || nx.bullet || (blocks[i].blankBefore && blankAfter && tx.length <= 60));
+    }
+    return blocks;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Construction du PDF (synchrone)                                    */
+  /* ------------------------------------------------------------------ */
+  function buildDoc(b, assets) {
+    var doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+    var masque = prixMasque(b);
+    var ref = refAffichee(b);
+    var titre = titreBien(b);
+    var url = urlAnnonce(b);
+    var imgs = (assets && assets.imgs) || [];
+
+    doc.setProperties({
+      title: san('Fiche ' + titre + ' — Réf. ' + ref),
+      subject: san('Fiche descriptive — ' + titre),
+      author: san(AGENT.nom + ' — Côté Presqu\'île'),
+      keywords: san([b.type, b.ville, 'immobilier', 'presqu\'île guérandaise', '3G Immobilier'].filter(Boolean).join(', ')),
+      creator: 'cotepresquile.com'
+    });
+
+    // --- primitives ---
+    function fill(c) { doc.setFillColor(c[0], c[1], c[2]); }
+    function stroke(c) { doc.setDrawColor(c[0], c[1], c[2]); }
+    function color(c) { doc.setTextColor(c[0], c[1], c[2]); }
+    function font(style, size) { doc.setFont('helvetica', style || 'normal'); doc.setFontSize(size); }
+    // Largeur réelle : jsPDF mesure AVEC crénage mais dessine SANS, ses métriques Helvetica sont ~1 % trop
+    // étroites (550 vs 556) et certains glyphes WinAnsi prennent une largeur par défaut (² = 530 au lieu de 333).
+    var WFIX = 1.011;
+    var AFM = { '²': 333, '³': 333, '¹': 333, '€': 556, 'œ': 944, 'Œ': 1000, '\u00A0': 278,
+      '×': 584, '½': 834, '¼': 834, '¾': 834 };
+    function tw(s, cs) {
+      s = san(s);
+      var ws = doc.getCharWidthsArray(s, { doKerning: false }), u = 0;
+      for (var i = 0; i < s.length; i++) u += AFM[s.charAt(i)] ? AFM[s.charAt(i)] / 1000 : ws[i] * WFIX;
+      return u * doc.internal.getFontSize() / doc.internal.scaleFactor + (cs ? cs * s.length : 0);
+    }
+    function txt(s, x, y, o) {
+      o = o || {}; s = san(s);
+      var w = tw(s, o.cs);
+      if (o.align === 'right') x -= w; else if (o.align === 'center') x -= w / 2;
+      if (o.cs) doc.text(s, x, y, { charSpace: o.cs }); else doc.text(s, x, y);
+      return w;
+    }
+    function split(s, w) { return doc.splitTextToSize(san(s), w / 1.02); }
+    function fitFont(s, maxW, size, min, style, cs) {
+      font(style, size);
+      while (size > min && tw(s, cs) > maxW) { size -= 0.25; font(style, size); }
+    }
+    function rich(segs, x, y) {   // segments {t, bold} sur une même ligne
+      segs.forEach(function (sg) { font(sg.bold ? 'bold' : 'normal', 8.6); color(NAVY); x += txt(sg.t, x, y); });
+    }
+    function sectionTitle(label, y) {
+      font('bold', 12.5); color(NAVY); txt(label, M, y + 4.6);
+      fill(ACCENT); doc.rect(M, y + 7, 12, 0.7, 'F');
+      return y + 12;
+    }
+    function pageHeaderSmall() {
+      fill(NAVY); doc.rect(0, 0, PW, 12, 'F');
+      fill(ACCENT); doc.rect(0, 12, PW, 0.6, 'F');
+      font('bold', 10.5); color(WHITE); txt('Côté Presqu\'île', M, 7.8);
+      font('normal', 7.2); color(SUBTLE);
+      var right = 'Réf. ' + ref + '  ·  ' + titre;
+      while (tw(right) > CW - 45 && right.length > 12) right = right.slice(0, -2);
+      txt(right, PW - M, 7.6, { align: 'right' });
+    }
+    function newPage() { doc.addPage(); pageHeaderSmall(); return 20; }
+    function ensure(y, h) { return (y + h > BOTTOM) ? newPage() : y; }
+    function photo(img, x, y, w, h, k, r) {
+      var d = img && cropImg(img, w, h, { pxPerMm: k || 6, radiusMm: r == null ? 1.4 : r, q: k >= 7 ? 0.86 : 0.82 });
+      if (d) doc.addImage(d, 'JPEG', x, y, w, h, undefined, 'FAST');
+      return !!d;
+    }
+
+    /* ============================ PAGE 1 ============================ */
+    fill(NAVY); doc.rect(0, 0, PW, 22, 'F');
+    fill(ACCENT); doc.rect(0, 22, PW, 0.8, 'F');
+    font('bold', 17); color(WHITE); txt('Côté Presqu\'île', M, 11.2);
+    font('bold', 6.6); color(SUBTLE); txt('NATHALIE CHAUDET MOREL  ·  3G IMMOBILIER', M, 16.6, { cs: 0.45 });
+    font('bold', 11); color(WHITE); txt('Réf. ' + ref, PW - M, 11.2, { align: 'right' });
+    font('bold', 6.6); color(SUBTLE); txt('FICHE DESCRIPTIVE', PW - M, 16.6, { align: 'right', cs: 0.45 });
+
+    // Ville (sur-titre) + titre (2 lignes max)
+    var y = 31.5;
+    if (b.ville) { font('bold', 8); color(ACCENT); txt(String(b.ville).toUpperCase(), M, y, { cs: 0.55 }); y += 7.6; }
+    else y += 4;
+    var tSize = 19;
+    font('bold', tSize);
+    var tLines = split(titre, CW);
+    if (tLines.length > 1) { tSize = 16.5; font('bold', tSize); tLines = split(titre, CW); }
+    if (tLines.length > 2) { tLines = tLines.slice(0, 2); tLines[1] = tLines[1].replace(/\s+\S*$/, '') + '…'; }
+    color(NAVY);
+    tLines.forEach(function (l, i) { doc.text(l, M, y + i * tSize * 0.42); });
+    y += (tLines.length - 1) * tSize * 0.42 + 5.5;
+
+    // Vignettes (même logique que les cartes du site)
+    var badges = [];
+    if (b.exclusif) badges.push({ t: 'EXCLUSIVITÉ', bg: ACCENT, fg: WHITE });
+    if (b.statut === 'sous_compromis') badges.push({ t: 'SOUS COMPROMIS', bg: NAVY, fg: WHITE });
+    if (b.statut === 'offre_en_cours') badges.push({ t: 'OFFRE EN COURS', bg: NAVY, fg: WHITE });
+    if (b.statut === 'vendu') badges.push({ t: 'VENDU', bg: NAVY, fg: WHITE });
+    var baisse = (b.baisse !== undefined) ? !!b.baisse : !!b.baisseDePrix;
+    if (baisse && !masque) badges.push({ t: 'BAISSE DE PRIX', bg: WHITE, fg: NAVY, border: ACCENT });
+    function drawBadges(x, yy) {
+      badges.forEach(function (bd) {
+        font('bold', 6.5);
+        var w = tw(bd.t, 0.3) + 5.6, h = 5.6;
+        fill(bd.bg);
+        if (bd.border) { stroke(bd.border); doc.setLineWidth(0.35); doc.roundedRect(x, yy, w, h, h / 2, h / 2, 'FD'); }
+        else doc.roundedRect(x, yy, w, h, h / 2, h / 2, 'F');
+        color(bd.fg); txt(bd.t, x + 2.8, yy + 3.85, { cs: 0.3 });
+        x += w + 2;
+      });
+    }
+
+    // Photos : la principale occupe toute la hauteur disponible au-dessus des vignettes
+    var factsH = 19, priceH = 25, THUMB_H = 44;
+    var factsY = BOTTOM - factsH;
+    var priceY = factsY - 5 - priceH;
+    var photosBottom = priceY - 5;
+    var thumbs = imgs.slice(1, 4);
+    var mainDone = false;
+    if (imgs[0]) {
+      var mainH = photosBottom - y - (thumbs.length ? THUMB_H + GAP : 0);
+      mainH = Math.min(mainH, thumbs.length ? 140 : 165);
+      mainDone = photo(imgs[0], M, y, CW, mainH, 7, 1.6);
+      if (mainDone && badges.length) drawBadges(M + 4, y + 4);
+      if (mainDone && thumbs.length) {
+        var n = thumbs.length, tW = (CW - (n - 1) * GAP) / n;
+        thumbs.forEach(function (im, i) { photo(im, M + i * (tW + GAP), y + mainH + GAP, tW, THUMB_H); });
+      }
+    }
+    if (!mainDone) {   // aucune photo exploitable : panneau sobre à la place
+      var phH = photosBottom - y;
+      fill(LIGHT); doc.roundedRect(M, y, CW, phH, 2, 2, 'F');
+      font('bold', 15); color(NAVY); txt('Côté Presqu\'île', PW / 2, y + phH / 2 - 2, { align: 'center' });
+      font('normal', 9); color(GREY); txt('Photos et visite sur demande — ' + AGENT.tel, PW / 2, y + phH / 2 + 5, { align: 'center' });
+      fill(ACCENT); doc.rect(PW / 2 - 6, y + phH / 2 + 9, 12, 0.7, 'F');
+      if (badges.length) drawBadges(M + 4, y + 4);
+    }
+
+    // Bloc prix
+    stroke(LINE); doc.setLineWidth(0.3); doc.line(M, priceY, M + CW, priceY);
+    var leftW = 74;
+    font('bold', 7); color(ACCENT); txt(masque ? 'STATUT' : 'PRIX', M, priceY + 8.5, { cs: 0.5 });
+    var prixTxt = prixPublic(b);
+    fitFont(prixTxt, leftW - 4, 22, 14, 'bold');
+    color(NAVY); txt(prixTxt, M, priceY + 18.5);
+    stroke(LINE); doc.line(M + leftW, priceY + 4, M + leftW, priceY + priceH - 2);
+    // Honoraires : même logique que #fichePrixSection (pourcentage recalculé depuis prixFAI / prixHH)
+    var hx = M + leftW + 6, hw = CW - leftW - 6, hLines = [];
+    if (!masque) {
+      var pct = null;
+      if (b.prixFAI && b.prixHH && b.prixHH > 0 && b.prixFAI > b.prixHH) pct = (b.prixFAI - b.prixHH) / b.prixHH * 100;
+      else if (b.pctHonoraires && b.pctHonoraires > 0 && b.pctHonoraires <= 15) pct = parseFloat(b.pctHonoraires);
+      var qui = (typeof b.honoraires === 'string' && b.honoraires) ? b.honoraires : 'acquéreur';
+      var quiTxt = (qui === 'vendeur') ? 'du vendeur' : (qui === 'partagés' ? 'partagée entre vendeur et acquéreur' : 'de l\'acquéreur');
+      if (pct !== null) {
+        var pr = Math.round(pct * 100) / 100;
+        var pctStr = (pr === Math.floor(pr)) ? pr.toFixed(0) : pr.toFixed(2).replace(/0+$/, '').replace(/\.$/, '').replace('.', ',');
+        hLines.push({ t: 'Honoraires TTC inclus à la charge ' + quiTxt + ' : ' + pctStr + '\u00A0% du prix du bien hors honoraires.', bold: true });
+      } else if (qui === 'vendeur') {
+        hLines.push({ t: 'Honoraires à la charge du vendeur.', bold: true });
+      } else {
+        hLines.push({ t: 'Honoraires TTC inclus, à la charge ' + quiTxt + '.', bold: true });
+        hLines.push({ t: 'Barème : forfait de 7\u00A0000\u00A0€ TTC jusqu’à 175\u00A0000\u00A0€ net vendeur, 4\u00A0% TTC maximum au-delà.' });
+      }
+      if (b.prixFAI) hLines.push({ t: 'Prix du bien honoraires inclus : ' + fmtInt(b.prixFAI) + '\u00A0€' });
+      if (b.prixHH) hLines.push({ t: 'Prix du bien hors honoraires : ' + fmtInt(b.prixHH) + '\u00A0€' });
+      hLines.push({ t: '* Prix hors frais notariés, d’enregistrement et de publicité foncière.', small: true });
+    } else {
+      hLines.push({ t: 'Ce bien fait l’objet d’un engagement ou n’est plus disponible à la vente.', bold: true });
+      hLines.push({ t: 'Contactez Nathalie Chaudet Morel pour découvrir des biens similaires sur la presqu’île guérandaise.' });
+    }
+    var wrapped = [];
+    hLines.forEach(function (hl) {
+      font(hl.bold ? 'bold' : 'normal', hl.small ? 6.8 : 7.8);
+      split(hl.t, hw).forEach(function (s) { wrapped.push({ s: s, hl: hl }); });
+    });
+    var LH = 3.55, hy = priceY + 4 + Math.max(0, (priceH - 4 - wrapped.length * LH) / 2) + 2.6;
+    wrapped.forEach(function (w) {
+      font(w.hl.bold ? 'bold' : 'normal', w.hl.small ? 6.8 : 7.8); color(w.hl.bold ? NAVY : (w.hl.small ? MUTED : GREY));
+      doc.text(w.s, hx, hy); hy += LH;
+    });
+
+    // Chiffres clés
+    var facts = [];
+    if (num(b.surface)) facts.push([fmtInt(b.surface) + ' m²', 'SURFACE HABITABLE']);
+    if (num(b.pieces)) facts.push([String(b.pieces), num(b.pieces) > 1 ? 'PIÈCES' : 'PIÈCE']);
+    if (num(b.chambres)) facts.push([String(b.chambres), num(b.chambres) > 1 ? 'CHAMBRES' : 'CHAMBRE']);
+    if (num(b.terrain)) facts.push([fmtInt(b.terrain) + ' m²', 'TERRAIN']);
+    var pxNum = num(b.prix || b.prixFAI);
+    if (!masque && pxNum && num(b.surface)) facts.push([fmtInt(pxNum / num(b.surface)) + ' €/m²', 'PRIX / M²']);
+    if (num(b.annee)) facts.push([String(b.annee), 'ANNÉE']);
+    if (facts.length) {
+      var fg = 2.5, fw = (CW - (facts.length - 1) * fg) / facts.length;
+      facts.forEach(function (f, i) {
+        var fx = M + i * (fw + fg);
+        fill(LIGHT); doc.roundedRect(fx, factsY, fw, factsH, 1.6, 1.6, 'F');
+        fitFont(f[0], fw - 4, 13, 9, 'bold'); color(NAVY); txt(f[0], fx + fw / 2, factsY + 9.2, { align: 'center' });
+        var cs = 0.3; font('bold', 6.2);
+        if (tw(f[1], cs) > fw - 3) cs = 0;
+        fitFont(f[1], fw - 3, 6.2, 4.8, 'bold', cs); color(MUTED); txt(f[1], fx + fw / 2, factsY + 14.6, { align: 'center', cs: cs });
+      });
+    }
+
+    /* ======================= PAGES SUIVANTES ======================= */
+    y = newPage();
+    var extra = imgs.slice(4);       // photos restantes pour combler les fins de page
+    var galleryTitled = false;
+    function gallery(yTop, limit) {  // place 1 à 2 rangées de 3 photos dans [yTop, limit]
+      var head = galleryTitled ? 0 : 12, avail = limit - yTop - head;
+      if (extra.length < 2 || avail < 32) return yTop;
+      var rows = Math.min(2, Math.ceil(extra.length / 3));
+      while (rows > 1 && (avail - (rows - 1) * GAP) / rows < 32) rows--;
+      var rowH = Math.min(46, (avail - (rows - 1) * GAP) / rows);
+      if (!galleryTitled) { yTop = sectionTitle('En images', yTop); galleryTitled = true; }
+      for (var r = 0; r < rows && extra.length; r++) {
+        var row = extra.splice(0, 3), w = (CW - (row.length - 1) * GAP) / row.length;
+        row.forEach(function (im, i) { photo(im, M + i * (w + GAP), yTop, w, rowH); });
+        yTop += rowH + GAP;
+      }
+      return yTop + 4;
+    }
+
+    // ---- Description (2 colonnes, équilibrées sur la dernière page) ----
+    var blocks = parseDescription(b.description || b.desc || '');
+    var lead = san(accrocheValide(b));
+    if (!lead && blocks.length && blocks[0].text.length <= 150 && !/[.!?]$/.test(blocks[0].text) && !blocks[0].bullet) {
+      lead = blocks.shift().text;
+      if (blocks[0]) blocks[0].blankBefore = true;
+    }
+    if (blocks.length || lead) {
+      y = sectionTitle('Description', y);
+      if (lead) {
+        font('bold', 10.5); color(NAVY);
+        split(lead, CW).forEach(function (l) { doc.text(l, M, y + 3.6); y += 4.9; });
+        y += 2.6;
+      }
+      var COLG = 8, COLW = (CW - COLG) / 2;
+      var items = [];
+      blocks.forEach(function (bk, bi) {
+        var style = bk.heading ? 'bold' : 'normal', size = bk.heading ? 9.4 : 8.9;
+        var indent = bk.bullet ? 3.6 : 0;
+        font(style, size);
+        var ls = split(bk.text, COLW - indent - 0.5);
+        var gap = bi === 0 ? 0 : (bk.heading ? 3.4 : (bk.bullet && blocks[bi - 1].bullet ? 0.7 : (bk.blankBefore ? 2.6 : 1.4)));
+        ls.forEach(function (s, li) {
+          items.push({
+            s: s, style: style, size: size, lh: bk.heading ? 4.7 : 4.25, indent: indent,
+            dot: bk.bullet && li === 0, gap: li === 0 ? gap : 0, c: bk.heading ? NAVY : BODY,
+            // titres : gardés avec 2 lignes ; pas de ligne isolée en bas/haut de colonne
+            keep: bk.heading ? 2 : ((li === 0 || li === ls.length - 2) && ls.length > 2 ? 1 : 0)
+          });
+        });
+      });
+      var flow = function (i, top, H, draw) {   // remplit 2 colonnes de hauteur H ; renvoie l'index suivant
+        var col = 0, cy = 0, maxY = top;
+        while (i < items.length) {
+          var it = items[i], need = (cy > 0 ? it.gap : 0) + it.lh, more = 0;
+          for (var k = 1; k <= it.keep && i + k < items.length; k++) more += items[i + k].gap + items[i + k].lh;
+          if (cy > 0 && cy + need + more > H) { col++; cy = 0; if (col >= 2) break; continue; }
+          cy += (cy > 0 ? it.gap : 0);
+          if (draw) {
+            var x = M + col * (COLW + COLG), base = top + cy + it.lh * 0.74;
+            font(it.style, it.size); color(it.c);
+            doc.text(it.s, x + it.indent, base);
+            if (it.dot) { fill(ACCENT); doc.circle(x + 1.1, base - 1.05, 0.62, 'F'); }
+          }
+          cy += it.lh; i++;
+          if (top + cy > maxY) maxY = top + cy;
+        }
+        return { i: i, maxY: maxY };
+      };
+      var idx = 0;
+      while (idx < items.length) {
+        var avail = BOTTOM - y, H = avail;
+        if (flow(idx, y, avail, false).i >= items.length) {   // la fin tient sur la page : on équilibre
+          var lo = 8, hi = avail;
+          while (hi - lo > 0.4) { var mid = (lo + hi) / 2; if (flow(idx, y, mid, false).i >= items.length) hi = mid; else lo = mid; }
+          H = hi;
+        }
+        var res = flow(idx, y, H, true);
+        if (res.i === idx) { y = newPage(); continue; }
+        idx = res.i;
+        y = (idx < items.length) ? newPage() : res.maxY + 8;
+      }
+    }
+
+    // ---- Caractéristiques ----
+    var carac = [];
+    function add(l, v) { if (v !== null && v !== undefined && v !== '' && v !== 0 && v !== '0') carac.push([l, String(v)]); }
+    add('Type de bien', b.type);
+    add('Ville', b.ville);
+    add('Surface habitable', num(b.surface) ? fmtInt(b.surface) + ' m²' : '');
+    add('Terrain', num(b.terrain) ? fmtInt(b.terrain) + ' m²' : '');
+    add('Pièces', num(b.pieces) ? b.pieces : '');
+    add('Chambres', num(b.chambres) ? b.chambres : '');
+    add('Salle(s) de bains', num(b.salleBain) ? b.salleBain : '');
+    add('Salle(s) d’eau', num(b.sdb) ? b.sdb : '');
+    add('Niveaux', num(b.niveaux) ? b.niveaux : '');
+    add('Année de construction', num(b.annee) ? b.annee : '');
+    add('Référence', ref);
+    var rowH = 7.2, rows = Math.ceil(carac.length / 2);
+    y = ensure(y, 12 + rows * rowH + 4);
+    y = sectionTitle('Caractéristiques', y);
+    var cg = 10, cw2 = (CW - cg) / 2;
+    carac.forEach(function (c, i) {
+      var x = M + (i % 2) * (cw2 + cg), ry = y + Math.floor(i / 2) * rowH;
+      font('normal', 8.4); color(GREY); txt(c[0], x, ry + 4.8);
+      font('bold', 8.6); color(NAVY); txt(c[1], x + cw2, ry + 4.8, { align: 'right' });
+      stroke(LINE); doc.setLineWidth(0.25); doc.line(x, ry + rowH, x + cw2, ry + rowH);
+    });
+    y += rows * rowH + 9;
+
+    // ---- Performance énergétique ----
+    var dpeC = String(b.dpeClasse || b.dpe || '').trim().toUpperCase();
+    var gesC = String(b.gesClasse || b.ges || '').trim().toUpperCase();
+    var hasDpe = CLASSES.indexOf(dpeC) !== -1, hasGes = CLASSES.indexOf(gesC) !== -1;
+    var dpeVal = num(b.dpeConso || b.dpeVal), gesVal = num(b.gesConso || b.gesVal);
+    var coutMin = num(b.dpeCoutMin), coutMax = num(b.dpeCoutMax);
+    var md = String(b.dateDpe || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    var dateD = md ? md[3] + '/' + md[2] + '/' + md[1] : '';
+    var anneeRef = b.dpeAnneeRef || b.anneeRefDpe || '';
+
+    var BAR_H = 4.7, BAR_G = 1.05, BAR_W0 = 15, BAR_STEP = 4.3, PT = 2.4;
+    var scaleH = 7 * BAR_H + 6 * BAR_G;
+    var dpeH = hasDpe ? (12 + 10.5 + scaleH + 6 + (coutMin && coutMax ? 10.5 : 0) + (dateD ? 4.5 : 0) + 10) : 36;
+    var CARD_H = 44;
+    // DPE et carte contact restent sur la même page (jamais de carte seule sur une page)
+    if (y + dpeH + CARD_H > BOTTOM) { y = gallery(y, BOTTOM); y = newPage(); }
+    y = sectionTitle('Performance énergétique', y);
+
+    function scale(x, top, active, cols, value, unit, topLbl, botLbl, topC, botC, title) {
+      font('bold', 8.6); color(NAVY); txt(title, x, top + 3);
+      font('normal', 6.4); color(topC); txt(topLbl, x, top + 8);
+      var by = top + 10.5;
+      CLASSES.forEach(function (c, i) {
+        var w = BAR_W0 + i * BAR_STEP, yy = by + i * (BAR_H + BAR_G), col = hex(cols[c]);
+        fill(col);
+        doc.lines([[w - PT, 0], [PT, BAR_H / 2], [-PT, BAR_H / 2], [-(w - PT), 0]], x, yy, [1, 1], 'F', true);
+        var lum = 0.299 * col[0] + 0.587 * col[1] + 0.114 * col[2];
+        font('bold', 7.6); color(lum > 165 ? NAVY : WHITE); txt(c, x + 1.8, yy + BAR_H / 2 + 1.3);
+        if (c !== active) return;
+        // classe du bien : contour + étiquette valeur pointant vers la barre
+        stroke(NAVY); doc.setLineWidth(0.55); doc.setLineJoin('round');
+        doc.lines([[w - PT + 0.6, 0], [PT + 0.6, BAR_H / 2 + 0.6], [-(PT + 0.6), BAR_H / 2 + 0.6], [-(w - PT + 0.6), 0]], x - 0.6, yy - 0.6, [1, 1], 'S', true);
+        var tx = x + w + 2.2, tyC = yy + BAR_H / 2, th = 7.4;
+        var vTxt = value ? fmtInt(value) : 'Classe ' + c, uTxt = value ? ' ' + unit : '';
+        font('bold', 9.5); var w1 = tw(vTxt); font('normal', 6.6); var w2 = tw(uTxt);
+        var tagW = w1 + w2 + 5.5;
+        fill(NAVY);
+        doc.lines([[tagW, 0], [0, th], [-tagW, 0], [-2.6, -th / 2]], tx + 2.6, tyC - th / 2, [1, 1], 'F', true);
+        font('bold', 9.5); color(WHITE); txt(vTxt, tx + 4.4, tyC + 1.5);
+        font('normal', 6.6); color(SUBTLE); txt(uTxt, tx + 4.4 + w1, tyC + 1.5);
+      });
+      font('normal', 6.4); color(botC); txt(botLbl, x, by + scaleH + 4);
+      return by + scaleH + 4;
+    }
+
+    if (hasDpe) {
+      var half = CW / 2 + 2;
+      var endY = scale(M, y, dpeC, DPE_COL, dpeVal, 'kWh/m²/an', 'Logement extrêmement performant',
+        'Logement extrêmement consommateur d’énergie', hex('#009C6D'), hex('#D7221F'), 'Consommation énergétique (DPE)');
+      if (hasGes) {
+        scale(M + half, y, gesC, GES_COL, gesVal, 'kg CO2/m²/an', 'Peu d’émissions de CO2',
+          'Émissions de CO2 très importantes', hex('#5A86B5'), hex('#2C1A48'), 'Émissions de gaz à effet de serre (GES)');
+      } else {
+        font('bold', 8.6); color(NAVY); txt('Émissions de gaz à effet de serre (GES)', M + half, y + 3);
+        font('normal', 8); color(GREY); txt('Non communiquées', M + half, y + 9);
+      }
+      y = endY + 6;
+      if (coutMin && coutMax) {
+        fill(LIGHT); doc.roundedRect(M, y - 1, CW, 8.4, 1.4, 1.4, 'F');
+        rich([
+          { t: 'Estimation des coûts annuels d’énergie du logement : ' },
+          { t: 'entre ' + fmtInt(coutMin) + '\u00A0€ et ' + fmtInt(coutMax) + '\u00A0€', bold: true },
+          { t: ' par an' + (anneeRef ? ' (année de référence ' + anneeRef + ')' : '') + '.' }
+        ], M + 3.5, y + 4.3);
+        y += 10.5;
+      }
+      if (dateD) { font('normal', 7.2); color(GREY); txt('DPE réalisé le ' + dateD + '.', M, y + 2.5); y += 4.5; }
+    } else {
+      fill(LIGHT); doc.roundedRect(M, y, CW, 12, 1.6, 1.6, 'F');
+      font('bold', 9); color(NAVY); txt('DPE en cours / non communiqué', M + 4, y + 7.4);
+      y += 16;
+    }
+    font('normal', 6.8); color(MUTED);
+    txt('Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : www.georisques.gouv.fr', M, y + 3);
+    y += 10;
+
+    // ---- Carte contact : sous le DPE, ou ancrée en bas si des photos comblent l'espace ----
+    var gy = gallery(y, BOTTOM - CARD_H - 4);
+    var cy = (gy !== y) ? BOTTOM - CARD_H : Math.min(y, BOTTOM - CARD_H);
+    fill(LIGHT); doc.roundedRect(M, cy, CW, CARD_H, 2.5, 2.5, 'F');
+    var tx0 = M + 8;
+    var av = assets && assets.avatar && cropImg(assets.avatar, 28, 28, { pxPerMm: 10, shape: 'circle', bg: LIGHT, focusY: 0.35, q: 0.9 });
+    if (av) {
+      var D = 28, cxp = M + 7 + D / 2, cyp = cy + CARD_H / 2;
+      doc.addImage(av, 'JPEG', cxp - D / 2, cyp - D / 2, D, D, undefined, 'FAST');
+      stroke(ACCENT); doc.setLineWidth(0.6); doc.circle(cxp, cyp, D / 2 + 0.9, 'S');
+      tx0 = M + 7 + D + 8;
+    }
+    font('bold', 7); color(ACCENT); txt('VOTRE CONTACT', tx0, cy + 8.5, { cs: 0.5 });
+    font('bold', 13.5); color(NAVY); txt(AGENT.nom, tx0, cy + 15);
+    font('normal', 8); color(ACCENT); txt(AGENT.role, tx0, cy + 20);
+    var ly = cy + 27;
+    [['Tél.', AGENT.tel, AGENT.telHref], ['E-mail', AGENT.mail, 'mailto:' + AGENT.mail], ['Site', AGENT.site, 'https://' + AGENT.site + '/']]
+      .forEach(function (r) {
+        font('normal', 7.4); color(MUTED); txt(r[0], tx0, ly);
+        font('bold', 9); color(NAVY); var w = txt(r[1], tx0 + 11, ly);
+        doc.link(tx0 + 11, ly - 3.2, w, 4.2, { url: r[2] });
+        ly += 4.9;
+      });
+    // QR code vers l'annonce (vectoriel)
+    var Q = 30, qx = M + CW - 7 - Q, qy = cy + 4.5;
+    if (typeof window.qrcode === 'function') {
+      try {
+        var qr = window.qrcode(0, 'M'); qr.addData(url); qr.make();
+        var nMod = qr.getModuleCount(), cell = (Q - 2) / nMod;
+        fill(WHITE); doc.roundedRect(qx - 1.2, qy - 1.2, Q + 2.4, Q + 2.4, 1.2, 1.2, 'F');
+        fill(NAVY);
+        for (var rr = 0; rr < nMod; rr++) {
+          var run = -1;
+          for (var cc = 0; cc <= nMod; cc++) {
+            var dark = cc < nMod && qr.isDark(rr, cc);
+            if (dark && run < 0) run = cc;
+            if (!dark && run >= 0) { doc.rect(qx + 1 + run * cell, qy + 1 + rr * cell, (cc - run) * cell + 0.02, cell + 0.02, 'F'); run = -1; }
+          }
+        }
+        doc.link(qx, qy, Q, Q, { url: url });
+        font('normal', 6.8); color(GREY); txt('Voir l’annonce en ligne', qx + Q / 2, qy + Q + 4.6, { align: 'center' });
+      } catch (e) { /* QR facultatif */ }
+    }
+
+    // ---- Pied de page sur chaque page ----
+    var N = doc.getNumberOfPages();
+    for (var p = 1; p <= N; p++) {
+      doc.setPage(p);
+      stroke(LINE); doc.setLineWidth(0.25); doc.line(M, 283, M + CW, 283);
+      font('normal', 6.2); color(MUTED);
+      split(FOOTER_TXT, CW - 22).forEach(function (l, i) { doc.text(l, M, 286.6 + i * 2.8); });
+      font('bold', 6.8); color(NAVY); txt('page ' + p + ' / ' + N, PW - M, 286.6, { align: 'right' });
+    }
+    doc.setPage(1);
+    return doc;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Point d'entrée public                                              */
+  /* ------------------------------------------------------------------ */
+  window.telechargerFichePDF = async function () {
+    var b = window._bienAffiche;
+    if (!b) { toast('Aucun bien sélectionné.', 'error', 4000); return; }
+    if (_busy) return;
+    _busy = true;
+    var btn = document.getElementById('ficheBtnPdf');
+    var orig = btn ? btn.innerHTML : null;
+    if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.textContent = 'Préparation…'; }
+    try {
+      var qrP = loadQR();
+      var assetsP = loadAssets(b).catch(function () { return { imgs: [], avatar: null }; });
+      await loadJsPDF();
+      var res = await Promise.all([assetsP, qrP]);
+      var doc = buildDoc(b, res[0]);
+      doc.save(nomFichier(b));
+      toast('Fiche PDF téléchargée', 'success', 3000);
+    } catch (e) {
+      if (window.console) console.error('[Fiche PDF]', e);
+      toast(ERR_MSG, 'error', 6000);
+    } finally {
+      if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); btn.innerHTML = orig; }
+      _busy = false;
+    }
+  };
+})();
 
 // ===== HAMBURGER =====
 function toggleMobileMenu() {
