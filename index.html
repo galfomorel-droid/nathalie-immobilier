@@ -67,7 +67,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
 <link rel="dns-prefetch" href="https://images.unsplash.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <!-- ================================================================
      SCHEMA.ORG — DONNÉES STRUCTURÉES (résultats enrichis Google)
@@ -274,39 +274,40 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* Palette « Sel & Lin » — valeurs réaffectées (noms conservés pour le CSS/JS existant) */
-  --blanc: #FCFAF6;        /* Fond principal — blanc chaud (ivoire léger) : blanc à l'œil, mais non clinique */
-  --beige: #E5DACB;        /* Sable — surfaces, bordures, filets */
-  --beige-dark: #D4C7B2;   /* Sable foncé — bordures marquées, hover surfaces */
-  --noir: #2B2A26;         /* Ardoise chaude — texte principal + sections fortes */
-  --gris: #6E6450;         /* Pierre calcaire — texte secondaire, labels (AA ~5.1:1 sur Lin) */
-  --or: #C9A24B;           /* Sel doré — accent/aplat (CTA, badges) sur fonds clairs/sombres */
-  --or-light: #D9B868;     /* Sel doré clair — hover des CTA primaires */
-  --or-fonce: #8F6E1E;     /* Sel doré foncé — doré en TEXTE sur fond clair (prix), AA ~4.5:1 */
-  --white: #FAF7F1;        /* Blanc coquillage — fonds clairs/cartes, texte sur sombre */
-  /* Accents de marque ajoutés */
-  --sauge: #7C8A6E;        /* Vert sauge — filets, soulignés, bordures, focus (objet graphique 3:1) */
-  --sauge-light: #94A186;  /* Sauge clair — hover/focus, accents sur fond sombre */
-  --sauge-text: #5C6A4E;   /* Sauge foncé — sauge en TEXTE sur fond clair (eyebrow), AA ~5.1:1 */
-  --ardoise: #2B2A26;      /* Alias sémantique des sections sombres */
-  --coquillage: #FAF7F1;   /* Alias texte/badges sur fond sombre */
+  /* Palette « Bord de mer élégant » (voir DESIGN_SYSTEM.md) — noms historiques conservés pour le CSS/JS existant */
+  --blanc: #FFFFFF;        /* Fond principal — blanc net */
+  --beige: #E7ECF4;        /* Gris clair bleuté — surfaces, bordures, filets */
+  --beige-dark: #CBD5E4;   /* Bordures marquées, hover surfaces */
+  --noir: #192D56;         /* Bleu marine profond — texte principal + sections fortes */
+  --gris: #5A6B86;         /* Texte secondaire, labels (AA sur blanc) */
+  --or: #6D8CC4;           /* Accent bleu doux — CTA, badges, filets */
+  --or-light: #8FA8D4;     /* Accent clair — hover des CTA primaires */
+  --or-fonce: #3A5A8F;     /* Accent foncé — accent en TEXTE sur fond clair (prix), AA */
+  --white: #FFFFFF;        /* Blanc — cartes, texte sur marine */
+  --sauge: #6D8CC4;        /* Filets, soulignés, bordures, focus */
+  --sauge-light: #8FA8D4;  /* Accents sur fond sombre */
+  --sauge-text: #3A5A8F;   /* Eyebrow / kicker en texte sur fond clair */
+  --ardoise: #192D56;      /* Alias sémantique des sections sombres */
+  --coquillage: #FFFFFF;   /* Alias texte/badges sur fond sombre */
+  --light: #F4F6FA;        /* Sections claires bleutées */
+  --bg-deep: #13213F;      /* Marine foncé — footer, contrastes */
   /* Typographie */
-  --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  --sans: 'Inter', system-ui, sans-serif;
+  --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans: 'Montserrat', system-ui, -apple-system, sans-serif;
   /* Mouvement — courbe unique */
   --transition: 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   /* Ombres en double couche, teintées ardoise (lumière clé rapprochée + diffusion ambiante).
      Donne une profondeur feutrée et réaliste plutôt qu'un halo unique. */
-  --shadow-sm: 0 1px 2px rgba(43,42,38,0.04), 0 5px 18px rgba(43,42,38,0.05);
-  --shadow: 0 2px 4px rgba(43,42,38,0.05), 0 14px 34px rgba(43,42,38,0.09);
-  --shadow-md: 0 2px 4px rgba(43,42,38,0.05), 0 14px 34px rgba(43,42,38,0.09);
-  --shadow-lg: 0 3px 8px rgba(43,42,38,0.07), 0 26px 56px rgba(43,42,38,0.15);
-  --shadow-hover: 0 3px 8px rgba(43,42,38,0.07), 0 26px 56px rgba(43,42,38,0.15);
+  --shadow-sm: 0 1px 2px rgba(25,45,86,0.04), 0 5px 18px rgba(25,45,86,0.05);
+  --shadow: 0 2px 4px rgba(25,45,86,0.05), 0 14px 34px rgba(25,45,86,0.09);
+  --shadow-md: 0 2px 4px rgba(25,45,86,0.05), 0 14px 34px rgba(25,45,86,0.09);
+  --shadow-lg: 0 3px 8px rgba(25,45,86,0.07), 0 26px 56px rgba(25,45,86,0.15);
+  --shadow-hover: 0 3px 8px rgba(25,45,86,0.07), 0 26px 56px rgba(25,45,86,0.15);
   /* Échelle d'espacement stricte base 8px */
   --space-1: 0.5rem; --space-2: 1rem; --space-3: 1.5rem; --space-4: 2rem;
   --space-5: 2.5rem; --space-6: 3rem; --space-8: 4rem; --space-10: 6rem; --space-12: 10rem;
   /* Rayons */
-  --radius-card: 14px; --radius-input: 10px; --radius-pill: 999px;
+  --radius-card: 16px; --radius-input: 12px; --radius-pill: 999px;
   /* Layout */
   --maxw: 1280px;
 }
@@ -379,7 +380,7 @@ nav.scrolled {
   background: rgba(248,247,245,0.95);
   backdrop-filter: blur(20px);
   padding: 1rem 4%;
-  box-shadow: 0 1px 0 rgba(43,42,38,0.08);
+  box-shadow: 0 1px 0 rgba(25,45,86,0.08);
 }
 .nav-logo {
   display: flex; flex-direction: column;
@@ -428,7 +429,7 @@ nav.scrolled .nav-links a:hover { color: var(--noir); }
   background: var(--or);
   color: var(--noir) !important;
   padding: 0.85rem 1.7rem !important;
-  border-radius: 0 !important;
+  border-radius: var(--radius-pill) !important;
   font-size: 0.72rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.16em !important;
@@ -496,7 +497,7 @@ nav.scrolled .hamburger span { background: var(--noir); }
 .hero-bg {
   position: absolute; inset: 0;
   background:
-    linear-gradient(to bottom, rgba(43,42,38,0.30) 0%, rgba(43,42,38,0.40) 50%, rgba(43,42,38,0.58) 100%),
+    linear-gradient(to bottom, rgba(25,45,86,0.30) 0%, rgba(25,45,86,0.40) 50%, rgba(25,45,86,0.58) 100%),
     url('hero.jpg') center / cover no-repeat;
   transform: scale(1);
   transition: none;
@@ -538,7 +539,7 @@ nav.scrolled .hamburger span { background: var(--noir); }
   line-height: 1.16;
   letter-spacing: 0.005em;
   margin: 0 auto 1.5rem;
-  text-shadow: 0 2px 30px rgba(43,42,38,0.4);
+  text-shadow: 0 2px 30px rgba(25,45,86,0.4);
 }
 .hero-sub {
   color: rgba(255,255,255,0.92);
@@ -546,7 +547,7 @@ nav.scrolled .hamburger span { background: var(--noir); }
   font-weight: 400;
   margin: 0 auto 2.6rem;
   max-width: 600px;
-  text-shadow: 0 1px 16px rgba(43,42,38,0.5);
+  text-shadow: 0 1px 16px rgba(25,45,86,0.5);
 }
 .hero-buttons {
   display: flex; gap: 1.1rem; flex-wrap: wrap;
@@ -554,7 +555,7 @@ nav.scrolled .hamburger span { background: var(--noir); }
 }
 /* CTA du hero — style prestige : angles nets, capitales espacées */
 .hero-buttons .btn {
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 0.72rem;
@@ -569,7 +570,7 @@ nav.scrolled .hamburger span { background: var(--noir); }
   background: rgba(30,28,25,0.32);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.22);
-  box-shadow: 0 18px 50px rgba(43,42,38,0.28);
+  box-shadow: 0 18px 50px rgba(25,45,86,0.28);
 }
 .hero-search-field {
   flex: 1 1 90px; min-width: 0;
@@ -585,7 +586,7 @@ nav.scrolled .hamburger span { background: var(--noir); }
 #heroVilleMS .ms-toggle::after { color: rgba(255,255,255,0.72); }
 #heroVilleMS .ms-toggle { border-right: 1px solid rgba(255,255,255,0.18); }
 .hero-search-field::placeholder { color: rgba(255,255,255,0.72); }
-.hero-search-field option { color: #2B2A26; background: #fff; }
+.hero-search-field option { color: #192D56; background: #fff; }
 select.hero-search-field {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23ffffff' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 0.55rem center;
@@ -626,7 +627,7 @@ select.search-field {
   padding-right: 1.9rem;
 }
 .search-field:last-child { border-right: none; }
-.search-field:focus { outline: none; background: #FAF7F1; }
+.search-field:focus { outline: none; background: #F4F6FA; }
 .search-ref { flex: 0 1 120px; cursor: text; }
 /* Multi-sélection de villes (page Biens) */
 .ms { position: relative; flex: 1 1 150px; min-width: 0; }
@@ -640,11 +641,11 @@ select.search-field {
   position: absolute; top: calc(100% + 4px); left: 0; z-index: 40;
   background: #fff; border: 1px solid var(--beige-dark);
   min-width: 230px; max-height: 300px; overflow-y: auto;
-  box-shadow: 0 12px 34px rgba(43,42,38,0.16); padding: .3rem 0; display: none;
+  box-shadow: 0 12px 34px rgba(25,45,86,0.16); padding: .3rem 0; display: none;
 }
 .ms.open .ms-panel { display: block; }
 .ms-opt { display: flex; align-items: center; gap: .6rem; padding: .55rem .95rem; cursor: pointer; font-size: .85rem; color: var(--noir); }
-.ms-opt:hover { background: #FAF7F1; }
+.ms-opt:hover { background: #F4F6FA; }
 .ms-opt input { accent-color: var(--or); width: 15px; height: 15px; flex: 0 0 auto; }
 .ms-opt span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .biens-resultbar {
@@ -682,7 +683,7 @@ select.search-field {
 .btn {
   display: inline-flex; align-items: center; gap: 0.5rem;
   padding: 0.95rem 1.9rem;
-  border-radius: 0;   /* angles nets, cohérent avec la nav et « à la une » (look Barnes) */
+  border-radius: var(--radius-pill);   /* angles nets, cohérent avec la nav et « à la une » (look Barnes) */
   font-family: var(--sans);
   font-size: 0.74rem;
   letter-spacing: 0.14em;
@@ -692,19 +693,19 @@ select.search-field {
   cursor: pointer;
   border: 1px solid transparent;
 }
-.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(124,138,110,0.45); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,140,196,0.45); }
 .btn-gold {
   background: var(--or);
   color: var(--noir);
-  box-shadow: 0 6px 20px rgba(201,162,75,0.22);
+  box-shadow: 0 6px 20px rgba(109,140,196,0.22);
 }
-.btn-gold:hover { background: var(--or-light); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(201,162,75,0.34); }
+.btn-gold:hover { background: var(--or-light); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(109,140,196,0.34); }
 .btn-outline {
   background: transparent;
   color: var(--white);
   border: 1px solid var(--sauge);
 }
-.btn-outline:hover { border-color: var(--sauge-light); background: rgba(124,138,110,0.18); transform: translateY(-3px); }
+.btn-outline:hover { border-color: var(--sauge-light); background: rgba(109,140,196,0.18); transform: translateY(-3px); }
 
 .hero-scroll {
   position: absolute;
@@ -744,7 +745,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
   display: inline-block;
   width: 46px; height: 1px;
   /* Ligne d'horizon : filet doré qui s'estompe vers le titre */
-  background: linear-gradient(to right, var(--or) 0%, var(--or) 55%, rgba(201,162,75,0) 100%);
+  background: linear-gradient(to right, var(--or) 0%, var(--or) 55%, rgba(109,140,196,0) 100%);
 }
 .section-title {
   color: var(--noir);
@@ -865,7 +866,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 .reseau-btn {
   display: inline-block;
   padding: 0.6rem 1.9rem;
-  border-radius: 0;   /* angles nets, cohérent avec le reste du site */
+  border-radius: var(--radius-pill);   /* angles nets, cohérent avec le reste du site */
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -909,7 +910,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 
 /* ===== NATHALIE (SECTION 2) ===== */
 #nathalie {
-  background: #EFEBE3;   /* greige chaud, plus clair et raffiné que le sable */
+  background: #F4F6FA;   /* greige chaud, plus clair et raffiné que le sable */
   padding: 8rem 6%;
 }
 .nathalie-grid {
@@ -1025,7 +1026,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 .une-intro { flex: 0 0 290px; }
 .une-desc { color: var(--gris); line-height: 1.7; margin: 1.1rem 0 2rem; font-size: .95rem; }
 .une-cta {
-  display: inline-block; background: var(--or); color: #2B2A26;
+  display: inline-block; background: var(--or); color: #192D56;
   padding: 1rem 1.7rem; font-family: var(--sans); font-size: .72rem;
   letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
   transition: background var(--transition);
@@ -1075,7 +1076,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
   transition: box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.55s ease;
   overflow: hidden;
   border: 1px solid var(--beige-dark);
-  border-radius: 0;
+  border-radius: var(--radius-card);
   box-shadow: none;
   position: relative;
   display: flex;
@@ -1083,7 +1084,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 }
 .bien-card-body { display: flex; flex-direction: column; flex: 1; }
 .bien-card-body .bien-card-footer { margin-top: auto; }
-.bien-card:hover { box-shadow: 0 26px 60px rgba(43,42,38,0.14); border-color: var(--beige); }
+.bien-card:hover { box-shadow: 0 26px 60px rgba(25,45,86,0.14); border-color: var(--beige); }
 
 .bien-card-img {
   position: relative;
@@ -1108,13 +1109,13 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(43,42,38,0.20) 0%, rgba(43,42,38,0) 42%);
+  background: linear-gradient(to top, rgba(25,45,86,0.20) 0%, rgba(25,45,86,0) 42%);
   opacity: 1;
   transition: opacity var(--transition), background var(--transition);
   pointer-events: none;
 }
 .bien-card:hover .bien-card-img::after {
-  background: linear-gradient(to top, rgba(124,138,110,0.42) 0%, rgba(124,138,110,0.04) 55%);
+  background: linear-gradient(to top, rgba(109,140,196,0.42) 0%, rgba(109,140,196,0.04) 55%);
 }
 .bien-card-discover {
   position: absolute;
@@ -1230,7 +1231,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 .bien-vg {
   display: inline-block;
   padding: 0.38rem 0.8rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   font-family: var(--sans);
   font-size: 0.6rem;
   font-weight: 600;
@@ -1238,10 +1239,10 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
   text-transform: uppercase;
   color: #fff;
   line-height: 1;
-  box-shadow: 0 2px 10px rgba(43,42,38,0.22);
+  box-shadow: 0 2px 10px rgba(25,45,86,0.22);
 }
-.vg-new       { background: #7C8A6E; }              /* nouveauté — sauge */
-.vg-exclu     { background: var(--or); color: #2B2A26; } /* exclusivité — sel doré */
+.vg-new       { background: #3A5A8F; }              /* nouveauté — sauge */
+.vg-exclu     { background: var(--or); color: #192D56; } /* exclusivité — sel doré */
 .vg-compromis { background: #B8731E; }              /* sous compromis */
 .vg-offre     { background: #C24D0C; }              /* offre d'achat en cours */
 .vg-baisse    { background: #D7281C; }              /* baisse de prix */
@@ -1664,7 +1665,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 6%; }
 #cta {
   /* Dégradé sombre local (plus de photo stock Unsplash externe : hors-sujet, dépendance
      externe, perf/confidentialité). Le doré ressort sur ce fond profond. */
-  background: radial-gradient(120% 120% at 50% 0%, #2E2C25 0%, #201E19 60%, #1A1814 100%);
+  background: radial-gradient(120% 120% at 50% 0%, #22396A 0%, #192D56 60%, #13213F 100%);
   text-align: center;
   padding: 10rem 6%;
   color: var(--white);
@@ -1982,7 +1983,7 @@ footer .footer-admin-block-wrap {
 /* ===== MODALS ===== */
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(43,42,38,0.85);
+  background: rgba(25,45,86,0.85);
   backdrop-filter: blur(8px);
   z-index: 5000;
   display: flex; align-items: center; justify-content: center;
@@ -2054,7 +2055,7 @@ footer .footer-admin-block-wrap {
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   border-color: var(--sauge);
   background: var(--white);
-  box-shadow: 0 0 0 3px rgba(124,138,110,0.18);
+  box-shadow: 0 0 0 3px rgba(109,140,196,0.18);
 }
 .form-textarea { resize: vertical; min-height: 100px; }
 textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--sans); }
@@ -2231,7 +2232,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   display: block;
   cursor: pointer;
   transition: opacity 0.25s ease;
-  border-radius: 0;
+  border-radius: 12px;
   background: var(--beige);
 }
 .fiche-gallery img:hover { opacity: 0.95; }
@@ -2561,7 +2562,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   align-items: center;
   gap: 0.45rem;
   padding: 0.45rem 0.9rem;
-  background: #FAF7F1;
+  background: #F4F6FA;
   color: var(--noir);
   font-size: 0.82rem;
   border-radius: 99px;
@@ -2606,7 +2607,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 .desc-prox-icon {
   width: 38px; height: 38px;
   flex-shrink: 0;
-  background: #FAF7F1;
+  background: #F4F6FA;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2660,7 +2661,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   height: 36px;
   flex-shrink: 0;
   color: var(--or);
-  background: #FAF7F1;
+  background: #F4F6FA;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2728,7 +2729,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   display: block;
   margin-top: 2.5rem;
   padding: 1.25rem 1.4rem;
-  background: #FAF7F1;
+  background: #F4F6FA;
   border-left: 3px solid var(--or);
   border-radius: 0 6px 6px 0;
   font-size: 0.78rem;
@@ -2895,7 +2896,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   outline: none;
   border-color: var(--sauge);
   background: var(--white);
-  box-shadow: 0 0 0 3px rgba(124,138,110,0.18);
+  box-shadow: 0 0 0 3px rgba(109,140,196,0.18);
 }
 .fiche-textarea {
   min-height: 90px;
@@ -2994,7 +2995,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
   padding: 0.55rem 1.1rem;
   cursor: pointer;
   transition: all 0.2s;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
 }
 .fiche-share-btn svg {
   width: 16px;
@@ -3145,7 +3146,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 .estimation-left {
   /* Photo LOCALE du port (plus de stock Unsplash externe) sous un voile sombre */
   background:
-    linear-gradient(rgba(43,42,38,0.68), rgba(43,42,38,0.82)),
+    linear-gradient(rgba(25,45,86,0.68), rgba(25,45,86,0.82)),
     url('hero.jpg') center/cover no-repeat;
   padding: 5rem 4rem;
   display: flex;
@@ -3341,9 +3342,9 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 .btn-edit:hover { background: var(--beige-dark); }
 
 /* Boutons de statut */
-.btn-exclu { background: #F6EFDD; color: #8F6E1E; border: 1px solid #E2CF9B; }
+.btn-exclu { background: #EAF0FA; color: #3A5A8F; border: 1px solid #C5D3EA; }
 .btn-exclu:hover { background: #EFE3C5; }
-.btn-exclu.active { background: #C9A24B; color: #fff; border-color: #C9A24B; }
+.btn-exclu.active { background: #6D8CC4; color: #fff; border-color: #6D8CC4; }
 .btn-compromis { background: #FFF4E0; color: #B8731E; border: 1px solid #F3CE8A; }
 .btn-compromis:hover { background: #F8DFB3; }
 .btn-compromis.active { background: #B8731E; color: #fff; border-color: #B8731E; }
@@ -3354,12 +3355,12 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 
 .btn-vendu { background: #E6F4EA; color: #1B7A3E; border: 1px solid #A8D5B8; }
 .btn-vendu:hover { background: #C9E8D4; }
-.btn-une { background: #EEF1E9; color: #5C6A4E; border: 1px solid #C7D0BA; }
+.btn-une { background: #EAF0FA; color: #3A5A8F; border: 1px solid #C5D3EA; }
 .btn-une:hover { background: #E3E9D9; }
-.btn-une.active { background: #7C8A6E; color: #fff; border-color: #7C8A6E; }
-.btn-new { background: #EEF1E9; color: #5C6A4E; border: 1px solid #C7D0BA; }
+.btn-une.active { background: #3A5A8F; color: #fff; border-color: #3A5A8F; }
+.btn-new { background: #EAF0FA; color: #3A5A8F; border: 1px solid #C5D3EA; }
 .btn-new:hover { background: #E3E9D9; }
-.btn-new.active { background: #7C8A6E; color: #fff; border-color: #7C8A6E; }
+.btn-new.active { background: #3A5A8F; color: #fff; border-color: #3A5A8F; }
 .btn-baisse { background: #FBE9E7; color: #B5271C; border: 1px solid #F0C6C1; }
 .btn-baisse:hover { background: #F7D8D4; }
 .btn-baisse.active { background: #D7281C; color: #fff; border-color: #D7281C; }
@@ -3384,7 +3385,7 @@ textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--san
 /* Modal édition bien */
 #modal-edit-bien {
   position: fixed; inset: 0;
-  background: rgba(43,42,38,0.85);
+  background: rgba(25,45,86,0.85);
   backdrop-filter: blur(8px);
   z-index: 6000;
   display: none;
@@ -3901,6 +3902,24 @@ button:focus-visible,
 .legal-title {
   font-style: normal;
 }
+
+/* ===== Charte « Bord de mer élégant » — finitions (voir DESIGN_SYSTEM.md) ===== */
+/* Boutons restants en pilule */
+.une-cta, .filter-btn, .filter-select, .fiche-submit-btn, .form-submit,
+.fiche-photos-btn, .confirm-btn, .biens-alerte, .biens-vue-toggle,
+.contact-zone { border-radius: var(--radius-pill); }
+/* Bouton bleu = texte marine (contraste AA, comme la charte) */
+.une-cta, .fiche-submit-btn, .form-submit { color: var(--noir); }
+/* Barre de recherche du hero : voile marine + coins arrondis */
+.hero-search { border-radius: var(--radius-card); background: rgba(19,33,63,0.38); }
+.hero-search-btn { border-radius: 0 15px 15px 0; color: var(--noir); }
+@media (max-width: 900px) {
+  .hero-search-btn { border-radius: 0 0 15px 15px; }
+  /* En colonne, la largeur prévue pour l'ordinateur devenait une hauteur (champs de 90 à 130px) */
+  .hero-search > *, #heroType, #heroVilleMS { flex: 0 0 auto; }
+}
+/* Pied de page en marine foncé, pour bien le détacher des sections marine */
+footer, .footer { background: var(--bg-deep); }
 </style>
 </head>
 <body>
@@ -5432,7 +5451,7 @@ button:focus-visible,
 /* Confirmation modale (remplace confirm()) */
 .confirm-overlay {
   position: fixed; inset: 0;
-  background: rgba(43,42,38,0.7);
+  background: rgba(25,45,86,0.7);
   backdrop-filter: blur(4px);
   z-index: 99998;
   display: none;
@@ -5605,8 +5624,8 @@ const defaultImgs = [
 // ne se charge pas — évite d'afficher une fausse villa à la place du vrai bien.
 var PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">' +
-  '<rect width="1200" height="800" fill="#E5DACB"/>' +
-  '<g fill="none" stroke="#7C8A6E" stroke-width="11" stroke-linejoin="round" stroke-linecap="round">' +
+  '<rect width="1200" height="800" fill="#E7ECF4"/>' +
+  '<g fill="none" stroke="#3A5A8F" stroke-width="11" stroke-linejoin="round" stroke-linecap="round">' +
   '<path d="M540 360 L600 308 L660 360"/><rect x="556" y="360" width="88" height="84"/>' +
   '<path d="M588 444 L588 402 L612 402 L612 444"/></g>' +
   '<text x="600" y="520" font-family="Georgia, serif" font-size="30" font-style="italic" fill="#8C8270" text-anchor="middle">Photo à venir</text>' +
@@ -6539,7 +6558,7 @@ function renderBiensMap() {
     L.marker(c).addTo(_leafletLayer).bindPopup(
       '<div class="biens-map-popup"><strong>' + (b.type||'Bien') + '</strong><br>' +
       (b.ville||'') + (b.surface ? ' · ' + b.surface + ' m²' : '') + '<br>' +
-      '<span style="color:#8F6E1E;font-weight:600;">' + prix + '</span><br>' +
+      '<span style="color:#3A5A8F;font-weight:600;">' + prix + '</span><br>' +
       '<a onclick="showFiche(' + (parseInt(b.id)||0) + ');return false;">Voir le bien →</a></div>');
   });
   setTimeout(function(){ _leafletMap.invalidateSize(); if (bounds.length) _leafletMap.fitBounds(bounds, { padding: [40,40], maxZoom: 13 }); }, 120);
@@ -7170,7 +7189,7 @@ function buildDPEHtml(b) {
         body += '<polygon points="' + pts + '" fill="' + colors[c] + '"' + stroke + '/>';
       }
       var light = rounded && (c === 'A' || c === 'B' || c === 'C');
-      var tCol = light ? '#2b2a26' : '#fff';
+      var tCol = light ? '#192D56' : '#fff';
       var fs = isA ? 22 : 13;
       var tx = rounded ? (w / 2) : 13;
       var anchor = rounded ? 'middle' : 'start';
