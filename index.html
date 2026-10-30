@@ -4589,6 +4589,16 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   .vendus-card { flex: 0 0 240px; }
 }
 
+/* ---------- Me connaître : duo mère-fille ---------- */
+.cb-photo.arch { border-radius: 999px 999px 18px 18px / 46% 46% 18px 18px; aspect-ratio: 4 / 5; }
+.cb-photo.arch img { object-position: center 22%; }
+.duo-ico { width: 52px; height: 52px; border-radius: 50%; background: var(--light-bg); display: flex; align-items: center; justify-content: center; color: var(--noir); margin-bottom: 18px; }
+.duo-ico svg { width: 22px; height: 22px; }
+.cb-section.light .duo-card .duo-ico { background: var(--light-bg); }
+@media (max-width: 620px) {
+  .cb-photo.arch { aspect-ratio: 4 / 4.4; border-radius: 999px 999px 18px 18px / 42% 42% 18px 18px; }
+}
+
 /* Utilitaires */
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -5336,7 +5346,8 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <span class="cb-kicker">Pas encore de coup de cœur ?</span>
       <h2 class="cb-h2">Confiez-moi votre recherche</h2>
       <p class="cb-lead">Certains biens se vendent avant d'être publiés. Dites-moi ce que vous cherchez : je vous préviens en priorité dès qu'un bien correspond.</p>
-      <div class="cb-actions"><button class="cb-btn" onclick="ouvrirCriteres()">Définir mes critères d'achat</button></div>
+      <div class="cb-actions"><button class="cb-btn" onclick="ouvrirCriteres()">Définir mes critères d'achat</button><a class="cb-btn ghost" href="https://lacabane-immo.com/#acheter" target="_blank" rel="noopener">Voir aussi les biens de Manon</a></div>
+      <p class="cb-note" style="font-style:normal;">Je travaille en duo avec ma fille Manon Morel (La Cabane Immobilière) : sa sélection complète la mienne.</p>
     </div>
   </section>
 </div>
@@ -5470,13 +5481,54 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 <div id="page-apropos" class="page">
   <section class="cb-hero is-light">
     <div class="cb-wrap cb-split">
-      <div class="cb-photo"><img src="nathalie-portail.jpg" alt="Nathalie Chaudet Morel, mandataire immobilier 3G Immobilier au Pouliguen" loading="lazy" decoding="async"></div>
+      <div class="cb-photo arch"><img src="nathalie-portail.jpg" alt="Nathalie Chaudet Morel, mandataire immobilier 3G Immobilier au Pouliguen" loading="lazy" decoding="async"></div>
       <div>
         <span class="cb-kicker">Me connaître</span>
         <h1 class="cb-h1">Passionnée par la presqu'île, <span class="cb-accent">dédiée à vos projets</span></h1>
         <p class="cb-lead">Je suis Nathalie Chaudet Morel, mandataire immobilier 3G Immobilier. Je suis spécialisée dans l'accompagnement de transactions immobilières sereines et maîtrisées.</p>
         <p class="cb-lead" style="margin-top:14px;">Basée au Pouliguen, j'interviens également sur les secteurs de La Baule, Pornichet, Batz-sur-Mer, Guérande, Saint-Nazaire et les communes environnantes.</p>
         <div class="cb-actions"><button class="cb-btn" onclick="showPage('contact')">Me contacter</button><button class="cb-btn ghost" onclick="showPage('estimation')">Estimer mon bien</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DUO MÈRE-FILLE (demandé par Manon Morel) -->
+  <section class="cb-section lined" id="duo">
+    <div class="cb-wrap cb-split">
+      <div class="cb-photo arch"><img src="manon-morel.jpg" alt="Manon Morel, conseillère immobilier sur la presqu'île guérandaise, fille de Nathalie Chaudet Morel" loading="lazy" decoding="async" width="800" height="1195"></div>
+      <div>
+        <span class="cb-kicker">Un duo mère-fille</span>
+        <h2 class="cb-h2">Je travaille en binôme avec ma fille, Manon Morel.</h2>
+        <p class="cb-lead">Manon est conseillère immobilier sur la presqu'île guérandaise, avec sa propre enseigne, La Cabane Immobilière. Mon expérience du terrain, associée à son énergie et à son regard neuf, nous permet de vous offrir un accompagnement complet, attentif et de confiance.</p>
+        <p class="cb-lead" style="margin-top:14px;">Deux regards complémentaires, un même engagement : défendre votre projet comme si c'était le nôtre.</p>
+        <div class="cb-actions"><a class="cb-btn" href="https://lacabane-immo.com/" target="_blank" rel="noopener">Découvrir le site de Manon</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cb-section light" id="duo-atouts">
+    <div class="cb-wrap">
+      <span class="cb-kicker">Ensemble</span>
+      <h2 class="cb-h2">Les atouts de notre duo</h2>
+      <div class="cb-grid g3">
+        <div class="cb-card duo-card"><span class="duo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><h3 class="cb-h3">Deux regards sur chaque dossier</h3><p>Nous analysons votre bien à deux, pour une estimation plus fiable et une lecture plus juste de ses points forts comme de ses points faibles.</p></div>
+        <div class="cb-card duo-card"><span class="duo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><h3 class="cb-h3">Toujours une interlocutrice disponible</h3><p>Si l'une est en rendez-vous, l'autre vous répond. Votre projet n'attend jamais.</p></div>
+        <div class="cb-card duo-card"><span class="duo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></span><h3 class="cb-h3">Une relation de confiance familiale</h3><p>Vous traitez avec une petite structure soudée, où chaque client compte, et non avec une grande agence anonyme.</p></div>
+        <div class="cb-card duo-card"><span class="duo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span><h3 class="cb-h3">L'expérience et l'énergie</h3><p>Une vingtaine d'années de terrain sur la presqu'île d'un côté, un regard neuf et une vraie aisance avec les outils digitaux de l'autre.</p></div>
+        <div class="cb-card duo-card"><span class="duo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><h3 class="cb-h3">Le réseau de l'une, la visibilité de l'autre</h3><p>Davantage d'acheteurs potentiels, rencontrés en direct comme en ligne.</p></div>
+        <div class="cb-card duo-card"><span class="duo-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><h3 class="cb-h3">Une double diffusion</h3><p>Votre bien profite de deux réseaux, donc de deux fichiers d'acquéreurs, et d'une visibilité à l'échelle nationale.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cb-section cb-center" id="duo-renvoi">
+    <div class="cb-wrap narrow">
+      <span class="cb-kicker">Vous ne trouvez pas votre bien ?</span>
+      <h2 class="cb-h2">Découvrez aussi la sélection de Manon</h2>
+      <p class="cb-lead">Manon propose d'autres biens sur la presqu'île guérandaise. Si vous ne trouvez pas votre bonheur ici, sa sélection complète la mienne.</p>
+      <div class="cb-actions">
+        <a class="cb-btn" href="https://lacabane-immo.com/#acheter" target="_blank" rel="noopener">Voir les biens de La Cabane Immobilière</a>
+        <button class="cb-btn ghost" onclick="ouvrirCriteres()">Me confier ma recherche</button>
       </div>
     </div>
   </section>
@@ -7633,7 +7685,9 @@ function renderBiensGrid() {
   if (filtered.length) {
     filtered.forEach(function(b) { grid.appendChild(bienCardHTML(b)); });
   } else {
-    grid.innerHTML = '<p style="padding:3rem;color:var(--gris);grid-column:1/-1">Aucun bien correspondant à votre recherche.</p>';
+    grid.innerHTML = '<p style="padding:3rem;color:var(--gris);grid-column:1/-1">Aucun bien correspondant à votre recherche. ' +
+      'Découvrez aussi <a href="https://lacabane-immo.com/#acheter" target="_blank" rel="noopener" style="color:var(--or-fonce);text-decoration:underline;">les biens de Manon Morel</a>, ' +
+      'ou <a href="#" onclick="creerAlerte();return false;" style="color:var(--or-fonce);text-decoration:underline;">confiez-moi votre recherche</a>.</p>';
   }
   observeFadeIns();
   if (_carteVisible) renderBiensMap();  // maj carte si ouverte
