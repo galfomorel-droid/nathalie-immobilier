@@ -4599,6 +4599,10 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   .cb-photo.arch { aspect-ratio: 4 / 4.4; border-radius: 999px 999px 18px 18px / 42% 42% 18px 18px; }
 }
 
+/* Hero accueil : seul « Presqu'île guérandaise » au-dessus de la recherche */
+.hero-tag { margin-bottom: 2.2rem; text-shadow: 0 1px 14px rgba(19,36,74,.55); }
+@media (max-width: 620px) { .hero-tag { letter-spacing: .3em; font-size: .72rem; } }
+
 /* Utilitaires */
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -4658,9 +4662,9 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   <section id="hero">
     <div class="hero-bg" id="heroBg"></div>
     <div class="hero-content" id="heroContent">
+      <!-- Titre lu par Google (invisible à l'écran) : seul « Presqu'île guérandaise » s'affiche, comme sur La Cabane -->
+      <h1 class="sr-only">Côté Presqu'île — Nathalie Chaudet Morel, agent immobilier au Pouliguen et sur la presqu'île guérandaise : maisons, villas et appartements à vendre</h1>
       <div class="hero-tag">Presqu'île guérandaise</div>
-      <h1 class="hero-title">Côté Presqu'île<span class="sr-only"> — Nathalie Chaudet Morel, agent immobilier au Pouliguen et sur la presqu'île guérandaise</span></h1>
-      <p class="hero-sub">Maisons, villas et appartements au Pouliguen, à La Baule, Guérande et sur toute la presqu'île.</p>
       <form class="hero-search" onsubmit="lancerRechercheHero();return false;">
         <span class="hero-search-kind" aria-hidden="true">Acheter</span>
         <select id="heroType" class="hero-search-field">
