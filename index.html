@@ -4653,6 +4653,25 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 .hero-brand-nameimg { display: block; width: clamp(190px, 20vw, 280px); height: auto; margin-top: 14px; filter: drop-shadow(0 2px 14px rgba(19,36,74,.45)); }
 @media (max-width: 620px) { .hero-brand-nameimg { width: 170px; } }
 
+/* Fiche : favoris / fiche PDF / partager juste sous les photos (comme La Cabane) */
+.fiche-actions-bar { max-width: 1400px; margin: 14px auto 0; padding: 0 1.5%; display: flex; }
+.fiche-actions-bar .fiche-share-wrap { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.fiche-actions-bar .fiche-share-btn { text-transform: none; letter-spacing: 0; font-size: .85rem; font-weight: 400; color: var(--noir);
+  background: #fff; border: 1px solid var(--line-c); padding: .62rem 1.15rem; width: auto; height: auto; }
+.fiche-actions-bar .fiche-share-btn:hover { border-color: var(--noir); background: #fff; }
+.fiche-actions-bar .fiche-share-btn span { display: inline; }
+.fiche-actions-bar .fiche-share-btn .lbl-sm { display: none; }
+.fiche-actions-bar .fiche-share-btn.share-only { width: 42px; height: 42px; padding: 0; justify-content: center; }
+.fiche-actions-bar .fiche-share-btn.share-only span { display: none; }
+.fiche-actions-bar .fiche-share-menu { left: auto; right: 0; }
+@media (max-width: 700px) {
+  .fiche-actions-bar { padding: 0 5%; }
+  .fiche-actions-bar .fiche-share-btn { font-size: .8rem; padding: .55rem .9rem; }
+  .fiche-actions-bar .fiche-share-btn .lbl-lg { display: none; }
+  .fiche-actions-bar .fiche-share-btn .lbl-sm { display: inline; }
+  .fiche-actions-bar .fiche-share-btn.share-only { width: 40px; height: 40px; padding: 0; }
+}
+
 /* Utilitaires */
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -5413,20 +5432,19 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 <div id="page-fiche" class="page">
   <div class="fiche-toolbar">
     <button class="back-btn" onclick="goBack()">← Retour<span class="hide-sm"> aux biens</span></button>
+  </div>
+  <div class="fiche-gallery" id="ficheGallery"></div>
+  <div class="fiche-actions-bar">
     <div class="fiche-share-wrap">
       <button type="button" class="fiche-share-btn fiche-fav" id="ficheFavBtn" onclick="if(window._bienAffiche){toggleFav(window._bienAffiche.id, event);}" aria-label="Ajouter ce bien à mes favoris">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
-        <span>Favori</span>
+        <span class="lbl-lg">Ajouter aux favoris</span><span class="lbl-sm">Favori</span>
       </button>
       <button type="button" class="fiche-share-btn" id="ficheBtnPdf" onclick="telechargerFichePDF()" aria-label="Télécharger la fiche en PDF">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span>Fiche PDF</span>
       </button>
-      <button type="button" class="fiche-share-btn" onclick="window.print()" aria-label="Imprimer la fiche">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        <span>Imprimer</span>
-      </button>
-      <button class="fiche-share-btn" onclick="toggleShareMenu(event)" aria-label="Partager ce bien" aria-expanded="false">
+      <button class="fiche-share-btn share-only" onclick="toggleShareMenu(event)" aria-label="Partager ce bien" aria-expanded="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="18" cy="5" r="3"/>
           <circle cx="6" cy="12" r="3"/>
@@ -5460,7 +5478,6 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       </div>
     </div>
   </div>
-  <div class="fiche-gallery" id="ficheGallery"></div>
   <div class="fiche-body">
     <div>
       <div id="ficheBadge"></div>
@@ -9560,7 +9577,8 @@ function favMajUI() {
   if (fb && window._bienAffiche) {
     var on2 = estFavori(window._bienAffiche.id);
     fb.classList.toggle('on', on2);
-    var s = fb.querySelector('span'); if (s) s.textContent = on2 ? 'Dans mes favoris' : 'Favori';
+    var lg = fb.querySelector('.lbl-lg'); if (lg) lg.textContent = on2 ? 'Dans mes favoris' : 'Ajouter aux favoris';
+    var sm = fb.querySelector('.lbl-sm'); if (sm) sm.textContent = 'Favori';
   }
 }
 function renderFavoris() {
