@@ -4672,6 +4672,15 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   .fiche-actions-bar .fiche-share-btn.share-only { width: 40px; height: 40px; padding: 0; }
 }
 
+/* Pied de page : crédit du créateur du site, à droite */
+.ft-bottom-left { display: flex; flex-direction: column; gap: 10px; }
+.ft-credit { margin-left: auto; color: rgba(255,255,255,.6); text-align: right; white-space: nowrap; }
+.ft-credit:hover { color: #fff; }
+@media (max-width: 720px) {
+  .ft-bottom-left { align-items: center; }
+  .ft-credit { margin: 6px auto 0; text-align: center; }
+}
+
 /* Utilitaires */
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -6603,6 +6612,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
     </div>
   </div>
   <div class="ft-bottom">
+    <div class="ft-bottom-left">
     <span>© 2026 Nathalie Chaudet Morel — Mandataire du réseau 3G Immobilier — SIRET 75347891600046</span>
     <div class="ft-legal">
       <a onclick="showLegal('mentions')">Mentions légales</a>
@@ -6612,6 +6622,8 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <a onclick="showLegal('cookies-info')">Cookies</a>
       <a onclick="openModal('modal-admin')" role="button" tabindex="0" onkeypress="if(event.key==='Enter'){openModal('modal-admin')}">Espace pro</a>
     </div>
+    </div>
+    <a class="ft-credit" href="https://www.creationsiteimmobilier.fr/" target="_blank" rel="noopener">Site créé par creationsiteimmobilier</a>
   </div>
 </footer>
 
