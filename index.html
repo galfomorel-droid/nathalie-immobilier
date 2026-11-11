@@ -4681,6 +4681,14 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
   .ft-credit { margin: 6px auto 0; text-align: center; }
 }
 
+/* Logo unique (dessin + nom + IMMOBILIER) */
+.hero-logo { display: block; width: clamp(260px, 29vw, 420px); height: auto; }
+.ft-logo-full { display: block; width: 300px; max-width: 80%; height: auto; margin: 0 auto 6px; }
+@media (max-width: 620px) {
+  .hero-logo { width: 250px; }
+  .ft-logo-full { width: 240px; }
+}
+
 /* Utilitaires */
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -4742,9 +4750,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
       <!-- Titre lu par Google (invisible à l'écran) : seul « Presqu'île guérandaise » s'affiche, comme sur La Cabane -->
       <h1 class="sr-only">Côté Presqu'île — Nathalie Chaudet Morel, agent immobilier au Pouliguen et sur la presqu'île guérandaise : maisons, villas et appartements à vendre</h1>
       <div class="hero-brand" aria-hidden="true">
-        <img class="hero-brand-mark" src="logo-cote-presquile-blanc.png" alt="" width="560" height="218" fetchpriority="high">
-        <img class="hero-brand-nameimg" src="logo-nom-blanc.png" alt="" width="900" height="300" fetchpriority="high">
-        <div class="hero-brand-sub"><span>Nathalie Chaudet Morel</span><span class="sep"> · </span><span>Presqu'île guérandaise</span></div>
+        <img class="hero-logo" src="logo-complet-blanc.png" alt="" width="941" height="648" fetchpriority="high">
       </div>
       <form class="hero-search" onsubmit="lancerRechercheHero();return false;">
         <span class="hero-search-kind" aria-hidden="true">Acheter</span>
@@ -6582,7 +6588,7 @@ footer#site-footer { background: var(--navy-deep); color: #fff; padding: 80px 0 
 
 <!-- ===== FOOTER ===== -->
 <footer id="site-footer">
-  <div class="ft-logo"><img class="ft-logo-img" src="logo-cote-presquile-blanc.png" alt="Logo Côté Presqu'île" width="560" height="218" loading="lazy"><img class="ft-logo-word" src="logo-texte-blanc.png" alt="Côté Presqu'île Immobilier" width="700" height="282" loading="lazy"><div class="s">Nathalie Chaudet Morel · Presqu'île guérandaise</div></div>
+  <div class="ft-logo"><img class="ft-logo-full" src="logo-complet-blanc.png" alt="Logo Côté Presqu'île Immobilier" width="941" height="648" loading="lazy"><div class="s">Nathalie Chaudet Morel · Presqu'île guérandaise</div></div>
   <div class="ft-cols">
     <div>
       <h4>Mes services</h4>
